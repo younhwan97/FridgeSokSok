@@ -6,8 +6,9 @@ import com.yh.fridgesoksok.domain.model.SummaryFood
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class FoodRepositoryImpl(
+class FoodRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) : FoodRepository {
 

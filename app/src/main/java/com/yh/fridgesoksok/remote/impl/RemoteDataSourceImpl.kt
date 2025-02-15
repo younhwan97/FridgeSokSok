@@ -3,8 +3,9 @@ package com.yh.fridgesoksok.remote.impl
 import com.yh.fridgesoksok.data.model.SummaryFoodEntity
 import com.yh.fridgesoksok.data.remote.RemoteDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
+import javax.inject.Inject
 
-class RemoteDataSourceImpl(
+class RemoteDataSourceImpl @Inject constructor(
     private val fridgeApiService: FridgeApiService
 ) : RemoteDataSource {
 
