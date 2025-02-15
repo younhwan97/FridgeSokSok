@@ -8,7 +8,7 @@ data class SummaryFoodResponse(
     val name: String,
     val startDt: String,
     val endDt: String,
-    val foodImageUrl: String,
+    val foodImageUrl: String
 ) : RemoteMapper<SummaryFoodEntity> {
     override fun toData() = SummaryFoodEntity(id, name, startDt, endDt, foodImageUrl)
 }
