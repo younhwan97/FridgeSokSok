@@ -6,6 +6,34 @@
       "startDt": "20250211",
       "endDt": "20250227",
       "foodImageUrl": ""
+    },
+    {
+      "id": 1,
+      "name": "오리",
+      "startDt": "20250211",
+      "endDt": "20250227",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 2,
+      "name": "두부",
+      "startDt": "20250211",
+      "endDt": "20250301",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 3,
+      "name": "마늘",
+      "startDt": "20250211",
+      "endDt": "20250302",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 4,
+      "name": "치킨",
+      "startDt": "20250211",
+      "endDt": "20250302",
+      "foodImageUrl": ""
     }
   ]
 }

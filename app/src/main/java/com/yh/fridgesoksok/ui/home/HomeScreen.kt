@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.yh.fridgesoksok.domain.model.Food
+import com.yh.fridgesoksok.ui.list.FoodListScreen
 import com.yh.fridgesoksok.ui.theme.CustomBackGroundColor
 import com.yh.fridgesoksok.ui.theme.CustomPrimaryColor
 import com.yh.fridgesoksok.ui.theme.CustomTextColor
@@ -78,7 +80,7 @@ fun HomeScreen() {
             ,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("hello")
+            FoodListScreen()
         }
     }
 }
