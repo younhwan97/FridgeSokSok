@@ -60,6 +60,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // AndroidX
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation)
+
     // DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

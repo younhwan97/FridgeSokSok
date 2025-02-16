@@ -9,12 +9,13 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
 composeBom = "2024.04.01"
 
+# AndroidX
+androidx-navigation = "2.8.3"
 # KSP
 ksp = "2.1.0-1.0.29"
-
 # DI
+hilt = "1.2.0"
 dagger = "2.51.1"
-
 # Netwrok
 glide = "4.12.0"
 okhttp = "4.12.0"
@@ -37,10 +38,12 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+# AndroidX
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
+androidx-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }
 # DI
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "dagger" }
-
 # Network
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
@@ -54,6 +57,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 
 # KSP
 kotlin-android-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-
 # DI
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
