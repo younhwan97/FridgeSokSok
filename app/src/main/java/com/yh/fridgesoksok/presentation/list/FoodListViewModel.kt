@@ -1,9 +1,11 @@
 package com.yh.fridgesoksok.presentation.list
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.GetSummaryFoodListUseCase
+import com.yh.fridgesoksok.domain.usecase.GetUserTokenUseCase
 import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FoodListViewModel @Inject constructor(
-    private val getSummaryFoodListUseCase: GetSummaryFoodListUseCase
+    private val getSummaryFoodListUseCase: GetSummaryFoodListUseCase,
+    private val getUserTokenUseCase: GetUserTokenUseCase
 ) : ViewModel() {
 
     private val _summaryFoods = MutableStateFlow<List<SummaryFoodModel>>(emptyList())
@@ -23,6 +26,8 @@ class FoodListViewModel @Inject constructor(
 
     init {
         loadFoods()
+
+        getUserToken()
     }
 
     private fun loadFoods() {
@@ -40,6 +45,25 @@ class FoodListViewModel @Inject constructor(
                     _summaryFoods.value = result.data!!.map { it.toPresentation() }
                 }
             }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getUserToken() {
+        getUserTokenUseCase().onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    //
+                }
+
+                is Resource.Error -> {
+                    //
+                }
+
+                is Resource.Success -> {
+                    Log.e("test", result.data ?: "error")
+                }
+            }
+
         }.launchIn(viewModelScope)
     }
 }
