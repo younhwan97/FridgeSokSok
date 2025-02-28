@@ -27,8 +27,8 @@ class MainActivity : ComponentActivity() {
                         OnboardingScreen(navController)
                     }
 
-                    composable(route = Screen.FoodListScreen.route) {
-                        FoodListScreen()
+                    composable(route = Screen.HomeScreen.route){
+                        HomeScreen()
                     }
                 }
             }

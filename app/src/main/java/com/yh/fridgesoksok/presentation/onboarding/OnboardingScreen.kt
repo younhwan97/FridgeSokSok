@@ -42,7 +42,7 @@ fun OnboardingScreen(
         if (userToken.isBlank()){
 
         } else {
-            navController.navigate(route = Screen.FoodListScreen.route)
+            navController.navigate(route = Screen.HomeScreen.route)
         }
     }
 }
