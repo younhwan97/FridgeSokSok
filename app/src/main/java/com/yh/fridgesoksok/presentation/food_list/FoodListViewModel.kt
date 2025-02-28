@@ -16,8 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FoodListViewModel @Inject constructor(
-    private val getSummaryFoodListUseCase: GetSummaryFoodListUseCase,
-    private val getUserTokenUseCase: GetUserTokenUseCase
+    private val getSummaryFoodListUseCase: GetSummaryFoodListUseCase
 ) : ViewModel() {
 
     private val _summaryFoods = MutableStateFlow<List<SummaryFoodModel>>(emptyList())
@@ -25,8 +24,6 @@ class FoodListViewModel @Inject constructor(
 
     init {
         loadFoods()
-
-        getUserToken()
     }
 
     private fun loadFoods() {
@@ -46,6 +43,4 @@ class FoodListViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-
-    private fun getUserToken() = getUserTokenUseCase()
 }

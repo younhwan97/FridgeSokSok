@@ -73,4 +73,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.gson)
+
+    // Lottie
+    implementation(libs.lottie)
 }

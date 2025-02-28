@@ -4,7 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
+import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,7 +20,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             FridgeSokSokTheme {
-                HomeScreen()
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = Screen.OnboardingScreen.route) {
+                    composable(route = Screen.OnboardingScreen.route) {
+                        OnboardingScreen(navController)
+                    }
+
+                    composable(route = Screen.FoodListScreen.route) {
+                        FoodListScreen()
+                    }
+                }
             }
         }
     }
