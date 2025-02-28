@@ -7,5 +7,5 @@ interface UserRepository {
 
     fun getUserToken(): String?
 
-    fun login(): Flow<Resource<String>>
+    fun login(loginMethod: Int): Flow<Resource<String>>
 }

@@ -7,7 +7,7 @@ class LoginUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
 
-    operator fun invoke() {
+    operator fun invoke(loginMethod: Int) =
+        userRepository.login(loginMethod = loginMethod)
 
-    }
 }

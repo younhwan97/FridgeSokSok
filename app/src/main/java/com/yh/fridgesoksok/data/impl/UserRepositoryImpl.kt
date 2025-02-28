@@ -16,7 +16,7 @@ class UserRepositoryImpl @Inject constructor(
     override fun getUserToken() =
         localUserDataSource.getUserToken()
 
-    override fun login(): Flow<Resource<String>> = flow {
+    override fun login(loginMethod: Int): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
             //val foods = remoteUserDataSource.()

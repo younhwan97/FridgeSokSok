@@ -76,4 +76,8 @@ dependencies {
 
     // Lottie
     implementation(libs.lottie)
+
+    // Kakao
+    implementation(libs.kakao.auth)
+    implementation(libs.kakao.user)
 }
