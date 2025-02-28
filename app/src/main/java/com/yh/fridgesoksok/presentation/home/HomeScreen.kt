@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.ui.home
+package com.yh.fridgesoksok.presentation.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,14 +21,11 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.yh.fridgesoksok.domain.model.Food
-import com.yh.fridgesoksok.ui.list.FoodListScreen
-import com.yh.fridgesoksok.ui.theme.CustomBackGroundColor
-import com.yh.fridgesoksok.ui.theme.CustomPrimaryColor
-import com.yh.fridgesoksok.ui.theme.CustomTextColor
+import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
+import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
+import com.yh.fridgesoksok.presentation.theme.CustomTextColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

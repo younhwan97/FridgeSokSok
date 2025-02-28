@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.ui.list
+package com.yh.fridgesoksok.presentation.food_list
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
@@ -7,17 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.yh.fridgesoksok.domain.model.SummaryFood
-import com.yh.fridgesoksok.presentation.list.FoodListViewModel
 import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
 
 @SuppressLint("StateFlowValueCalledInComposition")

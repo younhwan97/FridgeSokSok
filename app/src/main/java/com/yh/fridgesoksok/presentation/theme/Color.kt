@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.ui.theme
+package com.yh.fridgesoksok.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

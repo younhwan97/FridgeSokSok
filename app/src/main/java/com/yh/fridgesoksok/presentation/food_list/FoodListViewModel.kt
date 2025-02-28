@@ -1,6 +1,5 @@
-package com.yh.fridgesoksok.presentation.list
+package com.yh.fridgesoksok.presentation.food_list
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -48,22 +47,5 @@ class FoodListViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun getUserToken() {
-        getUserTokenUseCase().onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    //
-                }
-
-                is Resource.Error -> {
-                    //
-                }
-
-                is Resource.Success -> {
-                    Log.e("test", result.data ?: "error")
-                }
-            }
-
-        }.launchIn(viewModelScope)
-    }
+    private fun getUserToken() = getUserTokenUseCase()
 }

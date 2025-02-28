@@ -1,11 +1,11 @@
-package com.yh.fridgesoksok.ui
+package com.yh.fridgesoksok.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.yh.fridgesoksok.ui.home.HomeScreen
-import com.yh.fridgesoksok.ui.theme.FridgeSokSokTheme
+import com.yh.fridgesoksok.presentation.home.HomeScreen
+import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

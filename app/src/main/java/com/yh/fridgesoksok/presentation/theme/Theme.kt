@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.ui.theme
+package com.yh.fridgesoksok.presentation.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
