@@ -8,5 +8,7 @@ interface UserRepository {
 
     fun getUserToken(): String?
 
+    fun setUserToken(token: String): Unit
+
     fun createUserToken(channel: Channel): Flow<Resource<String>>
 }

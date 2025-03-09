@@ -17,6 +17,10 @@ class UserRepositoryImpl @Inject constructor(
     override fun getUserToken() =
         localUserDataSource.getUserToken()
 
+    override fun setUserToken(token: String) =
+        localUserDataSource.setUserToken(token = token)
+
+
     override fun createUserToken(channel: Channel): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {

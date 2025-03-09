@@ -10,14 +10,17 @@ class LocalUserDataSourceImpl @Inject constructor(
 ) : LocalUserDataSource {
 
     override fun getUserToken(): String? {
-        val spf : SharedPreferences = context.getSharedPreferences("user_token", Context.MODE_PRIVATE)
-
-        //val edit = spf.edit()
-        //edit.putString("token", "999999999994")
-        //edit.apply()
-
+        val spf: SharedPreferences =
+            context.getSharedPreferences("user_token", Context.MODE_PRIVATE)
         val value = spf.getString("token", "")
-
         return value
+    }
+
+    override fun setUserToken(token: String) {
+        val spf: SharedPreferences =
+            context.getSharedPreferences("user_token", Context.MODE_PRIVATE)
+        val edit = spf.edit()
+        edit.putString("token", token)
+        edit.apply()
     }
 }
