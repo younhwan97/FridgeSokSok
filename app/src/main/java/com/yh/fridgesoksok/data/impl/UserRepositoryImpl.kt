@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.data.impl
 
+import android.util.Log
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
@@ -19,9 +20,9 @@ class UserRepositoryImpl @Inject constructor(
     override fun login(loginMethod: Int): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
-            //val foods = remoteUserDataSource.()
-            //val domainFoods = foods.map { it.toDomain() }
-            //emit(Resource.Success(domainFoods))
+            Log.d("test", "test2")
+            val userId = remoteUserDataSource.login()
+            emit(Resource.Success(userId))
         } catch (exception: Exception) {
             // emit(Resource.Error(exception ?: "error"))
         }

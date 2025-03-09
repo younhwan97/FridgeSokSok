@@ -1,10 +1,16 @@
 package com.yh.fridgesoksok.remote.api
 
+import android.content.ContentValues.TAG
+import android.content.Context
 import android.util.Log
 import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.user.UserApiClient
 
-class KakaoApiService {
+class KakaoApiService(
+    private val context: Context
+) {
 
     suspend fun createKakaoToken() {
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->

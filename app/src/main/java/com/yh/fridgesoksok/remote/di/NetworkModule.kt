@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.remote.di
 
 import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
+import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.MockApiService
 import dagger.Module
 import dagger.Provides
@@ -21,4 +22,11 @@ internal object NetworkModule {
     fun provideFridgeApiService(
         @ApplicationContext context: Context
     ) : FridgeApiService = MockApiService(context)
+
+    // Kakao Api SERVER
+    @Provides
+    @Singleton
+    fun provideKakaoApiService(
+        @ApplicationContext context: Context
+    ) : KakaoApiService = KakaoApiService(context)
 }

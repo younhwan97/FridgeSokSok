@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
+import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,6 +30,10 @@ class MainActivity : ComponentActivity() {
 
                     composable(route = Screen.HomeScreen.route){
                         HomeScreen()
+                    }
+
+                    composable(route = Screen.LoginScreen.route) {
+                        LoginScreen(navController)
                     }
                 }
             }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,11 @@ plugins {
     alias(libs.plugins.kotlin.android.ksp)
     alias(libs.plugins.hilt.android)
 }
+
+// local.properties 사용을 위함
+val properties = Properties()
+properties.load(project.rootProject.file("local.properties").inputStream())
+val kakaoApikey = properties.getProperty("KAKAO_API_KEY") ?: ""
 
 android {
     namespace = "com.yh.fridgesoksok"
@@ -19,6 +26,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // KAKAO API KEY
+        buildConfigField("String", "KAKAO_API_KEY", kakaoApikey)
+        manifestPlaceholders["KAKAO_API_KEY"] = kakaoApikey
     }
 
     buildTypes {
@@ -39,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -80,4 +92,5 @@ dependencies {
     // Kakao
     implementation(libs.kakao.auth)
     implementation(libs.kakao.user)
+    implementation(libs.kakao.all)
 }
