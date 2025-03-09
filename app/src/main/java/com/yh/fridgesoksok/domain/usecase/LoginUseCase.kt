@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.domain.usecase
 
+import com.yh.fridgesoksok.common.LoginMethod
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import javax.inject.Inject
 
@@ -7,7 +8,7 @@ class LoginUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
 
-    operator fun invoke(loginMethod: Int) =
+    operator fun invoke(loginMethod: LoginMethod) =
         userRepository.login(loginMethod = loginMethod)
 
 }

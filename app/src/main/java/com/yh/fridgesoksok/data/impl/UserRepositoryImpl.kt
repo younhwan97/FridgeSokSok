@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.data.impl
 
+import com.yh.fridgesoksok.common.LoginMethod
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
@@ -17,10 +18,10 @@ class UserRepositoryImpl @Inject constructor(
     override fun getUserToken() =
         localUserDataSource.getUserToken()
 
-    override fun login(loginMethod: Int): Flow<Resource<String>> = flow {
+    override fun login(loginMethod: LoginMethod): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
-            val token = remoteUserDataSource.login()
+            val token = remoteUserDataSource.login(loginMethod)
             emit(Resource.Success(token))
         } catch (exception: Exception) {
             //emit(Resource.Error(exception ?: "error"))
