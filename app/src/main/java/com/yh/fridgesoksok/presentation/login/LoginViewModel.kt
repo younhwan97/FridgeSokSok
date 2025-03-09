@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.GetUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.LoginUseCase
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val getUserTokenUseCase: GetUserTokenUseCase
 ) : ViewModel() {
 
     init {
@@ -24,15 +26,12 @@ class LoginViewModel @Inject constructor(
         loginUseCase(0).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
-                    //
                 }
 
                 is Resource.Error -> {
-                    //
                 }
 
                 is Resource.Success -> {
-
                 }
             }
         }.launchIn(viewModelScope)

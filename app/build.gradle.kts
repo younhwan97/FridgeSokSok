@@ -12,7 +12,6 @@ plugins {
 // local.properties 사용을 위함
 val properties = Properties()
 properties.load(project.rootProject.file("local.properties").inputStream())
-val kakaoApikey = properties.getProperty("KAKAO_API_KEY") ?: ""
 
 android {
     namespace = "com.yh.fridgesoksok"
@@ -28,8 +27,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // KAKAO API KEY
-        buildConfigField("String", "KAKAO_API_KEY", kakaoApikey)
-        manifestPlaceholders["KAKAO_API_KEY"] = kakaoApikey
+        buildConfigField("String", "KAKAO_API_KEY", properties.getProperty("KAKAO_API_KEY"))
+        manifestPlaceholders["KAKAO_API_KEY"] = properties.getProperty("KAKAO_API_KEY_NO_QUOTES")
     }
 
     buildTypes {

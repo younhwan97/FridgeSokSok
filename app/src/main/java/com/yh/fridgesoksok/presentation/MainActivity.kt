@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
