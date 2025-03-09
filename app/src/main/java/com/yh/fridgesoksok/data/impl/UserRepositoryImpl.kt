@@ -1,13 +1,12 @@
 package com.yh.fridgesoksok.data.impl
 
-import com.yh.fridgesoksok.common.LoginMethod
+import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import java.lang.Error
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -18,13 +17,13 @@ class UserRepositoryImpl @Inject constructor(
     override fun getUserToken() =
         localUserDataSource.getUserToken()
 
-    override fun login(loginMethod: LoginMethod): Flow<Resource<String>> = flow {
+    override fun createUserToken(channel: Channel): Flow<Resource<String>> = flow {
         emit(Resource.Loading())
         try {
-            val token = remoteUserDataSource.login(loginMethod)
+            val token = remoteUserDataSource.createUserToken(channel)
             emit(Resource.Success(token))
         } catch (exception: Exception) {
-            //emit(Resource.Error(exception ?: "error"))
+            emit(Resource.Error(exception.toString()))
         }
     }
 }

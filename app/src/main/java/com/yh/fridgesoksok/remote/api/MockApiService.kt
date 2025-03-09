@@ -4,7 +4,6 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
 import java.io.InputStream
-import javax.inject.Inject
 
 class MockApiService (
     private val context: Context

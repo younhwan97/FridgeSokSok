@@ -1,6 +1,6 @@
 package com.yh.fridgesoksok.remote.impl
 
-import com.yh.fridgesoksok.common.LoginMethod
+import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import javax.inject.Inject
@@ -9,14 +9,14 @@ class RemoteUserDataSourceImpl @Inject constructor(
     private val kakaoApiService: KakaoApiService
 ) : RemoteUserDataSource {
 
-    override suspend fun login(loginMethod: LoginMethod): String {
+    override suspend fun createUserToken(channel: Channel): String {
         var token = ""
 
-        when (loginMethod) {
-            LoginMethod.KAKAO -> token = kakaoApiService.createKakaoToken()
-            LoginMethod.NAVER -> TODO()
-            LoginMethod.GOOGLE -> TODO()
-            LoginMethod.FACEBOOK -> TODO()
+        when (channel) {
+            Channel.KAKAO -> token = kakaoApiService.createKakaoToken()
+            Channel.NAVER -> TODO()
+            Channel.GOOGLE -> TODO()
+            Channel.FACEBOOK -> TODO()
         }
 
         return token

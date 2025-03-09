@@ -2,9 +2,9 @@ package com.yh.fridgesoksok.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.yh.fridgesoksok.common.LoginMethod
+import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
-import com.yh.fridgesoksok.domain.usecase.LoginUseCase
+import com.yh.fridgesoksok.domain.usecase.CreateUserTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -12,15 +12,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val createUserTokenUseCase: CreateUserTokenUseCase
 ) : ViewModel() {
 
     init {
-        login(loginMethod = LoginMethod.KAKAO)
+        createUserToken(channel = Channel.KAKAO)
     }
 
-    private fun login(loginMethod: LoginMethod) {
-        loginUseCase(loginMethod).onEach { result ->
+    private fun createUserToken(channel: Channel) {
+        createUserTokenUseCase(channel).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                 }

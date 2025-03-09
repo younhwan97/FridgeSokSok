@@ -1,6 +1,6 @@
 package com.yh.fridgesoksok.common
 
-enum class LoginMethod {
+enum class Channel {
     KAKAO,
     NAVER,
     GOOGLE,

@@ -1,8 +1,8 @@
 package com.yh.fridgesoksok.data.remote
 
-import com.yh.fridgesoksok.common.LoginMethod
+import com.yh.fridgesoksok.common.Channel
 
 interface RemoteUserDataSource {
 
-    suspend fun login(loginMethod: LoginMethod): String
+    suspend fun createUserToken(channel: Channel): String
 }
