@@ -4,6 +4,7 @@ import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
+import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,11 +22,11 @@ class UserRepositoryImpl @Inject constructor(
         localUserDataSource.setUserToken(token = token)
 
 
-    override fun createUserToken(channel: Channel): Flow<Resource<String>> = flow {
+    override fun createUserToken(channel: Channel): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
         try {
-            val token = remoteUserDataSource.createUserToken(channel)
-            emit(Resource.Success(token))
+            val user = remoteUserDataSource.createUserToken(channel).toDomain()
+            emit(Resource.Success(user))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
         }

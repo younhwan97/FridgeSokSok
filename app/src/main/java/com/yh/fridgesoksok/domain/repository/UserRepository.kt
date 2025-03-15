@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.domain.repository
 
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
@@ -10,5 +11,5 @@ interface UserRepository {
 
     fun setUserToken(token: String): Unit
 
-    fun createUserToken(channel: Channel): Flow<Resource<String>>
+    fun createUserToken(channel: Channel): Flow<Resource<User>>
 }
