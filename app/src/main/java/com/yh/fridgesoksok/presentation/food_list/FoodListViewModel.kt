@@ -38,7 +38,7 @@ class FoodListViewModel @Inject constructor(
                 }
 
                 is Resource.Success -> {
-                    _summaryFoods.value = result.data!!.map { it.toPresentation() }
+                    _summaryFoods.value = result.data!!.map { it.toPresentation() }.sortedBy { it.endDt }
                 }
             }
         }.launchIn(viewModelScope)

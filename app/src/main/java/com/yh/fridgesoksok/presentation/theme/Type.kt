@@ -11,6 +11,7 @@ import com.yh.fridgesoksok.R
 
 val Pretendard = FontFamily(
     Font(R.font.pretendard_bold, FontWeight.Bold, FontStyle.Normal),
+    Font(R.font.pretendard_semi_bold, FontWeight.SemiBold, FontStyle.Normal),
     Font(R.font.pretendard_medium, FontWeight.Medium, FontStyle.Normal),
     Font(R.font.pretendard_regular, FontWeight.Normal, FontStyle.Normal),
     Font(R.font.pretendard_light, FontWeight.Light, FontStyle.Normal),
@@ -27,6 +28,8 @@ val Typography = Typography(
     ),
     bodyLarge = TextStyle(
         fontFamily = Pretendard, fontWeight = FontWeight.Bold, fontSize = 20.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = Pretendard, fontWeight = FontWeight.SemiBold, fontSize = 28.sp
     )
-
 )

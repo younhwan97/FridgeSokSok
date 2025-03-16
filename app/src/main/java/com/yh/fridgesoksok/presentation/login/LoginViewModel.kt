@@ -20,11 +20,8 @@ class LoginViewModel @Inject constructor(
     private val setUserTokenUseCase: SetUserTokenUseCase,
 ) : ViewModel() {
 
-    private val _userToken = MutableStateFlow<String>("")
+    private val _userToken = MutableStateFlow("")
     val userToken = _userToken.asStateFlow()
-
-    init {
-    }
 
     fun createUserToken(channel: Channel) {
         createUserTokenUseCase(channel).onEach { result ->
@@ -36,7 +33,7 @@ class LoginViewModel @Inject constructor(
                 }
 
                 is Resource.Success -> {
-                    setUserToken(token = result.data.toString())
+                    setUserToken(token = result.data?.id.toString())
                 }
             }
         }.launchIn(viewModelScope)

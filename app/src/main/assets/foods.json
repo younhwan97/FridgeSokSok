@@ -34,6 +34,34 @@
       "startDt": "20250211",
       "endDt": "20250302",
       "foodImageUrl": ""
+    },
+    {
+      "id": 5,
+      "name": "연세우유",
+      "startDt": "20250211",
+      "endDt": "20250223",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 6,
+      "name": "숙주나물",
+      "startDt": "20250211",
+      "endDt": "20250331",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 7,
+      "name": "초코빵",
+      "startDt": "20250211",
+      "endDt": "20250402",
+      "foodImageUrl": ""
+    },
+    {
+      "id": 8,
+      "name": "피자",
+      "startDt": "20250211",
+      "endDt": "20250505",
+      "foodImageUrl": ""
     }
   ]
 }

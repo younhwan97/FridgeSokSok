@@ -3,7 +3,6 @@ package com.yh.fridgesoksok.presentation.onboarding
 import androidx.lifecycle.ViewModel
 import com.yh.fridgesoksok.domain.usecase.GetUserTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
