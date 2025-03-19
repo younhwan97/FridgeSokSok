@@ -1,8 +1,10 @@
 package com.yh.fridgesoksok.data.local
 
+import com.yh.fridgesoksok.data.model.UserEntity
+
 interface LocalUserDataSource {
 
-    fun getUserToken(): String?
+    fun loadUser(): UserEntity
 
-    fun setUserToken(token: String): Unit
+    fun saveUser(userEntity: UserEntity): Unit
 }

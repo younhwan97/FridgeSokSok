@@ -1,14 +1,13 @@
 package com.yh.fridgesoksok.presentation.login
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.usecase.CreateUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserUseCase
-import com.yh.fridgesoksok.domain.usecase.SetUserTokenUseCase
+import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val createUserTokenUseCase: CreateUserTokenUseCase,
-    private val setUserTokenUseCase: SetUserTokenUseCase,
+    private val saveUserUseCase: SaveUserUseCase,
     private val createUserUseCase: CreateUserUseCase
 ) : ViewModel() {
 
@@ -27,6 +26,7 @@ class LoginViewModel @Inject constructor(
     val userToken = _userToken.asStateFlow()
 
     fun createUserToken(channel: Channel) {
+        // 유저토큰 생성
         createUserTokenUseCase(channel).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
@@ -36,22 +36,34 @@ class LoginViewModel @Inject constructor(
                 }
 
                 is Resource.Success -> {
-                    setUserToken(token = result.data?.id.toString())
-
-                    createUser(token = result.data?.accessToken!!, username = "")
+                    // 유저 생성
+                    createUser(token = result.data?.accessToken ?: "", username = result.data?.username?: "")
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    fun createUser(token: String, username: String) {
-        Log.d("test4", "시작")
-        createUserUseCase(token = token, username = username).launchIn(viewModelScope)
-        Log.d("test4", "종료")
+    private fun createUser(token: String, username: String) {
+        createUserUseCase(token = token, username = username).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                }
+
+                is Resource.Error -> {
+                }
+
+                is Resource.Success -> {
+                    // 유저 정보 저장
+                    if (result.data != null){
+                        saveUser(user = result.data)
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
-    private fun setUserToken(token: String) {
-        setUserTokenUseCase(token = token)
-        _userToken.value = token
+    private fun saveUser(user: User) {
+        saveUserUseCase(user = user)
+        //_userToken.value = token
     }
 }

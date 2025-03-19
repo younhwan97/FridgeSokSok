@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
 
-    fun getUserToken(): String?
+    fun loadUser(): User
 
-    fun setUserToken(token: String): Unit
+    fun saveUser(user: User): Unit
 
     fun createUserToken(channel: Channel): Flow<Resource<User>>
 

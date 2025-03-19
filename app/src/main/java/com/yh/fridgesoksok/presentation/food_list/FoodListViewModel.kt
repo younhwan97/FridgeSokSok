@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.GetSummaryFoodListUseCase
-import com.yh.fridgesoksok.domain.usecase.GetUserTokenUseCase
 import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel

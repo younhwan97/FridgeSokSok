@@ -1,9 +1,9 @@
 package com.yh.fridgesoksok.data.impl
 
-import android.util.Log
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
+import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
@@ -16,11 +16,19 @@ class UserRepositoryImpl @Inject constructor(
     private val remoteUserDataSource: RemoteUserDataSource
 ) : UserRepository {
 
-    override fun getUserToken() =
-        localUserDataSource.getUserToken()
+    override fun loadUser(): User =
+        localUserDataSource.loadUser().toDomain()
 
-    override fun setUserToken(token: String) =
-        localUserDataSource.setUserToken(token = token)
+    override fun saveUser(user: User) =
+        localUserDataSource.saveUser(
+            userEntity = UserEntity(
+                user.id,
+                user.accessToken,
+                user.refreshToken,
+                user.username,
+                user.accountType
+            )
+        )
 
     override fun createUserToken(channel: Channel): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
@@ -35,7 +43,8 @@ class UserRepositoryImpl @Inject constructor(
     override fun createUser(token: String, username: String): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
         try {
-            val user = remoteUserDataSource.createUser(token = token, username = username).toDomain()
+            val user =
+                remoteUserDataSource.createUser(token = token, username = username).toDomain()
             emit(Resource.Success(user))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
