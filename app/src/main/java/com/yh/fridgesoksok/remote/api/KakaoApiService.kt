@@ -30,7 +30,15 @@ class KakaoApiService(
                         continuation.resumeWithException(error2)
                     } else if (user != null) {
                         // 사용자 정보 요청 성공
-                        continuation.resume(UserResponse(id = user.id ?: -1L, token = token.accessToken, channel = "KAKAO"))
+                        continuation.resume(
+                            UserResponse(
+                                id = user.id ?: -1L,
+                                accessToken = token.accessToken,
+                                refreshToken = token.refreshToken,
+                                username = "",
+                                accountType = "KAKAO"
+                            )
+                        )
                     }
                 }
             }
@@ -59,7 +67,15 @@ class KakaoApiService(
                             continuation.resumeWithException(error2)
                         } else if (user != null) {
                             // 사용자 정보 요청 성공
-                            continuation.resume(UserResponse(id = user.id ?: -1L, token = token.accessToken, channel = "KAKAO"))
+                            continuation.resume(
+                                UserResponse(
+                                    id = user.id ?: -1L,
+                                    accessToken = token.accessToken,
+                                    refreshToken = token.refreshToken,
+                                    username = "",
+                                    accountType = "KAKAO"
+                                )
+                            )
                         }
                     }
                 }

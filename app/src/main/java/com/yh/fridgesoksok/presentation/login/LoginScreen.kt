@@ -39,9 +39,9 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
 
-    if (viewModel.userToken.collectAsState().value.isNotEmpty()) {
-        navController.navigate(route = Screen.HomeScreen.route)
-    }
+//    if (viewModel.userToken.collectAsState().value.isNotEmpty()) {
+//        navController.navigate(route = Screen.HomeScreen.route)
+//    }
 
     Box(
         modifier = Modifier

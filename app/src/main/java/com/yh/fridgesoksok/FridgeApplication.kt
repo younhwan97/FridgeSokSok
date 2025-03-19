@@ -6,6 +6,9 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class FridgeApplication : Application() {
+    val baseUrl: String
+        get() = "http://soksok.io/api/"
+
     override fun onCreate() {
         super.onCreate()
         

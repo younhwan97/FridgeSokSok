@@ -3,6 +3,8 @@ package com.yh.fridgesoksok.remote.api
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
+import com.yh.fridgesoksok.remote.model.UserRequest
+import com.yh.fridgesoksok.remote.model.UserWrapperResponse
 import java.io.InputStream
 
 class MockApiService (
@@ -21,5 +23,9 @@ class MockApiService (
             }
             return gson.fromJson(String(buffer), SummaryFoodWrapperResponse::class.java)
         }
+    }
+
+    override suspend fun createUser(userRequest: UserRequest): UserWrapperResponse{
+        TODO("Not yet implemented")
     }
 }

@@ -12,4 +12,6 @@ interface UserRepository {
     fun setUserToken(token: String): Unit
 
     fun createUserToken(channel: Channel): Flow<Resource<User>>
+
+    fun createUser(token:String, username:String): Flow<Resource<User>>
 }

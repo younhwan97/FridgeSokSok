@@ -4,11 +4,13 @@ import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.MockApiService
+import com.yh.fridgesoksok.remote.api.createApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -20,8 +22,9 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideFridgeApiService(
-        @ApplicationContext context: Context
-    ) : FridgeApiService = MockApiService(context)
+        @ApplicationContext context: Context,
+        @Named("baseUrl") baseUrl: String,
+    ) : FridgeApiService = createApiService(baseUrl)
 
     // Kakao Api SERVER
     @Provides

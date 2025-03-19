@@ -42,8 +42,9 @@ fun OnboardingScreen(
         if (userToken.isBlank()){
             navController.navigate(route = Screen.LoginScreen.route)
         } else {
-            // navController.navigate(route = Screen.LoginScreen.route)
-            navController.navigate(route = Screen.HomeScreen.route)
+            navController.navigate(route = Screen.LoginScreen.route)
+            //navController.navigate(route = Screen.LoginScreen.route)
+            //navController.navigate(route = Screen.HomeScreen.route)
         }
     }
 }

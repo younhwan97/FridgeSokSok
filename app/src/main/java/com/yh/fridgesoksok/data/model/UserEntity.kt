@@ -5,8 +5,10 @@ import com.yh.fridgesoksok.domain.model.User
 
 data class UserEntity (
     val id: Long,
-    val token: String,
-    val channel: String
+    val accessToken: String?,
+    val refreshToken: String?,
+    val username: String?,
+    val accountType: String?
 ) : DataMapper<User> {
-    override fun toDomain() = User(id, token, channel)
+    override fun toDomain() = User(id, accessToken, refreshToken, username, accountType)
 }

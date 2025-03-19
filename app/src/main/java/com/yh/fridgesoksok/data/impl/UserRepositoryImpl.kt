@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.data.impl
 
+import android.util.Log
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
@@ -21,11 +22,20 @@ class UserRepositoryImpl @Inject constructor(
     override fun setUserToken(token: String) =
         localUserDataSource.setUserToken(token = token)
 
-
     override fun createUserToken(channel: Channel): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
         try {
             val user = remoteUserDataSource.createUserToken(channel).toDomain()
+            emit(Resource.Success(user))
+        } catch (exception: Exception) {
+            emit(Resource.Error(exception.toString()))
+        }
+    }
+
+    override fun createUser(token: String, username: String): Flow<Resource<User>> = flow {
+        emit(Resource.Loading())
+        try {
+            val user = remoteUserDataSource.createUser(token = token, username = username).toDomain()
             emit(Resource.Success(user))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
