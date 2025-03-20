@@ -50,4 +50,14 @@ class UserRepositoryImpl @Inject constructor(
             emit(Resource.Error(exception.toString()))
         }
     }
+
+    override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> = flow {
+        emit(Resource.Loading())
+        try {
+            val isValidToken = remoteUserDataSource.validateUserToken(refreshToken = refreshToken)
+            emit(Resource.Success(isValidToken))
+        } catch (exception: Exception) {
+            emit(Resource.Error(exception.toString()))
+        }
+    }
 }

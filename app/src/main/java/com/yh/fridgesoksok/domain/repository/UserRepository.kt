@@ -9,9 +9,11 @@ interface UserRepository {
 
     fun loadUser(): User
 
-    fun saveUser(user: User): Unit
+    fun saveUser(user: User)
 
     fun createUserToken(channel: Channel): Flow<Resource<User>>
 
     fun createUser(token:String, username:String): Flow<Resource<User>>
+
+    fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>>
 }

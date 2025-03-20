@@ -3,33 +3,56 @@ package com.yh.fridgesoksok.remote.di
 import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
-import com.yh.fridgesoksok.remote.api.MockApiService
-import com.yh.fridgesoksok.remote.api.createApiService
+import com.yh.fridgesoksok.remote.api.RequestHeaderInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Named
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 internal object NetworkModule {
 
+    private const val TIME_OUT = 30
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(requestHeaderInterceptor: RequestHeaderInterceptor): OkHttpClient {
+        return OkHttpClient.Builder().apply {
+            readTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
+            writeTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
+            connectTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
+            addNetworkInterceptor(requestHeaderInterceptor)
+        }.build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://soksok.io/api/") // API 기본 URL
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
     // Mock Api SERVER
     @Provides
     @Singleton
     fun provideFridgeApiService(
-        @ApplicationContext context: Context,
-        @Named("baseUrl") baseUrl: String,
-    ) : FridgeApiService = createApiService(baseUrl)
+        retrofit: Retrofit
+    ): FridgeApiService = retrofit.create(FridgeApiService::class.java)
 
     // Kakao Api SERVER
     @Provides
     @Singleton
     fun provideKakaoApiService(
         @ApplicationContext context: Context
-    ) : KakaoApiService = KakaoApiService(context)
+    ): KakaoApiService = KakaoApiService(context)
 }

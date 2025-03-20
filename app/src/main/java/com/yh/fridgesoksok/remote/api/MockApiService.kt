@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.remote.api
 
 import android.content.Context
 import com.google.gson.GsonBuilder
+import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserWrapperResponse
@@ -26,6 +27,10 @@ class MockApiService (
     }
 
     override suspend fun createUser(userRequest: UserRequest): UserWrapperResponse{
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun validateUserToken(): CommonResponse {
         TODO("Not yet implemented")
     }
 }
