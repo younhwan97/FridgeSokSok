@@ -1,9 +1,15 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -20,7 +26,8 @@ fun OnboardingScreen(
     navController: NavController,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    // User Token
+    // State
+    val isLoading = viewModel.isLoading.collectAsState().value
     val userToken = viewModel.userToken.collectAsState().value
 
     // Lottie state
@@ -30,21 +37,34 @@ fun OnboardingScreen(
         iterations = LottieConstants.IterateForever
     )
 
-    // Lottie loading image
-    LottieAnimation(
-        composition = composition,
-        progress = { progress },
-    )
+    // Loading
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LottieAnimation(
+            composition = composition,
+            progress = { progress }
+        )
+    }
 
-    LaunchedEffect(Unit) {
-        delay(1000L)
+    //  토큰 확인 후 화면 전환
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            delay(1300L)
 
-        if (userToken.isBlank()){
-            navController.navigate(route = Screen.LoginScreen.route)
-        } else {
-            navController.navigate(route = Screen.LoginScreen.route)
-            //navController.navigate(route = Screen.LoginScreen.route)
-            //navController.navigate(route = Screen.HomeScreen.route)
+            if (userToken.isBlank()) {
+                // 유저 토큰이 없다면 로그인 로그인 화면으로 이동
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+                }
+            } else {
+                // 유저 토큰이 있다면 홈 화면으로 이동
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+                }
+            }
         }
     }
 }

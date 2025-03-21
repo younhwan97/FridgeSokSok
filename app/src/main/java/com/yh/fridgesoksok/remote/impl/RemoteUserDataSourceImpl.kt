@@ -42,13 +42,13 @@ class RemoteUserDataSourceImpl @Inject constructor(
     }
 
     override suspend fun validateUserToken(refreshToken: String): Boolean {
-        Log.d("test4", "tmp")
-
         try {
             val response = fridgeApiService.validateUserToken()
-
-            Log.d("test4", response.toString())
-            return true
+            if (response.data is Boolean) {
+                return response.data
+            } else {
+                return false
+            }
         } catch (e: Exception) {
             Log.e("API Error", "Request failed: ${e.message}")
             return false
