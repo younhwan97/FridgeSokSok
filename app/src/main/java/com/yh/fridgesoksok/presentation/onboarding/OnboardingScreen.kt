@@ -49,7 +49,7 @@ fun OnboardingScreen(
         )
     }
 
-    //  토큰 확인 후 화면 전환
+    // 토큰 확인 후 화면 전환
     LaunchedEffect(isLoading) {
         if (!isLoading) {
             delay(1300L)

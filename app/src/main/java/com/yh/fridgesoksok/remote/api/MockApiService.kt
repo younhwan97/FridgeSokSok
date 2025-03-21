@@ -31,6 +31,10 @@ class MockApiService (
     }
 
     override suspend fun validateUserToken(): CommonResponse {
-        TODO("Not yet implemented")
+        return CommonResponse(
+            data = true,
+            message = "",
+            status = 200
+        )
     }
 }

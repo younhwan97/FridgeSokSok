@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -47,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
-import com.yh.fridgesoksok.presentation.theme.CustomBoxBackGroundColor
+import com.yh.fridgesoksok.presentation.theme.CustomLightGrayBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
 import kotlin.math.min
 
@@ -66,18 +67,18 @@ fun HomeScreen() {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = CustomBackGroundColor,
                     titleContentColor = CustomPrimaryColor,
-                    scrolledContainerColor = CustomBoxBackGroundColor
+                    scrolledContainerColor = CustomLightGrayBackGroundColor
                 ),
                 title = {
                     Column {
                         Text(
                             text = "냉장고속속",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontSize = if(scrollBehavior.state.collapsedFraction > 0.5) 8.sp else 24.sp,
+                            fontSize = if (scrollBehavior.state.collapsedFraction > 0.5) 8.sp else 24.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .alpha(1f - min(1f, scrollBehavior.state.collapsedFraction  * 2))
+                                .alpha(1f - min(1f, scrollBehavior.state.collapsedFraction * 2))
                         )
 
                         Spacer(Modifier.height(4.dp))
@@ -176,8 +177,7 @@ fun HomeScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .background(color = CustomBackGroundColor)
-                .fillMaxWidth()
-                .fillMaxHeight(),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             FoodListScreen()
