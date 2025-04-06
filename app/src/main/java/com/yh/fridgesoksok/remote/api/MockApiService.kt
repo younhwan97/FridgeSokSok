@@ -6,7 +6,7 @@ import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserRequest
-import com.yh.fridgesoksok.remote.model.UserWrapperResponse
+import com.yh.fridgesoksok.remote.model.UserResponse
 import java.io.InputStream
 
 class MockApiService (
@@ -27,7 +27,7 @@ class MockApiService (
         }
     }
 
-    override suspend fun createUser(userRequest: UserRequest): UserWrapperResponse{
+    override suspend fun createUser(userRequest: UserRequest): CommonResponse<UserResponse>{
         TODO("Not yet implemented")
     }
 
