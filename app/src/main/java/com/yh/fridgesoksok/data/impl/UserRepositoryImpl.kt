@@ -1,10 +1,12 @@
 package com.yh.fridgesoksok.data.impl
 
+import android.util.Log
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
+import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
@@ -34,17 +36,18 @@ class UserRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val user = remoteUserDataSource.createUserToken(channel).toDomain()
+
+            Log.d("test45", user.toString())
             emit(Resource.Success(user))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
         }
     }
 
-    override fun createUser(token: String, username: String): Flow<Resource<User>> = flow {
+    override fun createUser(user: User): Flow<Resource<User>> = flow {
         emit(Resource.Loading())
         try {
-            val user =
-                remoteUserDataSource.createUser(token = token, username = username).toDomain()
+            val user = remoteUserDataSource.createUser(user = user).toDomain()
             emit(Resource.Success(user))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
@@ -56,6 +59,16 @@ class UserRepositoryImpl @Inject constructor(
         try {
             val isValidToken = remoteUserDataSource.validateUserToken(refreshToken = refreshToken)
             emit(Resource.Success(isValidToken))
+        } catch (exception: Exception) {
+            emit(Resource.Error(exception.toString()))
+        }
+    }
+
+    override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> = flow {
+        emit(Resource.Loading())
+        try {
+            val tokenEntity = remoteUserDataSource.reissueUserToken(refreshToken = refreshToken)
+            emit(Resource.Success(tokenEntity.toDomain()))
         } catch (exception: Exception) {
             emit(Resource.Error(exception.toString()))
         }

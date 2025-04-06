@@ -1,7 +1,7 @@
 package com.yh.fridgesoksok.remote.model
 
-data class CommonResponse (
+data class CommonResponse<T> (
     val message: String,
-    val data: Any,
+    val data: T,
     val status: Int
 )

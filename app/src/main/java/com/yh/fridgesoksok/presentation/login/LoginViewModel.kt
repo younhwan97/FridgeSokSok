@@ -37,14 +37,17 @@ class LoginViewModel @Inject constructor(
 
                 is Resource.Success -> {
                     // 유저 생성
-                    createUser(token = result.data?.accessToken ?: "", username = result.data?.username?: "")
+                    result.data?.let { createUser(it) } ?: run {
+                        // 유저토큰을 생성하는데 실패했을 때
+                        
+                    }
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    private fun createUser(token: String, username: String) {
-        createUserUseCase(token = token, username = username).onEach { result ->
+    private fun createUser(user: User) {
+        createUserUseCase(user = user).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                 }
@@ -54,8 +57,8 @@ class LoginViewModel @Inject constructor(
 
                 is Resource.Success -> {
                     // 유저 정보 저장
-                    if (result.data != null){
-                        saveUser(user = result.data)
+                    result.data?.accessToken?.let { saveUser(result.data) } ?: run {
+                        // 유저 생성에 실패했을 때
                     }
                 }
             }
@@ -63,7 +66,9 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun saveUser(user: User) {
+        // 유저 정보 저장
         saveUserUseCase(user = user)
-        //_userToken.value = token
+        // 화면 전환
+        _userToken.value = user.accessToken!!
     }
 }

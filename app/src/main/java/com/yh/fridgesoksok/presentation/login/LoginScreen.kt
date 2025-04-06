@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.common.Channel
+import com.yh.fridgesoksok.presentation.Screen
 
 @Composable
 fun LoginScreen(
@@ -37,9 +39,9 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
 
-//    if (viewModel.userToken.collectAsState().value.isNotEmpty()) {
-//        navController.navigate(route = Screen.HomeScreen.route)
-//    }
+    if (viewModel.userToken.collectAsState().value.isNotBlank()) {
+        navController.navigate(route = Screen.HomeScreen.route)
+    }
 
     Box(
         modifier = Modifier

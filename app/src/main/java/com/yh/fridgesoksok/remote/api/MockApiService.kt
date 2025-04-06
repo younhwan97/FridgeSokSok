@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
+import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserWrapperResponse
 import java.io.InputStream
@@ -30,11 +31,15 @@ class MockApiService (
         TODO("Not yet implemented")
     }
 
-    override suspend fun validateUserToken(): CommonResponse {
+    override suspend fun validateUserToken(): CommonResponse<Boolean> {
         return CommonResponse(
             data = true,
             message = "",
             status = 200
         )
+    }
+
+    override suspend fun reissueUserToken(): CommonResponse<TokenResponse> {
+        TODO("Not yet implemented")
     }
 }

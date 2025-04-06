@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.food_list
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,7 +83,7 @@ fun FoodListScreen(
                     )
 
                     Text(
-                        text = if (period.days < 0) "  유통기한이 지났어요!!" else if (period.days < 3) "  유통기한이 얼마남지 않았어요!" else "",
+                        text = if (period.toTotalMonths() * 30 + period.days < 0) "  유통기한이 지났어요!!" else if (period.toTotalMonths() * 30 + period.days < 3) "  유통기한이 얼마남지 않았어요!" else "",
                         style = MaterialTheme.typography.bodySmall,
                         color = CustomRedColor,
                     )
@@ -141,10 +142,10 @@ fun Food(
         }
 
         Text(
-            text = if (period.days < 0) "D+${-period.days}" else "D-${period.days}",
+            text = if (period.toTotalMonths() * 30 + period.days < 0) "D+${-(period.toTotalMonths() * 30 + period.days)}" else "D-${period.toTotalMonths() * 30 + period.days}",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.align(Alignment.CenterVertically),
-            color = if (period.days < 5) CustomPrimaryColor else CustomLightPrimaryColor,
+            color = if (period.toTotalMonths() * 30 + period.days< 5) CustomPrimaryColor else CustomLightPrimaryColor,
             fontWeight = FontWeight.Bold
         )
     }

@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.domain.usecase
 
+import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import javax.inject.Inject
 
@@ -8,6 +9,6 @@ class CreateUserUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
 
-    operator fun invoke(token: String, username: String) =
-        userRepository.createUser(token, username)
+    operator fun invoke(user: User) =
+        userRepository.createUser(user = user)
 }

@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,7 +50,7 @@ fun OnboardingScreen(
 
     // 토큰 확인 후 화면 전환
     LaunchedEffect(isLoading) {
-        if (!isLoading) {
+        if (!isLoading){
             delay(1300L)
 
             if (userToken.isBlank()) {
@@ -66,5 +65,6 @@ fun OnboardingScreen(
                 }
             }
         }
+
     }
 }

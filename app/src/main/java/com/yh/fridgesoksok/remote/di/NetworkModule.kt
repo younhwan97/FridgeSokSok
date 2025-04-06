@@ -49,7 +49,7 @@ internal object NetworkModule {
     fun provideFridgeApiService(
         retrofit: Retrofit,
         @ApplicationContext context: Context
-    ): FridgeApiService =  MockApiService(context) //retrofit.create(FridgeApiService::class.java)
+    ): FridgeApiService =  retrofit.create(FridgeApiService::class.java)
 
     // Kakao Api SERVER
     @Provides
