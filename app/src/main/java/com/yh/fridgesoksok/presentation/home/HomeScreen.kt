@@ -7,6 +7,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
@@ -57,16 +59,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomLightGrayBackGroundColor
@@ -190,10 +196,13 @@ fun HomeScreen() {
                 FoodListScreen()
             }
         }
-
+        val haptic = LocalHapticFeedback.current
         // FAB(Floating Action Button)
         ExtendedFloatingActionButton(
-            onClick = { isFabMenuExpanded = !isFabMenuExpanded },
+            onClick = {
+                isFabMenuExpanded = !isFabMenuExpanded
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
             shape = CircleShape,
             modifier = Modifier
                 .zIndex(2f)
@@ -220,8 +229,10 @@ fun HomeScreen() {
         // Overlay Screen
         val screenWidth = constraints.maxWidth.toFloat()
         val screenHeight = constraints.maxHeight.toFloat()
-        val menuWidth = with(LocalDensity.current) { 186.dp.toPx() }
-        val menuHeight = with(LocalDensity.current) { 120.dp.toPx() }
+        val menuWidthDp = 186.dp
+        val menuWidth = with(LocalDensity.current) { menuWidthDp.toPx() }
+        val menuHeightDp = 150.dp
+        val menuHeight = with(LocalDensity.current) { menuHeightDp.toPx() }
 
         if (isFabMenuExpanded) {
             Box(
@@ -256,7 +267,7 @@ fun HomeScreen() {
                         (fabY + 100.dp.toPx()).toInt()
                     }
 
-                    IntOffset(offsetX - 32, offsetY)
+                    IntOffset(offsetX - 32, offsetY - 32)
                 }
         ) {
             Column(
@@ -266,9 +277,8 @@ fun HomeScreen() {
                         color = Color.White,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .width(186.dp)
-                    .height(100.dp)
-
+                    .width(menuWidthDp)
+                    .height(menuHeightDp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -276,16 +286,17 @@ fun HomeScreen() {
                         .height(46.dp)
                         .clickable {  }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
+                    Image(
+                        painter  = painterResource(id = R.drawable.camera),
                         contentDescription = "Icon",
                         modifier = Modifier.padding(end = 8.dp)
                             .padding(start = 16.dp)
+                            .size(24.dp)
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text(text = "사진 추가", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "영수증 찍기", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 Row(
@@ -294,16 +305,36 @@ fun HomeScreen() {
                         .height(46.dp)
                         .clickable {  }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
+                    Image(
+                        painter  = painterResource(id = R.drawable.picture),
                         contentDescription = "Icon",
                         modifier = Modifier.padding(end = 8.dp)
                             .padding(start = 16.dp)
+                            .size(24.dp)
                     )
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text(text = "직접 추가", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "영수증 올리기", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                        .height(46.dp)
+                        .clickable {  }
+                ) {
+                    Image(
+                        painter  = painterResource(id = R.drawable.pencil),
+                        contentDescription = "Icon",
+                        modifier = Modifier.padding(end = 8.dp)
+                            .padding(start = 16.dp)
+                            .size(24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(text = "직접 추가하기", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
