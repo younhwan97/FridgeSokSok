@@ -5,6 +5,12 @@
     <!-- 인터넷 사용 권한 설정-->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 카메라 사용 권한 설정 -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:name=".FridgeApplication"
         android:allowBackup="true"
@@ -40,6 +46,7 @@
                     android:scheme="kakao${KAKAO_API_KEY}" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
