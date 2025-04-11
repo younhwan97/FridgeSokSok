@@ -9,7 +9,8 @@ import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
 import java.io.InputStream
 
-class MockApiService (
+// TEST
+class MockApiService(
     private val context: Context
 ) : FridgeApiService {
 
@@ -27,19 +28,65 @@ class MockApiService (
         }
     }
 
-    override suspend fun createUser(userRequest: UserRequest): CommonResponse<UserResponse>{
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun validateUserToken(): CommonResponse<Boolean> {
+    // @POST("auth/kakao")
+    override suspend fun createUser(userRequest: UserRequest): CommonResponse<UserResponse> {
+        /*
+            {
+                "message": "User created successfully",
+                "data": {
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
+                    "username": "john_doe",
+                    "accountType": "temp"
+                },
+                "status": 200
+            }
+        */
         return CommonResponse(
-            data = true,
-            message = "",
+            message = "User created successfully",
+            data = UserResponse(
+                id = 777,
+                accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
+                refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
+                username = "mock",
+                accountType = "kakao"
+            ),
             status = 200
         )
     }
 
+    // @GET("auth/validateRefreshToken")
+    override suspend fun validateUserToken(): CommonResponse<Boolean> {
+        /*
+            {
+              "message": "string",
+              "data": {},
+              "status": 0
+            }
+         */
+        return CommonResponse(
+            message = "",
+            data = true,
+            status = 200
+        )
+    }
+
+    // @POST("auth/refresh")
     override suspend fun reissueUserToken(): CommonResponse<TokenResponse> {
-        TODO("Not yet implemented")
+        /*
+            {
+              "message": "string",
+              "data": {},
+              "status": 0
+            }
+         */
+        return CommonResponse(
+            message = "",
+            data = TokenResponse(
+                accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
+                refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9"
+            ),
+            status = 200
+        )
     }
 }

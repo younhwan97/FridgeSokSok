@@ -34,15 +34,21 @@ class MainActivity : ComponentActivity() {
                     startDestination = Screen.OnboardingScreen.route,
                 ) {
                     composable(route = Screen.OnboardingScreen.route) {
-                        OnboardingScreen(navController)
-                    }
-
-                    composable(route = Screen.HomeScreen.route) {
-                        HomeScreen()
+                        OnboardingScreen(
+                            navController = navController
+                        )
                     }
 
                     composable(route = Screen.LoginScreen.route) {
-                        LoginScreen(navController)
+                        LoginScreen(
+                            navController = navController
+                        )
+                    }
+
+                    composable(route = Screen.HomeScreen.route) {
+                        HomeScreen(
+                            navController = navController
+                        )
                     }
                 }
             }

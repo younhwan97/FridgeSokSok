@@ -11,7 +11,7 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // Custom Color
-val CustomPrimaryColor = Color(0xFFFF6600)       // 기본 포인트 컬러
+val CustomPrimaryColor = Color(0xFF4CAF50)       // 기본 포인트 컬러
 val CustomLightPrimaryColor = Color(0xFFff983f)
 
 val CustomBackGroundColor = Color(0xFFfbfbfb)    // 기본 앱 배경 색상

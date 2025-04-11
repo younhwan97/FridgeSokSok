@@ -1,52 +1,34 @@
 package com.yh.fridgesoksok.presentation.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -59,21 +41,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import com.yh.fridgesoksok.R
+import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
+import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
+import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenu
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomLightGrayBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
@@ -81,11 +59,14 @@ import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+fun HomeScreen(
+    navController: NavController
+) {
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var searchQuery by remember { mutableStateOf("") }
-    
-    // FAB(Floating Action Button)의 위치 정보
+
+    // FAB 위치 정보
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
     // FAB Menu 확장 여부
     var isFabMenuExpanded by remember { mutableStateOf(false) }
@@ -196,147 +177,42 @@ fun HomeScreen() {
                 FoodListScreen()
             }
         }
-        val haptic = LocalHapticFeedback.current
-        // FAB(Floating Action Button)
-        ExtendedFloatingActionButton(
-            onClick = {
-                isFabMenuExpanded = !isFabMenuExpanded
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                },
-            shape = CircleShape,
-            modifier = Modifier
-                .zIndex(2f)
-                .onGloballyPositioned { coordinates ->
-                    fabOffset = coordinates.positionInRoot()
-                }
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(WindowInsets.navigationBars) // ⬅︎ 하단 시스템 UI 고려
-                .padding(end = 16.dp, bottom = 16.dp) // ⬅︎ 추가 마진 (선택사항)
-        ) {
-            Icon(
-                imageVector = if (isFabMenuExpanded) Icons.Default.Close else Icons.Default.Edit,
-                contentDescription = null
-            )
 
-            if (!isFabMenuExpanded) {
-                Text(
-                    text = "추가하기",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-
-        // Overlay Screen
-        val screenWidth = constraints.maxWidth.toFloat()
-        val screenHeight = constraints.maxHeight.toFloat()
-        val menuWidthDp = 186.dp
-        val menuWidth = with(LocalDensity.current) { menuWidthDp.toPx() }
-        val menuHeightDp = 150.dp
-        val menuHeight = with(LocalDensity.current) { menuHeightDp.toPx() }
-
+        // ------------------ FAB(Floating Action Button) ------------------ //
+        // FAB Overlay Screen
         if (isFabMenuExpanded) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
-                    .clickable { isFabMenuExpanded = false } // 배경 클릭 시 닫기
+                    .clickable { isFabMenuExpanded = false }
             )
         }
 
-        AnimatedVisibility(
-            visible = isFabMenuExpanded,
-            enter = fadeIn() + slideInVertically { it },
-            exit = fadeOut() + slideOutVertically { it },
+        // FAB
+        FloatingActionButton(
+            expanded = isFabMenuExpanded,
+            onClick = { isFabMenuExpanded = !isFabMenuExpanded },
             modifier = Modifier
-                .zIndex(1f)
-                .absoluteOffset {
-                    val fabX = fabOffset.x
-                    val fabY = fabOffset.y
-
-                    // X 좌표 보정: 메뉴가 오른쪽으로 삐져나가는 경우 왼쪽으로 당김
-                    val offsetX = when {
-                        fabX + menuWidth > screenWidth -> (screenWidth - menuWidth).toInt()
-                        else -> (fabX - menuWidth + 100.dp.toPx()).toInt()
-                    }
-
-                    // Y 좌표 보정: FAB 위로 띄우되, 너무 위면 아래로 이동
-                    val offsetY = if (fabY - menuHeight > 0) {
-                        (fabY - menuHeight).toInt()
-                    } else {
-                        // 위에 공간 없으면 아래로
-                        (fabY + 100.dp.toPx()).toInt()
-                    }
-
-                    IntOffset(offsetX - 32, offsetY - 32)
+                .onGloballyPositioned { coordinates ->
+                    fabOffset = coordinates.positionInRoot()
                 }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .background(
-                        color = Color.White,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .width(menuWidthDp)
-                    .height(menuHeightDp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                        .height(46.dp)
-                        .clickable {  }
-                ) {
-                    Image(
-                        painter  = painterResource(id = R.drawable.camera),
-                        contentDescription = "Icon",
-                        modifier = Modifier.padding(end = 8.dp)
-                            .padding(start = 16.dp)
-                            .size(24.dp)
-                    )
+                .align(Alignment.BottomEnd)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(end = 16.dp, bottom = 16.dp)
+        )
 
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(text = "영수증 찍기", style = MaterialTheme.typography.bodyMedium)
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                        .height(46.dp)
-                        .clickable {  }
-                ) {
-                    Image(
-                        painter  = painterResource(id = R.drawable.picture),
-                        contentDescription = "Icon",
-                        modifier = Modifier.padding(end = 8.dp)
-                            .padding(start = 16.dp)
-                            .size(24.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(text = "영수증 올리기", style = MaterialTheme.typography.bodyMedium)
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                        .height(46.dp)
-                        .clickable {  }
-                ) {
-                    Image(
-                        painter  = painterResource(id = R.drawable.pencil),
-                        contentDescription = "Icon",
-                        modifier = Modifier.padding(end = 8.dp)
-                            .padding(start = 16.dp)
-                            .size(24.dp)
-                    )
-
-                    Spacer(modifier = Modifier.width(4.dp))
-
-                    Text(text = "직접 추가하기", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
+        // FAB Menu
+        FloatingActionMenu(
+            expanded = isFabMenuExpanded,
+            fabOffset = fabOffset,
+            screenWidth = constraints.maxWidth.toFloat(),
+            screenHeight = constraints.maxHeight.toFloat(),
+            menuWidthDp = 186.dp,
+            menuHeightDp = 150.dp,
+            onCaptureClick = {},
+            onUploadClick = {},
+            onManualClick = {},
+        )
     }
 }
