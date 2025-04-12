@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.camera
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.media.MediaActionSound
@@ -35,14 +36,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -55,6 +58,10 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    
+    // 네비게이션바 색상 설정
+    val window = (context as Activity).window
+    SideEffect { window.navigationBarColor = Color.Black.toArgb() }
 
     // 카메라 컨트롤
     val controller: LifecycleCameraController = remember {
@@ -69,9 +76,13 @@ fun CameraScreen(
     val capturedImageBitmap = remember { mutableStateOf<Bitmap?>(null) }
 
     // 뒤로가기 핸들링
-    BackHandler {
-        controller.unbind()
-        navController.popBackStack()
+    BackHandler(enabled = true) {
+        if (capturedImageBitmap.value != null) {
+            capturedImageBitmap.value = null
+        } else {
+            controller.unbind()
+            navController.popBackStack()
+        }
     }
 
     // 컴포저블 종료 시 리소스 정리
@@ -88,7 +99,7 @@ fun CameraScreen(
             .background(Color.Black)
     ) {
         if (capturedImageBitmap.value == null) {
-            Spacer(modifier = Modifier.height(144.dp))
+            Spacer(modifier = Modifier.height(72.dp))
 
             Box(
                 modifier = Modifier
@@ -113,60 +124,75 @@ fun CameraScreen(
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .background(color = Color.Black)
-                    .height(100.dp),
+                    .height(144.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.alpha(0f)
-                ) {}
+                // 왼쪽 빈 공간
+                Spacer(modifier = Modifier.weight(1f))
 
-                IconButton(
-                    onClick = {
-                        MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+                // 촬영 버튼
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        ,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "사진",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Yellow,
+                    )
 
-                        controller.takePicture(
-                            ContextCompat.getMainExecutor(context),
-                            object : OnImageCapturedCallback() {
-                                override fun onCaptureSuccess(image: ImageProxy) {
-                                    super.onCaptureSuccess(image)
+                    IconButton(
+                        onClick = {
+                            MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
 
-                                    val matrix = Matrix().apply {
-                                        postRotate(image.imageInfo.rotationDegrees.toFloat())
+                            controller.takePicture(
+                                ContextCompat.getMainExecutor(context),
+                                object : OnImageCapturedCallback() {
+                                    override fun onCaptureSuccess(image: ImageProxy) {
+                                        super.onCaptureSuccess(image)
+
+                                        val matrix = Matrix().apply {
+                                            postRotate(image.imageInfo.rotationDegrees.toFloat())
+                                        }
+
+                                        val bitmap = Bitmap.createBitmap(
+                                            image.toBitmap(),
+                                            0, 0,
+                                            image.width, image.height,
+                                            matrix, true
+                                        )
+
+                                        capturedImageBitmap.value = bitmap
                                     }
 
-                                    val bitmap = Bitmap.createBitmap(
-                                        image.toBitmap(),
-                                        0, 0,
-                                        image.width, image.height,
-                                        matrix, true
-                                    )
-
-                                    capturedImageBitmap.value = bitmap
+                                    override fun onError(exception: ImageCaptureException) {
+                                        Log.e("Camera", "Capture failed: ${exception.message}")
+                                    }
                                 }
-
-                                override fun onError(exception: ImageCaptureException) {
-                                    Log.e("Camera", "Capture failed: ${exception.message}")
-                                }
-                            }
+                            )
+                        },
+                        modifier = Modifier.size(120.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Camera,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(64.dp)
                         )
-                    },
-                    modifier = Modifier.size(96.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Camera,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(64.dp)
-                    )
+                    }
                 }
 
+                // 나가기 버튼
                 TextButton(
                     onClick = {
                         controller.unbind()
                         navController.popBackStack()
-                    }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
                 ) {
                     Text(
                         text = "나가기",
@@ -176,7 +202,14 @@ fun CameraScreen(
                 }
             }
         } else {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.height(72.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .aspectRatio(3f / 4f)
+                    .weight(1f)
+            ) {
                 Image(
                     bitmap = capturedImageBitmap.value!!.asImageBitmap(),
                     contentDescription = null,
@@ -184,6 +217,44 @@ fun CameraScreen(
                         .fillMaxWidth()
                         .align(Alignment.Center)
                 )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .background(color = Color.Black)
+                    .height(144.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 다시찍기 버튼
+                TextButton(
+                    onClick = { capturedImageBitmap.value = null },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "다시찍기",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // 가운데 빈 공간
+                Spacer(modifier = Modifier.weight(1f))
+
+                // 사용하기 버튼
+                TextButton(
+                    onClick = {
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "사용하기",
+                        color = Color.Yellow,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
     }
