@@ -21,15 +21,15 @@ val Pretendard = FontFamily(
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodySmall = TextStyle(
-        fontFamily = Pretendard, fontWeight = FontWeight.Normal, fontSize = 14.sp, color = CustomSubDarkTextColor
+        fontFamily = Pretendard, fontWeight = FontWeight.Normal, fontSize = 14.sp, color = CustomLightGrayTextColor
     ),
     bodyMedium = TextStyle(
-        fontFamily = Pretendard, fontWeight = FontWeight.Normal, fontSize = 16.sp, color = CustomDarkTextColor
+        fontFamily = Pretendard, fontWeight = FontWeight.Normal, fontSize = 16.sp, color = CustomBlackTextColor
     ),
     bodyLarge = TextStyle(
-        fontFamily = Pretendard, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = CustomDarkTextColor
+        fontFamily = Pretendard, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = CustomBlackTextColor
     ),
     headlineLarge = TextStyle(
-        fontFamily = Pretendard, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = CustomDarkTextColor
+        fontFamily = Pretendard, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, color = CustomBlackTextColor
     )
 )

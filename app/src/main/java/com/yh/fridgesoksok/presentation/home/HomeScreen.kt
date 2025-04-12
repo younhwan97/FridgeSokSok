@@ -9,12 +9,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,14 +28,21 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -53,6 +65,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.google.android.material.bottomappbar.BottomAppBar
+import com.google.android.material.bottomnavigation.BottomNavigationItemView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
@@ -174,6 +190,9 @@ fun HomeScreen(
                     },
                     scrollBehavior = scrollBehavior
                 )
+            },
+            bottomBar = {
+                CustomBottomNavigation()
             }
         ) { innerPadding ->
             Column(
@@ -201,16 +220,14 @@ fun HomeScreen(
         // FAB
         FloatingActionButton(
             expanded = isFabMenuExpanded,
-            onClick = { isFabMenuExpanded = !isFabMenuExpanded
-                        Log.d("test111", "CLICK")
-                      },
+            onClick = { isFabMenuExpanded = !isFabMenuExpanded },
             modifier = Modifier
                 .onGloballyPositioned { coordinates ->
                     fabOffset = coordinates.positionInRoot()
                 }
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(end = 16.dp, bottom = 16.dp)
+                .padding(end = 16.dp, bottom = 72.dp)
                 .zIndex(1f)
         )
 
@@ -228,5 +245,77 @@ fun HomeScreen(
             onUploadClick = {},
             onManualClick = {},
         )
+    }
+}
+
+@Composable
+fun CustomBottomNavigation() {
+    val bottomInset =
+        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+        color = Color(color = 0xFFF8F8F8),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp + bottomInset)
+            .padding(bottom = bottomInset),
+
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { }
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "홈",
+                        tint = Color.Black
+                    )
+                    Text(
+                        text = "홈",
+                        color = Color.Black,
+                        fontSize = 10.sp
+                    )
+                }
+            }
+            IconButton(
+                onClick = { },
+                modifier = Modifier.alpha(0f)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "홈",
+                        tint = Color.Black
+                    )
+                    Text(
+                        text = "홈",
+                        color = Color.Black,
+                        fontSize = 10.sp
+                    )
+                }
+            }
+            IconButton(
+                onClick = { }
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "홈",
+                        tint = Color.Black
+                    )
+                    Text(
+                        text = "계정",
+                        color = Color.Black,
+                        fontSize = 10.sp
+                    )
+                }
+            }
+        }
     }
 }
