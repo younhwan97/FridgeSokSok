@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -45,10 +47,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable(route = Screen.CameraScreen.route) {
+                    composable(
+                        route = Screen.CameraScreen.route,
+                        enterTransition = { slideInVertically(initialOffsetY = { it }) },
+                        exitTransition = { slideOutVertically(targetOffsetY = { it }) }) {
                         CameraScreen(
-                            navController = navController,
-                            onClose = {}
+                            navController = navController
                         )
                     }
                 }

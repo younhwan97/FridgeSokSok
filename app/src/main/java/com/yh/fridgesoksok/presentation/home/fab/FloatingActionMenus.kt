@@ -5,14 +5,10 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -47,7 +44,7 @@ import androidx.core.content.ContextCompat
 import com.yh.fridgesoksok.R
 
 @Composable
-fun FloatingActionMenu(
+fun FloatingActionMenus(
     expanded: Boolean,
     fabOffset: Offset,
     screenWidth: Float,
@@ -112,76 +109,62 @@ fun FloatingActionMenu(
                 .height(menuHeightDp)
                 .clip(RoundedCornerShape(16.dp))
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp)
-                    .clickable {
-                        if (!hasRequiredPermissions(context = context)) {
-                            cameraPermissionLauncher.launch(cameraPermission)
-                        } else {
-                            onCaptureClick()
-                        }
-                    }
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = "Icon",
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .padding(start = 16.dp)
-                        .size(24.dp)
-                )
+            FabMenu(
+                onClick = {
+                    if (!hasRequiredPermissions(context = context))
+                        cameraPermissionLauncher.launch(cameraPermission)
+                    else
+                        onCaptureClick()
+                },
+                iconResource = painterResource(R.drawable.camera),
+                text = "영수증 찍기"
+            )
 
-                Spacer(modifier = Modifier.width(4.dp))
+            FabMenu(
+                onClick = {
+                },
+                iconResource = painterResource(R.drawable.picture),
+                text = "영수증 올리기"
+            )
 
-                Text(text = "영수증 찍기", style = MaterialTheme.typography.bodyMedium)
-            }
+            FabMenu(
+                onClick = {
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp)
-                    .clickable { onUploadClick() }
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.picture),
-                    contentDescription = "Icon",
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .padding(start = 16.dp)
-                        .size(24.dp)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(text = "영수증 올리기", style = MaterialTheme.typography.bodyMedium)
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(46.dp)
-                    .clickable { onManualClick() }
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.pencil),
-                    contentDescription = "Icon",
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .padding(start = 16.dp)
-                        .size(24.dp)
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(text = "직접 추가하기", style = MaterialTheme.typography.bodyMedium)
-            }
+                },
+                iconResource = painterResource(R.drawable.pencil),
+                text = "직접 추가하기"
+            )
         }
     }
+}
+
+@Composable
+fun FabMenu(
+    onClick: () -> Unit,
+    iconResource: Painter,
+    text: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(46.dp)
+            .clickable { onClick() }
+    ) {
+        Image(
+            painter = iconResource,
+            contentDescription = "Icon",
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .padding(start = 16.dp)
+                .size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Text(text = text, style = MaterialTheme.typography.bodyMedium)
+    }
+
 }
 
 private fun hasRequiredPermissions(context: Context): Boolean {

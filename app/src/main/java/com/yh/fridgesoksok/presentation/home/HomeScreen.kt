@@ -1,8 +1,10 @@
 package com.yh.fridgesoksok.presentation.home
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -49,12 +51,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
-import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenu
+import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomLightGrayBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
@@ -68,9 +71,6 @@ fun HomeScreen(
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var searchQuery by remember { mutableStateOf("") }
-
-    // tmp
-    var tmp by remember { mutableStateOf(false) }
 
     // FAB
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
@@ -201,7 +201,9 @@ fun HomeScreen(
         // FAB
         FloatingActionButton(
             expanded = isFabMenuExpanded,
-            onClick = { isFabMenuExpanded = !isFabMenuExpanded },
+            onClick = { isFabMenuExpanded = !isFabMenuExpanded
+                        Log.d("test111", "CLICK")
+                      },
             modifier = Modifier
                 .onGloballyPositioned { coordinates ->
                     fabOffset = coordinates.positionInRoot()
@@ -209,10 +211,11 @@ fun HomeScreen(
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(end = 16.dp, bottom = 16.dp)
+                .zIndex(1f)
         )
 
         // FAB Menu
-        FloatingActionMenu(
+        FloatingActionMenus(
             expanded = isFabMenuExpanded,
             fabOffset = fabOffset,
             screenWidth = constraints.maxWidth.toFloat(),
@@ -220,19 +223,10 @@ fun HomeScreen(
             menuWidthDp = 186.dp,
             menuHeightDp = 150.dp,
             onCaptureClick = {
-                tmp = !tmp
+                navController.navigate(Screen.CameraScreen.route)
             },
             onUploadClick = {},
             onManualClick = {},
         )
-
-        if (tmp){
-            CameraScreen(
-                navController,
-                onClose = {
-                    tmp = false // CameraScreen이 닫힐 때 tmp 리셋
-                }
-            )
-        }
     }
 }

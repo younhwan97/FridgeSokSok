@@ -45,7 +45,6 @@ fun FloatingActionButton(
         tonalElevation = 6.dp,
         modifier = modifier
             .defaultMinSize(minHeight = 48.dp)
-            .zIndex(2f)
     ) {
         Row(
             modifier = Modifier
