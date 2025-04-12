@@ -1,8 +1,16 @@
 package com.yh.fridgesoksok.presentation.home.fab
 
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -27,12 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import com.yh.fridgesoksok.R
 
 @Composable
@@ -50,10 +61,23 @@ fun FloatingActionMenu(
     val menuWidth = with(LocalDensity.current) { menuWidthDp.toPx() }
     val menuHeight = with(LocalDensity.current) { menuHeightDp.toPx() }
 
+    val context = LocalContext.current
+    val cameraPermission = android.Manifest.permission.CAMERA
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                // 권한 허용 → 카메라 실행
+                onCaptureClick()
+            } else {
+                // 권한 거부
+
+            }
+        }
+
     AnimatedVisibility(
         visible = expanded,
-        enter = fadeIn() + slideInVertically { it },
-        exit = fadeOut() + slideOutVertically { it },
+        enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeIn(),
+        exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeOut(),
         modifier = Modifier
             .zIndex(2f)
             .absoluteOffset {
@@ -94,7 +118,11 @@ fun FloatingActionMenu(
                     .fillMaxWidth()
                     .height(46.dp)
                     .clickable {
-                        onCaptureClick()
+                        if (!hasRequiredPermissions(context = context)) {
+                            cameraPermissionLauncher.launch(cameraPermission)
+                        } else {
+                            onCaptureClick()
+                        }
                     }
             ) {
                 Image(
@@ -154,4 +182,11 @@ fun FloatingActionMenu(
             }
         }
     }
+}
+
+private fun hasRequiredPermissions(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        android.Manifest.permission.CAMERA
+    ) == PackageManager.PERMISSION_GRANTED
 }

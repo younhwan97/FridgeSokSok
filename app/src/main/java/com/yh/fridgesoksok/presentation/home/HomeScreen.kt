@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenu
@@ -66,11 +69,17 @@ fun HomeScreen(
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     var searchQuery by remember { mutableStateOf("") }
 
-    // FAB 위치 정보
-    var fabOffset by remember { mutableStateOf(Offset.Zero) }
-    // FAB Menu 확장 여부
-    var isFabMenuExpanded by remember { mutableStateOf(false) }
+    // tmp
+    var tmp by remember { mutableStateOf(false) }
 
+    // FAB
+    var fabOffset by remember { mutableStateOf(Offset.Zero) }
+    var isFabMenuExpanded by remember { mutableStateOf(false) }
+    BackHandler(enabled = isFabMenuExpanded) {
+        isFabMenuExpanded = false
+    }
+
+    // UI
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -184,7 +193,7 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(Color.Black.copy(alpha = 0.3f))
                     .clickable { isFabMenuExpanded = false }
             )
         }
@@ -210,9 +219,20 @@ fun HomeScreen(
             screenHeight = constraints.maxHeight.toFloat(),
             menuWidthDp = 186.dp,
             menuHeightDp = 150.dp,
-            onCaptureClick = {},
+            onCaptureClick = {
+                tmp = !tmp
+            },
             onUploadClick = {},
             onManualClick = {},
         )
+
+        if (tmp){
+            CameraScreen(
+                navController,
+                onClose = {
+                    tmp = false // CameraScreen이 닫힐 때 tmp 리셋
+                }
+            )
+        }
     }
 }

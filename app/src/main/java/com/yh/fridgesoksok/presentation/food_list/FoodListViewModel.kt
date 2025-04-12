@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.presentation.food_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.SummaryFood
 import com.yh.fridgesoksok.domain.usecase.GetSummaryFoodListUseCase
 import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
 import com.yh.fridgesoksok.presentation.model.toPresentation

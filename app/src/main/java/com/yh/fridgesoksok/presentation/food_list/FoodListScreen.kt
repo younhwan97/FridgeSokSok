@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.domain.model.SummaryFood
 import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
 import com.yh.fridgesoksok.presentation.theme.CustomDarkTextColor
 import com.yh.fridgesoksok.presentation.theme.CustomLightGrayBackGroundColor
