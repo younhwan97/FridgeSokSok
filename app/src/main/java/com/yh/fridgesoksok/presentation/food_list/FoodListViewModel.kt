@@ -3,9 +3,8 @@ package com.yh.fridgesoksok.presentation.food_list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
-import com.yh.fridgesoksok.domain.model.SummaryFood
-import com.yh.fridgesoksok.domain.usecase.GetSummaryFoodListUseCase
-import com.yh.fridgesoksok.presentation.model.SummaryFoodModel
+import com.yh.fridgesoksok.domain.usecase.GetFoodListUseCase
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,18 +15,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FoodListViewModel @Inject constructor(
-    private val getSummaryFoodListUseCase: GetSummaryFoodListUseCase
+    private val getFoodListUseCase: GetFoodListUseCase
 ) : ViewModel() {
 
-    private val _summaryFoods = MutableStateFlow<List<SummaryFoodModel>>(emptyList())
-    val summaryFood = _summaryFoods.asStateFlow()
+    private val _foodList = MutableStateFlow<List<FoodModel>>(emptyList())
+    val foodList = _foodList.asStateFlow()
 
     init {
         loadFoods()
     }
 
     private fun loadFoods() {
-        getSummaryFoodListUseCase().onEach { result ->
+        getFoodListUseCase().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     //
@@ -38,7 +37,7 @@ class FoodListViewModel @Inject constructor(
                 }
 
                 is Resource.Success -> {
-                    _summaryFoods.value = result.data!!.map { it.toPresentation() }.sortedBy { it.endDt }
+                    _foodList.value = result.data!!.map { it.toPresentation() }.sortedBy { it.endDt }
                 }
             }
         }.launchIn(viewModelScope)

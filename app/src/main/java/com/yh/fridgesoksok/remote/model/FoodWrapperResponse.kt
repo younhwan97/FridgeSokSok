@@ -2,7 +2,7 @@ package com.yh.fridgesoksok.remote.model
 
 import com.google.gson.annotations.SerializedName
 
-data class SummaryFoodWrapperResponse(
+data class FoodWrapperResponse(
     @SerializedName("results")
-    val summaryFoods: List<SummaryFoodResponse>
+    val foodList: List<FoodResponse>
 )

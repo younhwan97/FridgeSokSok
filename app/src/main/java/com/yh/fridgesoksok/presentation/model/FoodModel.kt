@@ -1,17 +1,18 @@
 package com.yh.fridgesoksok.presentation.model
 
 import android.os.Parcelable
-import com.yh.fridgesoksok.domain.model.SummaryFood
+import com.yh.fridgesoksok.domain.model.Food
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class SummaryFoodModel(
+data class FoodModel(
     val id: Int,
     val name: String,
+    val type: Int,
+    val count: Int,
     val startDt: String,
     val endDt: String,
-    val foodImageUrl: String,
 ): Parcelable
 
-fun SummaryFood.toPresentation() =
-    SummaryFoodModel(id, name, startDt, endDt, foodImageUrl)
+fun Food.toPresentation() =
+    FoodModel(id, name, type, count, startDt, endDt)

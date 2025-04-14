@@ -3,7 +3,7 @@ package com.yh.fridgesoksok.remote.api
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.CommonResponse
-import com.yh.fridgesoksok.remote.model.SummaryFoodWrapperResponse
+import com.yh.fridgesoksok.remote.model.FoodWrapperResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
@@ -14,7 +14,7 @@ class MockApiService(
     private val context: Context
 ) : FridgeApiService {
 
-    override suspend fun getSummaryFoods(): SummaryFoodWrapperResponse {
+    override suspend fun getFoodList(): FoodWrapperResponse {
         val gson = GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
             .create()
@@ -24,7 +24,7 @@ class MockApiService(
             val buffer = ByteArray(size).apply {
                 inputStream.read(this)
             }
-            return gson.fromJson(String(buffer), SummaryFoodWrapperResponse::class.java)
+            return gson.fromJson(String(buffer), FoodWrapperResponse::class.java)
         }
     }
 

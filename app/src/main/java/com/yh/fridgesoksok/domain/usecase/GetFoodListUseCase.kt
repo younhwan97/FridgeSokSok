@@ -3,9 +3,9 @@ package com.yh.fridgesoksok.domain.usecase
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import javax.inject.Inject
 
-class GetSummaryFoodListUseCase @Inject constructor(
+class GetFoodListUseCase @Inject constructor(
     private val foodRepository: FoodRepository
 ) {
     operator fun invoke() =
-        foodRepository.getSummaryFoods()
+        foodRepository.getFoodList()
 }
