@@ -1,33 +1,25 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.2"
 kotlin = "2.1.0"
-coreKtx = "1.15.0"
+coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.10.0"
-composeBom = "2024.04.01"
+activityCompose = "1.10.1"
+composeBom = "2025.04.00"       # Compose 관련 라이브러리들을 동일한 버전 그룹으로 맞춰주는 시스템
 icon = "1.7.8"
-
-# AndroidX
-androidx-navigation = "2.8.3"
-# CameraX
-camerax = "1.4.2"
-# KSP
-ksp = "2.1.0-1.0.29"
-# DI
-hilt = "1.2.0"
-dagger = "2.51.1"
-# Netwrok
-glide = "4.12.0"
-okhttp = "4.12.0"
-retrofit = "2.11.0"
-gson = "2.10.1"
-# Lottie
-lottie = "6.6.2"
-# Kakao
-kakao = "2.12.1"
+androidx-navigation = "2.8.9"   # AndroidX
+camerax = "1.4.2"               # CameraX
+ksp = "2.1.0-1.0.29"            # KSP
+hilt = "1.2.0"                  # DI
+dagger = "2.51.1"               # DI
+glide = "4.12.0"                # Netwrok
+okhttp = "4.12.0"               # Netwrok
+retrofit = "2.11.0"             # Netwrok
+gson = "2.10.1"                 # Netwrok
+lottie = "6.6.2"                # Lottie
+kakao = "2.21.1"                # Kakao
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +30,7 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
