@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Channel
@@ -37,9 +38,12 @@ class LoginViewModel @Inject constructor(
 
                 is Resource.Success -> {
                     // 유저 생성
-                    result.data?.let { createUser(it) } ?: run {
+                    result.data?.let {
+                        Log.d("SUCCESS", result.data.toString())
+                        createUser(it)
+                    } ?: run {
                         // 유저토큰을 생성하는데 실패했을 때
-                        
+                        Log.d("ERROR", "유저생성 실패")
                     }
                 }
             }
@@ -58,6 +62,7 @@ class LoginViewModel @Inject constructor(
                 is Resource.Success -> {
                     // 유저 정보 저장
                     result.data?.accessToken?.let { saveUser(result.data) } ?: run {
+                        Log.d("ERROR", "(API)유저생성 실패")
                         // 유저 생성에 실패했을 때
                     }
                 }

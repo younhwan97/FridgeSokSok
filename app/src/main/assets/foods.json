@@ -3,65 +3,66 @@
     {
       "id": 0,
       "name": "서울우유",
-      "startDt": "20250211",
-      "endDt": "20250227",
-      "foodImageUrl": ""
+      "type": 5,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250530"
     },
     {
       "id": 1,
-      "name": "오리",
+      "name": "야채",
+      "type": 0,
+      "count": 1,
       "startDt": "20250211",
-      "endDt": "20250227",
-      "foodImageUrl": ""
+      "endDt": "20250227"
     },
     {
       "id": 2,
-      "name": "두부",
+      "name": "파워에이드",
+      "type": 1,
+      "count": 1,
       "startDt": "20250211",
-      "endDt": "20250301",
-      "foodImageUrl": ""
+      "endDt": "20251231"
     },
     {
       "id": 3,
-      "name": "마늘",
-      "startDt": "20250211",
-      "endDt": "20250302",
-      "foodImageUrl": ""
+      "name": "식빵",
+      "type": 2,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250414"
     },
     {
       "id": 4,
-      "name": "치킨",
+      "name": "통조림",
+      "type": 3,
+      "count": 1,
       "startDt": "20250211",
-      "endDt": "20250302",
-      "foodImageUrl": ""
+      "endDt": "20261231"
     },
     {
       "id": 5,
-      "name": "연세우유",
-      "startDt": "20250211",
-      "endDt": "20250414",
-      "foodImageUrl": ""
+      "name": "핫소스",
+      "type": 4,
+      "count": 2,
+      "startDt": "20250101",
+      "endDt": "20250708"
     },
     {
       "id": 6,
-      "name": "숙주나물",
+      "name": "냉동치킨",
+      "type": 6,
+      "count": 1,
       "startDt": "20250211",
-      "endDt": "20250331",
-      "foodImageUrl": ""
+      "endDt": "20250930"
     },
     {
       "id": 7,
-      "name": "초코빵",
+      "name": "비타민",
+      "type": 7,
+      "count": 1,
       "startDt": "20250211",
-      "endDt": "20250402",
-      "foodImageUrl": ""
-    },
-    {
-      "id": 8,
-      "name": "피자",
-      "startDt": "20250211",
-      "endDt": "20250505",
-      "foodImageUrl": ""
+      "endDt": "20250930"
     }
   ]
 }

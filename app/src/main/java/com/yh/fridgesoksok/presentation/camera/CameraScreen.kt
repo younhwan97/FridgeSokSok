@@ -51,6 +51,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.yh.fridgesoksok.presentation.Screen
 
 @Composable
 fun CameraScreen(
@@ -246,6 +247,9 @@ fun CameraScreen(
                 // 사용하기 버튼
                 TextButton(
                     onClick = {
+                        navController.currentBackStackEntry?.savedStateHandle
+                            ?.set("capturedImage", capturedImageBitmap.value)
+                        navController.navigate(Screen.UploadScreen.route)
                     },
                     modifier = Modifier.weight(1f)
                 ) {

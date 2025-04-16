@@ -4,9 +4,12 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.FoodWrapperResponse
+import com.yh.fridgesoksok.remote.model.ReceiptResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
 import java.io.InputStream
 
 // TEST
@@ -26,6 +29,10 @@ class MockApiService(
             }
             return gson.fromJson(String(buffer), FoodWrapperResponse::class.java)
         }
+    }
+
+    override suspend fun uploadReceiptImage(image: MultipartBody.Part): CommonResponse<List<ReceiptResponse>> {
+        TODO("Not yet implemented")
     }
 
     // @POST("auth/kakao")

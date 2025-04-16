@@ -128,9 +128,7 @@ fun FloatingActionMenus(
             )
 
             FabMenu(
-                onClick = {
-
-                },
+                onClick = { onManualClick() },
                 iconResource = painterResource(R.drawable.pencil),
                 text = "직접 추가하기"
             )

@@ -11,6 +11,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -22,6 +23,10 @@ internal object NetworkModule {
 
     private const val TIME_OUT = 30
 
+    val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY // ★ 모든 바디 출력
+    }
+
     @Provides
     @Singleton
     fun provideOkHttpClient(requestHeaderInterceptor: RequestHeaderInterceptor): OkHttpClient {
@@ -30,6 +35,7 @@ internal object NetworkModule {
             writeTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
             connectTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
             addNetworkInterceptor(requestHeaderInterceptor)
+            addInterceptor(loggingInterceptor)
         }.build()
     }
 
@@ -44,20 +50,20 @@ internal object NetworkModule {
     }
 
     // Api SERVER
-//    @Provides
-//    @Singleton
-//    fun provideFridgeApiService(
-//        retrofit: Retrofit,
-//        @ApplicationContext context: Context
-//    ): FridgeApiService =  retrofit.create(FridgeApiService::class.java)
-
-    // Mock Api SERVER
     @Provides
     @Singleton
     fun provideFridgeApiService(
         retrofit: Retrofit,
         @ApplicationContext context: Context
-    ): FridgeApiService = MockApiService(context)
+    ): FridgeApiService =  retrofit.create(FridgeApiService::class.java)
+
+    // Mock Api SERVER
+//    @Provides
+//    @Singleton
+//    fun provideFridgeApiService(
+//        retrofit: Retrofit,
+//        @ApplicationContext context: Context
+//    ): FridgeApiService = MockApiService(context)
 
     // Kakao Api SERVER
     @Provides

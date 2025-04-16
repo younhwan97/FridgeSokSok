@@ -243,7 +243,9 @@ fun HomeScreen(
                 navController.navigate(Screen.CameraScreen.route)
             },
             onUploadClick = {},
-            onManualClick = {},
+            onManualClick = {
+                navController.navigate(Screen.UploadScreen.route)
+            },
         )
     }
 }

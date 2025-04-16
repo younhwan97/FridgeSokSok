@@ -14,6 +14,7 @@ import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
+import com.yh.fridgesoksok.presentation.upload.UploadScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -52,6 +53,12 @@ class MainActivity : ComponentActivity() {
                         enterTransition = { slideInVertically(initialOffsetY = { it }) },
                         exitTransition = { slideOutVertically(targetOffsetY = { it }) }) {
                         CameraScreen(
+                            navController = navController
+                        )
+                    }
+
+                    composable(route = Screen.UploadScreen.route){
+                        UploadScreen(
                             navController = navController
                         )
                     }
