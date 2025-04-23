@@ -11,19 +11,20 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 // Custom Color
-val CustomPrimaryColor = Color(0xFF4CAF50)       // 기본 포인트 컬러
-val CustomLightPrimaryColor = Color(0xFFFF7043)
+val CustomPrimaryColor = Color(0xFF007AFF)       // 기본 포인트 컬러
+val CustomOnPrimaryColor = Color(0xFFFFFFFF)
+val CustomSecondaryColor = Color(0xFFD6E8FF)
+val CustomSurfaceColor = Color(0xFFEAF4FF)
+val CustomErrorColor = Color(0xFFFF3B30)
+val CustomAlertColor = Color(0xFFFFD60A)
 
+val CustomBlackTextColor = Color(0xFF212121)
+val CustomLightGrayTextColor = Color(0xFF9E9E9E)
+
+
+// 삭제 예정
+val CustomLightPrimaryColor = Color(0xFFFF7043)
 val CustomBackGroundColor = Color(0xFFfbfbfb)    // 기본 앱 배경 색상
 val CustomLightGrayBackGroundColor = Color(0xFFF5F5F5) // 컨텐츠(상품, 음식) 등 요소에 배경 색상
 val CustomDarkGrayBackGroundColor = Color(0xFF929292)
-
-// additional color
 val CustomRedColor = Color(0xFFF65C68)
-
-
-
-
-// 재정의
-val CustomBlackTextColor = Color(0xFF212121)
-val CustomLightGrayTextColor = Color(0xFF9E9E9E)
