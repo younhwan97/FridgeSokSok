@@ -63,6 +63,198 @@
       "count": 1,
       "startDt": "20250211",
       "endDt": "20250930"
+    },
+    {
+      "id": 0,
+      "name": "서울우유",
+      "type": 5,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250530"
+    },
+    {
+      "id": 1,
+      "name": "야채",
+      "type": 0,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250227"
+    },
+    {
+      "id": 2,
+      "name": "파워에이드",
+      "type": 1,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20251231"
+    },
+    {
+      "id": 3,
+      "name": "식빵",
+      "type": 2,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250414"
+    },
+    {
+      "id": 4,
+      "name": "통조림",
+      "type": 3,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20261231"
+    },
+    {
+      "id": 5,
+      "name": "핫소스",
+      "type": 4,
+      "count": 2,
+      "startDt": "20250101",
+      "endDt": "20250708"
+    },
+    {
+      "id": 6,
+      "name": "냉동치킨",
+      "type": 6,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
+    },
+    {
+      "id": 7,
+      "name": "비타민",
+      "type": 7,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
+    },
+    {
+      "id": 0,
+      "name": "서울우유",
+      "type": 5,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250530"
+    },
+    {
+      "id": 1,
+      "name": "야채",
+      "type": 0,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250227"
+    },
+    {
+      "id": 2,
+      "name": "파워에이드",
+      "type": 1,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20251231"
+    },
+    {
+      "id": 3,
+      "name": "식빵",
+      "type": 2,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250414"
+    },
+    {
+      "id": 4,
+      "name": "통조림",
+      "type": 3,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20261231"
+    },
+    {
+      "id": 5,
+      "name": "핫소스",
+      "type": 4,
+      "count": 2,
+      "startDt": "20250101",
+      "endDt": "20250708"
+    },
+    {
+      "id": 6,
+      "name": "냉동치킨",
+      "type": 6,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
+    },
+    {
+      "id": 7,
+      "name": "비타민",
+      "type": 7,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
+    },
+    {
+      "id": 0,
+      "name": "서울우유",
+      "type": 5,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250530"
+    },
+    {
+      "id": 1,
+      "name": "야채",
+      "type": 0,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250227"
+    },
+    {
+      "id": 2,
+      "name": "파워에이드",
+      "type": 1,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20251231"
+    },
+    {
+      "id": 3,
+      "name": "식빵",
+      "type": 2,
+      "count": 1,
+      "startDt": "20250401",
+      "endDt": "20250414"
+    },
+    {
+      "id": 4,
+      "name": "통조림",
+      "type": 3,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20261231"
+    },
+    {
+      "id": 5,
+      "name": "핫소스",
+      "type": 4,
+      "count": 2,
+      "startDt": "20250101",
+      "endDt": "20250708"
+    },
+    {
+      "id": 6,
+      "name": "냉동치킨",
+      "type": 6,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
+    },
+    {
+      "id": 7,
+      "name": "비타민",
+      "type": 7,
+      "count": 1,
+      "startDt": "20250211",
+      "endDt": "20250930"
     }
   ]
 }

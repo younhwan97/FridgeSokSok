@@ -23,47 +23,44 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
 import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
 
 @Composable
 fun FloatingActionButton(
-    expanded: Boolean,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    expanded: Boolean,
+    onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
 
     Surface(
-        onClick = {
-            onClick()
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        },
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         shape = CircleShape,
         color = if (!expanded) CustomPrimaryColor else CustomBackGroundColor,
         tonalElevation = 6.dp,
-        modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
+        onClick = {
+            onClick()
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
+                modifier = Modifier.size(24.dp),
                 imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
                 tint = if (!expanded) MaterialTheme.colorScheme.onPrimary else Color.Black,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
+                contentDescription = null
             )
 
             if (!expanded) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "추가하기",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "추가",
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
@@ -71,32 +68,3 @@ fun FloatingActionButton(
         }
     }
 }
-
-//        // FAB(Floating Action Button)
-//        ExtendedFloatingActionButton(
-//            onClick = {
-//                isFabMenuExpanded = !isFabMenuExpanded
-//                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-//            },
-//            shape = CircleShape,
-//            modifier = Modifier
-//                .zIndex(2f)
-//                .onGloballyPositioned { coordinates ->
-//                    fabOffset = coordinates.positionInRoot()
-//                }
-//                .align(Alignment.BottomEnd)
-//                .windowInsetsPadding(WindowInsets.navigationBars)
-//                .padding(end = 16.dp, bottom = 16.dp)
-//        ) {
-//            Icon(
-//                imageVector = if (isFabMenuExpanded) Icons.Default.Close else Icons.Default.Add,
-//                contentDescription = null,
-//            )
-//
-//            if (!isFabMenuExpanded) {
-//                Text(
-//                    text = "추가하기",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                )
-//            }
-//        }
