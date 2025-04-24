@@ -4,9 +4,12 @@ import com.yh.fridgesoksok.data.model.ReceiptEntity
 import com.yh.fridgesoksok.remote.RemoteMapper
 
 data class ReceiptResponse(
-    val name: String,
-    val count: Int
+    val itemName: String,
+    val expirationDescription: String,
+    val type: String,
+    val shelfLifeHours: Int,
+    val categoryId: Int
 ) : RemoteMapper<ReceiptEntity> {
     override fun toData(): ReceiptEntity =
-        ReceiptEntity(name, count)
+        ReceiptEntity(itemName, expirationDescription, type, shelfLifeHours, categoryId)
 }

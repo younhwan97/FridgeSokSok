@@ -5,8 +5,11 @@ import com.yh.fridgesoksok.domain.model.Receipt
 
 data class ReceiptEntity(
     val name: String,
-    val count: Int
+    val expirationDescription: String,
+    val type: String,
+    val shelfLifeHours: Int,
+    val categoryId: Int
 ) : DataMapper<Receipt> {
     override fun toDomain() =
-        Receipt(name, count)
+        Receipt(name, expirationDescription, type, shelfLifeHours, categoryId)
 }

@@ -16,14 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,7 +38,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -52,29 +46,22 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
-import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController
 ) {
-    // FAB
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
+
     BackHandler(enabled = isFabMenuExpanded) {
         isFabMenuExpanded = false
     }
 
-    // UI
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                TopAppBar(title = { Text(text = "냉장고 속속") })
-            },
-            bottomBar = {
-                CustomBottomNavigation()
-            }
+            topBar = { CustomTopAppBar() },
+            bottomBar = { CustomBottomNavigation() }
         ) { innerPadding ->
             FoodListScreen(
                 modifier = Modifier
@@ -85,22 +72,18 @@ fun HomeScreen(
 
         // ------------------ FAB(Floating Action Button) ------------------ //
         // FAB Overlay Screen
-        if (isFabMenuExpanded) {
+        if (isFabMenuExpanded)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.3f))
                     .clickable { isFabMenuExpanded = false }
             )
-        }
 
         // FAB
         FloatingActionButton(
             modifier = Modifier
-                .onGloballyPositioned { coordinates ->
-                    // FAB 위치 추출
-                    fabOffset = coordinates.positionInRoot()
-                }
+                .onGloballyPositioned { fabOffset = it.positionInRoot() } // FAB 위치 추출
                 .align(Alignment.BottomEnd)
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(end = 16.dp, bottom = 72.dp)
@@ -117,15 +100,23 @@ fun HomeScreen(
             screenHeight = constraints.maxHeight.toFloat(),
             menuWidthDp = 186.dp,
             menuHeightDp = 150.dp,
-            onCaptureClick = {
-                navController.navigate(Screen.CameraScreen.route)
-            },
+            onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
             onUploadClick = {},
-            onManualClick = {
-                navController.navigate(Screen.UploadScreen.route)
-            },
+            onManualClick = { navController.navigate(Screen.UploadScreen.route) }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomTopAppBar() {
+    TopAppBar(
+        title = {
+            Text(
+                text = "냉장고 속속"
+            )
+        }
+    )
 }
 
 @Composable

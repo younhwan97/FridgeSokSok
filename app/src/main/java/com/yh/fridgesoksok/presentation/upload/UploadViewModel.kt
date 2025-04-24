@@ -43,7 +43,7 @@ class UploadViewModel @Inject constructor(
                             FoodModel(
                                 id = tmpKey++,
                                 name = receipt.name,
-                                count = receipt.count,
+                                count = receipt.shelfLifeHours,
                                 startDt = "20250101",
                                 endDt = "20251231",
                                 type = 1,
