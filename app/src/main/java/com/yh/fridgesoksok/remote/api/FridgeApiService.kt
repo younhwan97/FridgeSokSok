@@ -20,9 +20,7 @@ interface FridgeApiService {
 
     @Multipart
     @POST("receipts/upload")
-    suspend fun uploadReceiptImage(
-        @Part file: MultipartBody.Part
-    ): CommonResponse<List<ReceiptResponse>>
+    suspend fun uploadReceiptImage(@Part file: MultipartBody.Part): CommonResponse<List<ReceiptResponse>>
 
     // User Management
     @Headers("Content-Type: application/json")

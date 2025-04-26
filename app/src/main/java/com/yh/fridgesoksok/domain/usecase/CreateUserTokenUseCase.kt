@@ -8,7 +8,6 @@ import javax.inject.Inject
 class CreateUserTokenUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-
     operator fun invoke(channel: Channel) =
         userRepository.createUserToken(channel = channel)
 }

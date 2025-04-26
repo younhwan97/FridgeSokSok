@@ -42,7 +42,7 @@ class UploadViewModel @Inject constructor(
                         val mappedFoods = receiptList.map { receipt ->
                             FoodModel(
                                 id = tmpKey++,
-                                name = receipt.name,
+                                name = receipt.itemName,
                                 count = receipt.shelfLifeHours,
                                 startDt = "20250101",
                                 endDt = "20251231",

@@ -2,11 +2,9 @@ package com.yh.fridgesoksok.presentation.home.fab
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,10 +32,14 @@ fun FloatingActionButton(
 ) {
     val haptic = LocalHapticFeedback.current
 
+    val backgroundColor = if (expanded) CustomBackGroundColor else CustomPrimaryColor
+    val icon = if (expanded) Icons.Default.Close else Icons.Default.Add
+    val iconTint = if (expanded) Color.Black else MaterialTheme.colorScheme.onPrimary
+
     Surface(
         modifier = modifier.defaultMinSize(minHeight = 48.dp),
         shape = CircleShape,
-        color = if (!expanded) CustomPrimaryColor else CustomBackGroundColor,
+        color = backgroundColor,
         tonalElevation = 6.dp,
         onClick = {
             onClick()
@@ -51,20 +53,19 @@ fun FloatingActionButton(
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
-                imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
-                tint = if (!expanded) MaterialTheme.colorScheme.onPrimary else Color.Black,
+                imageVector = icon,
+                tint = iconTint,
                 contentDescription = null
             )
 
-            if (!expanded) {
-                Spacer(modifier = Modifier.width(6.dp))
+            if (!expanded)
                 Text(
+                    modifier = Modifier.padding(start = 4.dp),
                     text = "추가",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight(500),
                 )
-            }
         }
     }
 }

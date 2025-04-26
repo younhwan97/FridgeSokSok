@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.data.impl
 
-import android.util.Log
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
@@ -24,53 +23,41 @@ class UserRepositoryImpl @Inject constructor(
     override fun saveUser(user: User) =
         localUserDataSource.saveUser(
             userEntity = UserEntity(
-                user.id,
-                user.accessToken,
-                user.refreshToken,
-                user.username,
-                user.accountType
+                id = user.id,
+                accessToken = user.accessToken,
+                refreshToken = user.refreshToken,
+                username = user.username,
+                accountType = user.accountType
             )
         )
 
-    override fun createUserToken(channel: Channel): Flow<Resource<User>> = flow {
-        emit(Resource.Loading())
-        try {
-            val user = remoteUserDataSource.createUserToken(channel).toDomain()
-
-            Log.d("test45", user.toString())
-            emit(Resource.Success(user))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun createUserToken(channel: Channel): Flow<Resource<User>> =
+        flowWithResource {
+            remoteUserDataSource.createUserToken(channel).toDomain()
         }
-    }
 
-    override fun createUser(user: User): Flow<Resource<User>> = flow {
-        emit(Resource.Loading())
-        try {
-            val user = remoteUserDataSource.createUser(user = user).toDomain()
-            emit(Resource.Success(user))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun createUser(user: User): Flow<Resource<User>> =
+        flowWithResource {
+            remoteUserDataSource.createUser(user = user).toDomain()
         }
-    }
 
-    override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> = flow {
-        emit(Resource.Loading())
-        try {
-            val isValidToken = remoteUserDataSource.validateUserToken(refreshToken = refreshToken)
-            emit(Resource.Success(isValidToken))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteUserDataSource.validateUserToken(refreshToken = refreshToken)
         }
-    }
 
-    override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> = flow {
-        emit(Resource.Loading())
-        try {
-            val tokenEntity = remoteUserDataSource.reissueUserToken(refreshToken = refreshToken)
-            emit(Resource.Success(tokenEntity.toDomain()))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> =
+        flowWithResource {
+            remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
         }
-    }
+
+    private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
+        flow {
+            emit(Resource.Loading())
+            try {
+                emit(Resource.Success(block()))
+            } catch (exception: Exception) {
+                emit(Resource.Error(exception.localizedMessage ?: "Unknown Error"))
+            }
+        }
 }

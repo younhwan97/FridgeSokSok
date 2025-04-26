@@ -14,25 +14,23 @@ class FoodRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) : FoodRepository {
 
-    override fun getFoodList(): Flow<Resource<List<Food>>> = flow {
-        emit(Resource.Loading())
-        try {
-            val foodList = remoteDataSource.getFoodList()
-            val domainFoods = foodList.map { it.toDomain() }
-            emit(Resource.Success(domainFoods))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun getFoodList(): Flow<Resource<List<Food>>> =
+        flowWithResource {
+            remoteDataSource.getFoodList().map { it.toDomain() }
         }
-    }
 
-    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> = flow {
-        emit(Resource.Loading())
-        try {
-            val tmp = remoteDataSource.uploadReceiptImage(img = img)
-            val tmps = tmp.map { it.toDomain() }
-            emit(Resource.Success(tmps))
-        } catch (exception: Exception) {
-            emit(Resource.Error(exception.toString()))
+    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> =
+        flowWithResource {
+            remoteDataSource.uploadReceiptImage(img = img).map { it.toDomain() }
         }
-    }
+
+    private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
+        flow {
+            emit(Resource.Loading())
+            try {
+                emit(Resource.Success(block()))
+            } catch (exception: Exception) {
+                emit(Resource.Error(exception.localizedMessage ?: "Unknown Error"))
+            }
+        }
 }

@@ -7,6 +7,7 @@ import com.yh.fridgesoksok.data.model.ReceiptEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.remote.RemoteDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
+import com.yh.fridgesoksok.remote.impl.RemoteUserDataSourceImpl.Companion
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -21,27 +22,42 @@ class RemoteDataSourceImpl @Inject constructor(
     private val fridgeApiService: FridgeApiService
 ) : RemoteDataSource {
 
+    companion object {
+        private const val TAG = "RemoteDataLogger"
+    }
+
+    private fun logInput(action: String, input: Any?) {
+        Log.d(TAG, "[$action][INPUT] $input")
+    }
+
+    private fun logOutput(action: String, output: Any?) {
+        Log.d(TAG, "[$action][OUTPUT] $output")
+    }
+
+    private fun logError(action: String, e: Exception) {
+        val httpException = e as? HttpException
+        val errorBody = httpException?.response()?.errorBody()?.string()
+        val errorMsg = e.localizedMessage ?: "Unknown error"
+        Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
+    }
+
     override suspend fun getFoodList(): List<FoodEntity> {
         return fridgeApiService.getFoodList().foodList.map { it.toData() }
     }
 
     override suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity> {
-        try {
-            // 입력값 로깅
-            Log.d("INPUT(receipt): ", img.toString())
-            // API 요청
+        val action = "uploadReceiptImage"
+        return try {
+            logInput(action, img)
             val resized = resizeBitmap(img, 1080, 1080)
             val part = bitmapToMultipart(resized)
             val response = fridgeApiService.uploadReceiptImage(part)
             val receipt = response.data
-            // 출력값 로깅 및 리턴
-            Log.d("OUTPUT(receipt): ", receipt.toString())
-            return receipt.map { it.toData() }
+            logOutput(action, receipt)
+            receipt.map { it.toData() }
         } catch (e: Exception) {
-            val errorBody = (e as? HttpException)?.response()//?.errorBody()?.string()
-            val errorMsg = e.message
-            Log.e("ERROR(receipt)", "Error: $errorMsg, Body: $errorBody")
-            return emptyList()
+            logError(action, e)
+            emptyList()
         }
     }
 }
@@ -68,3 +84,4 @@ private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap 
 
     return Bitmap.createScaledBitmap(bitmap, width, height, true)
 }
+
