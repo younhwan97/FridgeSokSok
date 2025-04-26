@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
-import com.yh.fridgesoksok.presentation.theme.CustomSurfaceColor
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -156,7 +154,7 @@ fun FoodInputBlock(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = CustomSurfaceColor, shape = RoundedCornerShape(8.dp))
+            //.background(color = CustomSurfaceColor, shape = RoundedCornerShape(8.dp))
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(

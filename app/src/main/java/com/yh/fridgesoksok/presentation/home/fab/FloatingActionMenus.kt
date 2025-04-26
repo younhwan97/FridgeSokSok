@@ -121,8 +121,7 @@ fun FloatingActionMenus(
             )
 
             FabMenu(
-                onClick = {
-                },
+                onClick = { onUploadClick() },
                 iconResource = painterResource(R.drawable.picture),
                 text = "영수증 올리기"
             )

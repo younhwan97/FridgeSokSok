@@ -32,7 +32,7 @@ fun FloatingActionButton(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    val backgroundColor = if (expanded) CustomBackGroundColor else CustomPrimaryColor
+    val backgroundColor = if (expanded) CustomBackGroundColor else MaterialTheme.colorScheme.primary
     val icon = if (expanded) Icons.Default.Close else Icons.Default.Add
     val iconTint = if (expanded) Color.Black else MaterialTheme.colorScheme.onPrimary
 
