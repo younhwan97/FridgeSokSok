@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.navercorp.nid.NaverIdLoginSDK
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.presentation.Screen
@@ -162,7 +163,9 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Button(
-                    onClick = { viewModel.createUserToken(Channel.NAVER) },
+                    onClick = {
+                        viewModel.createUserToken(Channel.NAVER)
+                    },
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,

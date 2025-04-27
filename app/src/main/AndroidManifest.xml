@@ -47,12 +47,9 @@
             </intent-filter>
         </activity>
 
-
-        <!-- 임시 -->
         <activity
-            android:name="com.yh.fridgesoksok.presentation.login.NaverLoginActivity"
+            android:name=".presentation.login.NaverLoginActivity"
             android:exported="false"
-            android:theme="@style/Theme.FridgeSokSok"/>
+            android:theme="@style/Theme.FridgeSokSok" />
     </application>
-
 </manifest>
