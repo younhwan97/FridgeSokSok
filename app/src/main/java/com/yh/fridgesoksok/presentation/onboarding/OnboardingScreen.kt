@@ -36,6 +36,28 @@ fun OnboardingScreen(
         iterations = LottieConstants.IterateForever
     )
 
+    // 토큰 확인 후 화면전환
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            delay(1300L)
+
+            if (userToken.isBlank()) {
+                // 유저 토큰이 없다면 로그인 로그인 화면으로 이동
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+                }
+            } else {
+                // 유저 토큰이 있다면 홈 화면으로 이동
+//                navController.navigate(Screen.HomeScreen.route) {
+//                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+//                }
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+                }
+            }
+        }
+    }
+
     // Loading
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,25 +68,5 @@ fun OnboardingScreen(
             composition = composition,
             progress = { progress }
         )
-    }
-
-    // 토큰 확인 후 화면 전환
-    LaunchedEffect(isLoading) {
-        if (!isLoading){
-            delay(1300L)
-
-            if (userToken.isBlank()) {
-                // 유저 토큰이 없다면 로그인 로그인 화면으로 이동
-                navController.navigate(Screen.LoginScreen.route) {
-                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
-                }
-            } else {
-                // 유저 토큰이 있다면 홈 화면으로 이동
-                navController.navigate(Screen.HomeScreen.route) {
-                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
-                }
-            }
-        }
-
     }
 }

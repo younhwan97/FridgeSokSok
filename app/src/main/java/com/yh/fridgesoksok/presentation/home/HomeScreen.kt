@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -43,6 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
@@ -52,59 +57,74 @@ import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
 fun HomeScreen(
     navController: NavController
 ) {
+    val homeNavController = rememberNavController()
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = isFabMenuExpanded) {
-        isFabMenuExpanded = false
-    }
+    // Track current tab
+    val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: "home"
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = { CustomTopAppBar() },
-            bottomBar = { CustomBottomNavigation() }
-        ) { innerPadding ->
-            FoodListScreen(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-            )
+    // FAB 열려있으면 FAB 닫기
+    BackHandler(enabled = isFabMenuExpanded) { isFabMenuExpanded = false }
+
+    Scaffold(
+        topBar = { CustomTopAppBar() },
+        bottomBar = { CustomBottomNavigation(homeNavController) }
+    ) { padding ->
+        BoxWithConstraints(Modifier.padding(padding)) {
+            NavHost(
+                navController = homeNavController,
+                startDestination = "home",
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            ) {
+                composable("home") {
+                    FoodListScreen(modifier = Modifier.fillMaxSize())
+                }
+                composable("recipe") {
+                    Column(modifier = Modifier.fillMaxSize()) {}
+                }
+                composable("account") {
+                    Column(modifier = Modifier.fillMaxSize()) {}
+                }
+            }
+
+            // ------------------ FAB(Floating Action Button) ------------------ //
+            if (currentRoute == "home") {
+                // FAB Overlay Screen
+                if (isFabMenuExpanded)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .clickable { isFabMenuExpanded = false }
+                    )
+
+                // FAB
+                FloatingActionButton(
+                    modifier = Modifier
+                        .onGloballyPositioned { fabOffset = it.positionInRoot() } // FAB 위치 추출
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 16.dp, bottom = 16.dp)
+                        .zIndex(1f),
+                    expanded = isFabMenuExpanded,
+                    onClick = { isFabMenuExpanded = !isFabMenuExpanded },
+                )
+
+                // FAB Menu
+                FloatingActionMenus(
+                    expanded = isFabMenuExpanded,
+                    fabOffset = fabOffset,
+                    screenWidth = constraints.maxWidth.toFloat(),
+                    screenHeight = constraints.maxHeight.toFloat(),
+                    menuWidthDp = 186.dp,
+                    menuHeightDp = 150.dp,
+                    onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
+                    onUploadClick = {},
+                    onManualClick = { navController.navigate(Screen.UploadScreen.route) }
+                )
+            }
         }
-
-        // ------------------ FAB(Floating Action Button) ------------------ //
-        // FAB Overlay Screen
-        if (isFabMenuExpanded)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-                    .clickable { isFabMenuExpanded = false }
-            )
-
-        // FAB
-        FloatingActionButton(
-            modifier = Modifier
-                .onGloballyPositioned { fabOffset = it.positionInRoot() } // FAB 위치 추출
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(end = 16.dp, bottom = 72.dp)
-                .zIndex(1f),
-            expanded = isFabMenuExpanded,
-            onClick = { isFabMenuExpanded = !isFabMenuExpanded },
-        )
-
-        // FAB Menu
-        FloatingActionMenus(
-            expanded = isFabMenuExpanded,
-            fabOffset = fabOffset,
-            screenWidth = constraints.maxWidth.toFloat(),
-            screenHeight = constraints.maxHeight.toFloat(),
-            menuWidthDp = 186.dp,
-            menuHeightDp = 150.dp,
-            onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
-            onUploadClick = {},
-            onManualClick = { navController.navigate(Screen.UploadScreen.route) }
-        )
     }
 }
 
@@ -116,76 +136,60 @@ fun CustomTopAppBar() {
             Text(
                 text = "냉장고 속속"
             )
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background
+        )
     )
 }
 
 @Composable
-fun CustomBottomNavigation() {
-    val bottomInset =
-        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
+fun CustomBottomNavigation(
+    homeNavController: NavHostController
+) {
+    val items = listOf(
+        Triple("home", Icons.Default.Home, "냉장고"),
+        Triple("recipe", Icons.Default.Person, "레시피"),
+        Triple("account", Icons.Default.Person, "계정")
+    )
     Surface(
         tonalElevation = 6.dp,
         shadowElevation = 6.dp,
-        color = Color(color = 0xFFF8F8F8),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp + bottomInset)
-            .padding(bottom = bottomInset),
-
-        ) {
+        color = MaterialTheme.colorScheme.background
+    ) {
         Row(
+            Modifier
+                .fillMaxWidth()
+                .height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                .windowInsetsPadding(WindowInsets.navigationBars),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "홈",
-                        tint = Color.Black
-                    )
-                    Text(
-                        text = "홈",
-                        color = Color.Black,
-                        fontSize = 10.sp
-                    )
-                }
-            }
-            IconButton(
-                onClick = { },
-                modifier = Modifier.alpha(0f)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = "홈",
-                        tint = Color.Black
-                    )
-                    Text(
-                        text = "홈",
-                        color = Color.Black,
-                        fontSize = 10.sp
-                    )
-                }
-            }
-            IconButton(
-                onClick = { }
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "홈",
-                        tint = Color.Black
-                    )
-                    Text(
-                        text = "계정",
-                        color = Color.Black,
-                        fontSize = 10.sp
-                    )
+            val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route
+            items.forEach { (route, icon, label) ->
+                IconButton(onClick = {
+                    if (route != currentRoute) {
+
+                    }
+                }) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = label,
+                            tint = if (currentRoute == route)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = label,
+                            fontSize = 10.sp,
+                            color = if (currentRoute == route)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

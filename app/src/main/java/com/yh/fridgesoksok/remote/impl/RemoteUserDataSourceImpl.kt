@@ -40,7 +40,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
     override suspend fun createUserToken(channel: Channel): UserEntity =
         when (channel) {
             Channel.KAKAO -> kakaoApiService.createKakaoToken()
-            Channel.NAVER -> TODO()
+            Channel.NAVER -> UserResponse(id = -1L, null, null, null, null)
             else -> UserResponse(id = -1L, null, null, null, null)
         }.toData()
 

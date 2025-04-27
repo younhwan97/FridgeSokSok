@@ -7,8 +7,8 @@ val CustomPrimaryContainerColor = Color(0xFFEAF5FF)
 val CustomSurfaceVariantColor = Color(0xFFF5F5F7)       // 카드나 컨텐츠의 회색계열 배경색
 val CustomOnSurfaceVariantColor = Color(0xFFC7C9D7)
 val CustomOutlineColor = Color(0xFFE7E8EF)              // 볼더
-val CustomBackGroundColor = Color(0xFFfbfbfb)           // 배경색
-
+val CustomBackGroundColor = Color(0xFFFFFFFF)           // 배경색
+val CustomOnBackGroundColor = Color(0xFF1C1B1F)         // 배경색 위 검정글씨
 
 
 

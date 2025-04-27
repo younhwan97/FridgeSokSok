@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.login
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Channel
@@ -10,7 +9,9 @@ import com.yh.fridgesoksok.domain.usecase.CreateUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -26,6 +27,9 @@ class LoginViewModel @Inject constructor(
     private val _userToken = MutableStateFlow("")
     val userToken = _userToken.asStateFlow()
 
+    private val _snackBarMessages = MutableSharedFlow<String>()
+    val snackBarMessages = _snackBarMessages.asSharedFlow()
+
     fun createUserToken(channel: Channel) {
         // 유저토큰 생성
         createUserTokenUseCase(channel).onEach { result ->
@@ -34,37 +38,35 @@ class LoginViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
+                    _snackBarMessages.emit("로그인에 실패하였습니다.")
                 }
 
                 is Resource.Success -> {
-                    // 유저 생성
-                    result.data?.let {
-                        Log.d("SUCCESS", result.data.toString())
-                        createUser(it)
-                    } ?: run {
-                        // 유저토큰을 생성하는데 실패했을 때
-                        Log.d("ERROR", "유저생성 실패")
-                    }
+                    result.data
+                        ?.takeIf { it.id != -1L }
+                        ?.let(::createUser)
+                        ?: _snackBarMessages.emit("로그인에 실패하였습니다.")
                 }
             }
         }.launchIn(viewModelScope)
     }
 
     private fun createUser(user: User) {
+        // 유저 생성
         createUserUseCase(user = user).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                 }
 
                 is Resource.Error -> {
+                    _snackBarMessages.emit("로그인에 실패하였습니다.")
                 }
 
                 is Resource.Success -> {
-                    // 유저 정보 저장
-                    result.data?.accessToken?.let { saveUser(result.data) } ?: run {
-                        Log.d("ERROR", "(API)유저생성 실패")
-                        // 유저 생성에 실패했을 때
-                    }
+                    result.data
+                        ?.takeIf { it.id != -1L && it.accessToken != null }
+                        ?.let { saveUser(it) }
+                        ?: _snackBarMessages.emit("로그인에 실패하였습니다.")
                 }
             }
         }.launchIn(viewModelScope)
