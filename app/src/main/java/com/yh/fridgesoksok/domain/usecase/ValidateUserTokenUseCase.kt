@@ -6,7 +6,6 @@ import javax.inject.Inject
 class ValidateUserTokenUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-
     operator fun invoke(refreshToken: String) =
         userRepository.validateUserToken(refreshToken = refreshToken)
 }

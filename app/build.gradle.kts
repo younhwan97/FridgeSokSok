@@ -30,6 +30,11 @@ android {
         // KAKAO API KEY
         buildConfigField("String", "KAKAO_API_KEY", properties.getProperty("KAKAO_API_KEY"))
         manifestPlaceholders["KAKAO_API_KEY"] = properties.getProperty("KAKAO_API_KEY_NO_QUOTES")
+
+        // NAVER API KEY
+        buildConfigField("String", "NAVER_CLIENT_ID", properties.getProperty("NAVER_CLIENT_ID"))
+        buildConfigField("String", "NAVER_CLIENT_SECRET", properties.getProperty("NAVER_CLIENT_SECRET"))
+        buildConfigField("String", "NAVER_CLIENT_APP_NAME", properties.getProperty("NAVER_CLIENT_APP_NAME"))
     }
 
     buildTypes {
@@ -103,4 +108,7 @@ dependencies {
     implementation(libs.kakao.auth)
     implementation(libs.kakao.user)
     implementation(libs.kakao.all)
+
+    // Naver
+    implementation(libs.naver)
 }

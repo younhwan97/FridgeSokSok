@@ -4,10 +4,12 @@ import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.MockApiService
+import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.api.RequestHeaderInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ActivityContext
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
@@ -23,7 +25,7 @@ internal object NetworkModule {
 
     private const val TIME_OUT = 30
 
-    val loggingInterceptor = HttpLoggingInterceptor().apply {
+    private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY // ★ 모든 바디 출력
     }
 
@@ -55,7 +57,7 @@ internal object NetworkModule {
     fun provideFridgeApiService(
         retrofit: Retrofit,
         @ApplicationContext context: Context
-    ): FridgeApiService =  retrofit.create(FridgeApiService::class.java)
+    ): FridgeApiService = retrofit.create(FridgeApiService::class.java)
 
     // Mock Api SERVER
 //    @Provides
@@ -71,4 +73,11 @@ internal object NetworkModule {
     fun provideKakaoApiService(
         @ApplicationContext context: Context
     ): KakaoApiService = KakaoApiService(context)
+
+    // Naver Api SERVER
+    @Provides
+    @Singleton
+    fun provideNaverApiService(
+        @ApplicationContext context: Context
+    ): NaverApiService = NaverApiService(context)
 }

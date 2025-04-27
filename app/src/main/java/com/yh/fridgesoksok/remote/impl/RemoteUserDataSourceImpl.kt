@@ -8,6 +8,7 @@ import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
+import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.model.UserRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
 import retrofit2.HttpException
@@ -15,6 +16,7 @@ import javax.inject.Inject
 
 class RemoteUserDataSourceImpl @Inject constructor(
     private val kakaoApiService: KakaoApiService,
+    private val naverApiService: NaverApiService,
     private val fridgeApiService: FridgeApiService
 ) : RemoteUserDataSource {
 
@@ -37,12 +39,22 @@ class RemoteUserDataSourceImpl @Inject constructor(
         Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
     }
 
-    override suspend fun createUserToken(channel: Channel): UserEntity =
-        when (channel) {
-            Channel.KAKAO -> kakaoApiService.createKakaoToken()
-            Channel.NAVER -> UserResponse(id = -1L, null, null, null, null)
-            else -> UserResponse(id = -1L, null, null, null, null)
-        }.toData()
+    override suspend fun createUserToken(channel: Channel): UserEntity {
+        val action = "createUserToken"
+        return try {
+            logInput(action, channel)
+            val userToken = when (channel) {
+                Channel.KAKAO -> kakaoApiService.createKakaoToken()
+                Channel.NAVER -> naverApiService.createNaverToken()
+                else -> UserResponse(id = -1L, null, null, null, null)
+            }
+            logOutput(action, userToken)
+            userToken.toData()
+        } catch (e: Exception){
+            logError(action, e)
+            UserResponse(id = -1L, null, null, null, null).toData()
+        }
+    }
 
     override suspend fun createUser(user: User): UserEntity {
         val action = "createUser"

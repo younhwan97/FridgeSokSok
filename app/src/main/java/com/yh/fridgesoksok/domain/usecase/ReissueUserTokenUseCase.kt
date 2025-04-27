@@ -6,7 +6,6 @@ import javax.inject.Inject
 class ReissueUserTokenUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-
     operator fun invoke(refreshToken: String) =
         userRepository.reissueUserToken(refreshToken = refreshToken)
 }

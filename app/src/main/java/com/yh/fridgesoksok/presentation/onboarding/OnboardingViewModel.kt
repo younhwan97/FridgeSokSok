@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -33,7 +32,7 @@ class OnboardingViewModel @Inject constructor(
     init {
         /*
             로컬에 저장된 유저토큰을 로드하여
-            API 서버에 해당 토큰이 유효한지 여부를 확인
+            서버에 해당 토큰이 유효한지 여부를 확인
         */
 
         val user = loadUser()
@@ -53,12 +52,11 @@ class OnboardingViewModel @Inject constructor(
     private fun validateUserToken(refreshToken: String) {
         validateUserTokenUseCase(refreshToken = refreshToken).onEach { result ->
             when (result) {
-                is Resource.Loading -> {
-
-                }
+                is Resource.Loading -> {}
 
                 is Resource.Error -> {
-
+                    _isLoading.value = false
+                    _userToken.value = ""
                 }
 
                 is Resource.Success -> {
@@ -79,12 +77,11 @@ class OnboardingViewModel @Inject constructor(
     private fun reissueUserToken(refreshToken: String) {
         reissueUserTokenUseCase(refreshToken = refreshToken).onEach { result ->
             when (result) {
-                is Resource.Loading -> {
-
-                }
+                is Resource.Loading -> {}
 
                 is Resource.Error -> {
-
+                    _isLoading.value = false
+                    _userToken.value = ""
                 }
 
                 is Resource.Success -> {

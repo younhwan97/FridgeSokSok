@@ -36,7 +36,7 @@ fun OnboardingScreen(
         iterations = LottieConstants.IterateForever
     )
 
-    // 토큰 확인 후 화면전환
+    // 토큰 확인 후 네비게이션
     LaunchedEffect(isLoading) {
         if (!isLoading) {
             delay(1300L)
@@ -48,12 +48,12 @@ fun OnboardingScreen(
                 }
             } else {
                 // 유저 토큰이 있다면 홈 화면으로 이동
-//                navController.navigate(Screen.HomeScreen.route) {
-//                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
-//                }
                 navController.navigate(Screen.LoginScreen.route) {
                     popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
                 }
+//                navController.navigate(Screen.HomeScreen.route) {
+//                    popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+//                }
             }
         }
     }
