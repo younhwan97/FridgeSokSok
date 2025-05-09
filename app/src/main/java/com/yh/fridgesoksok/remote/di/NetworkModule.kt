@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.remote.di
 import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
+import com.yh.fridgesoksok.remote.api.MockApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.api.RequestHeaderInterceptor
 import dagger.Module
@@ -50,20 +51,20 @@ internal object NetworkModule {
     }
 
     // Api SERVER
-    @Provides
-    @Singleton
-    fun provideFridgeApiService(
-        retrofit: Retrofit,
-        @ApplicationContext context: Context
-    ): FridgeApiService = retrofit.create(FridgeApiService::class.java)
-
-    // Mock Api SERVER
 //    @Provides
 //    @Singleton
 //    fun provideFridgeApiService(
 //        retrofit: Retrofit,
 //        @ApplicationContext context: Context
-//    ): FridgeApiService = MockApiService(context)
+//    ): FridgeApiService = retrofit.create(FridgeApiService::class.java)
+
+    // Mock Api SERVER
+    @Provides
+    @Singleton
+    fun provideFridgeApiService(
+        retrofit: Retrofit,
+        @ApplicationContext context: Context
+    ): FridgeApiService = MockApiService(context)
 
     // Kakao Api SERVER
     @Provides

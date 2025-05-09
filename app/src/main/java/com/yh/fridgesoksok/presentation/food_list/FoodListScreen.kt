@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -270,10 +271,9 @@ fun FoodListContent(
             }
 
             Image(
-                modifier = Modifier
-                    .size(36.dp)
-                    .align(Alignment.TopCenter),
-                painter = painterResource(id = R.drawable.tmp_light_image),
+                modifier = Modifier.align(Alignment.TopCenter),
+                painter = painterResource(id = R.drawable.lighting),
+                contentScale = ContentScale.None,
                 contentDescription = null,
             )
         }
@@ -363,9 +363,9 @@ fun FoodCard(
 
 enum class Type(val id: Int, val label: String, @DrawableRes val icon: Int) {
     All(0, "전체", R.drawable.tmp_ingredients),
-    Ingredients(1, "식재료", R.drawable.tmp_ingredients),
-    Beverages(2, "음료", R.drawable.tmp_beverages),
-    Bakery(3, "빵", R.drawable.tmp_bakery),
+    Ingredients(1, "식재료", R.drawable.ingredients),
+    Beverages(2, "음료", R.drawable.beverages),
+    Bakery(3, "빵", R.drawable.bakery),
     Canned(4, "캔 & 병", R.drawable.tmp_canned),
     Sauces(5, "소스", R.drawable.tmp_sauces),
     Dairy(6, "유제품", R.drawable.tmp_daily),

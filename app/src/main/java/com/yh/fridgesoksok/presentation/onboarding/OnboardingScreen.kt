@@ -57,12 +57,9 @@ fun OnboardingScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            modifier = Modifier
-                .width(158.dp)
-                .height(100.dp),
-            painter = painterResource(R.drawable.logo),
+            painter = painterResource(R.drawable.logo01),
+            contentScale = ContentScale.None,
             contentDescription = "logo",
-            contentScale = ContentScale.FillBounds
         )
     }
 }
