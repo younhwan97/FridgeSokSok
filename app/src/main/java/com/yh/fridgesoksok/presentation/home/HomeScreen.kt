@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
@@ -64,6 +66,14 @@ fun HomeScreen(
     // Track current tab
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "home"
+
+    val systemUiController = rememberSystemUiController()
+
+    SideEffect {
+        systemUiController.setNavigationBarColor(
+            color = Color.White
+        )
+    }
 
     // FAB 열려있으면 FAB 닫기
     BackHandler(enabled = isFabMenuExpanded) { isFabMenuExpanded = false }

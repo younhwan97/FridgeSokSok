@@ -111,4 +111,7 @@ dependencies {
 
     // Naver
     implementation(libs.naver)
+
+    // systemuicontroller
+    implementation(libs.system.ui.controller)
 }

@@ -21,6 +21,7 @@ gson = "2.10.1"                 # Netwrok
 lottie = "6.6.2"                # Lottie
 kakao = "2.21.1"                # Kakao
 naver = "5.10.0"                # Naver
+systemUiController = "0.32.0"   # systemUiController
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -66,6 +67,8 @@ kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" 
 kakao-all = { group = "com.kakao.sdk", name = "v2-all", version.ref = "kakao" }
 # Naver
 naver = { group = "com.navercorp.nid", name = "oauth", version.ref = "naver" }
+# systemUiController
+system-ui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "systemUiController" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
