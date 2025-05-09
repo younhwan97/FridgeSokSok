@@ -56,9 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.model.FoodModel
-import com.yh.fridgesoksok.presentation.theme.CustomLightGrayTextColor
-import com.yh.fridgesoksok.presentation.theme.CustomLightPrimaryColor
-import com.yh.fridgesoksok.presentation.theme.CustomRedColor
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -306,7 +304,7 @@ fun FoodCard(
         Box(
             modifier = Modifier
                 .background(
-                    if (dDay < 0) CustomRedColor else CustomLightPrimaryColor,
+                    if (dDay < 0) MaterialTheme.colorScheme.error else CustomGreyColor3,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -358,7 +356,6 @@ fun FoodCard(
         Text(
             text = "소비기한 ${food.endDt}",
             fontSize = 11.sp,
-            color = CustomLightGrayTextColor,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
     }

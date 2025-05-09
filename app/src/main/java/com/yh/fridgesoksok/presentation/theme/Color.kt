@@ -9,13 +9,11 @@ val CustomOnSurfaceVariantColor = Color(0xFFC7C9D7)
 val CustomOutlineColor = Color(0xFFE7E8EF)              // 볼더
 val CustomBackGroundColor = Color(0xFFFFFFFF)           // 배경색
 val CustomOnBackGroundColor = Color(0xFF1C1B1F)         // 배경색 위 검정글씨
-
-
-
-val CustomBlackTextColor = Color(0xFF212121)
-val CustomLightGrayTextColor = Color(0xFF9E9E9E)
-// 삭제 예정
-val CustomLightPrimaryColor = Color(0xFFFF7043)
-val CustomLightGrayBackGroundColor = Color(0xFFF5F5F5) // 컨텐츠(상품, 음식) 등 요소에 배경 색상
-val CustomDarkGrayBackGroundColor = Color(0xFF929292)
-val CustomRedColor = Color(0xFFF65C68)
+val CustomErrorColor = Color(0xFFFF634F)                // 경고 또는 에러 색상
+val CustomGreyColor1 = Color(0xFFFFFFFF)                // 회색1
+val CustomGreyColor2 = Color(0xFFF5F5F7)                // 회색2
+val CustomGreyColor3 = Color(0xFFE7E8EF)                // 회색3
+val CustomGreyColor4 = Color(0xFFC7C9D7)                // 회색4
+val CustomGreyColor5 = Color(0xFFA3A4AF)                // 회색5
+val CustomGreyColor6 = Color(0xFF666874)                // 회색6
+val CustomGreyColor7 = Color(0xFF1D1D1F)                // 회색7

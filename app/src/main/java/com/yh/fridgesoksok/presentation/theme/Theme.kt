@@ -17,7 +17,8 @@ private val LightColorScheme = lightColorScheme(
     onSurfaceVariant = CustomOnSurfaceVariantColor,
     outline = CustomOutlineColor,
     background = CustomBackGroundColor,
-    onBackground = CustomOnBackGroundColor
+    onBackground = CustomOnBackGroundColor,
+    error = CustomErrorColor
 )
 
 @Composable
