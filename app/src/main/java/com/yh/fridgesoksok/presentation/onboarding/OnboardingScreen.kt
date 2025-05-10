@@ -55,7 +55,7 @@ private fun navigateAfterOnboarding(
     navController: NavController,
     userToken: String
 ) {
-    val nextRoute = if (userToken.isBlank()) Screen.LoginScreen.route else Screen.LoginScreen.route  // Screen.HomeScreen.route
+    val nextRoute = if (userToken.isBlank()) Screen.LoginScreen.route else Screen.HomeScreen.route
 
     navController.navigate(nextRoute) { popUpTo(Screen.OnboardingScreen.route) { inclusive = true } }
 }

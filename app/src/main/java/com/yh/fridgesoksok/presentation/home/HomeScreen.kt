@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,12 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,14 +34,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -58,6 +55,8 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
 fun HomeScreen(
@@ -66,41 +65,34 @@ fun HomeScreen(
     val homeNavController = rememberNavController()
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
-
-    // Track current tab
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "home"
-
     val systemUiController = rememberSystemUiController()
 
+    // 시스템 UI 설정
     SideEffect {
-        systemUiController.setNavigationBarColor(
-            color = Color.White
-        )
+        systemUiController.setNavigationBarColor(color = Color.White)
     }
 
     // FAB 열려있으면 FAB 닫기
-    BackHandler(enabled = isFabMenuExpanded) { isFabMenuExpanded = false }
+    BackHandler(enabled = isFabMenuExpanded) {
+        isFabMenuExpanded = false
+    }
 
+    // Content
     Scaffold(
-        topBar = { CustomTopAppBar() },
-        bottomBar = { CustomBottomNavigation(homeNavController) }
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        topBar = { HomeTopAppBar() },
+        bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) }
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding)) {
             NavHost(
                 navController = homeNavController,
                 startDestination = "home",
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
-                composable("home") {
-                    FoodListScreen(modifier = Modifier.fillMaxSize())
-                }
-                composable("recipe") {
-                    Column(modifier = Modifier.fillMaxSize()) {}
-                }
-                composable("account") {
-                    Column(modifier = Modifier.fillMaxSize()) {}
-                }
+                composable("home") { FoodListScreen(modifier = Modifier.fillMaxSize()) }
+                composable("recipe") { Column(modifier = Modifier.fillMaxSize()) {} }
+                composable("account") { Column(modifier = Modifier.fillMaxSize()) {} }
             }
 
             // ------------------ FAB(Floating Action Button) ------------------ //
@@ -117,7 +109,7 @@ fun HomeScreen(
                 // FAB
                 FloatingActionButton(
                     modifier = Modifier
-                        .onGloballyPositioned { fabOffset = it.positionInRoot() } // FAB 위치 추출
+                        .onGloballyPositioned { fabOffset = it.positionInParent() } // FAB 위치 추출
                         .align(Alignment.BottomEnd)
                         .padding(end = 16.dp, bottom = 16.dp)
                         .zIndex(1f),
@@ -144,11 +136,19 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTopAppBar() {
+fun HomeTopAppBar() {
     TopAppBar(
         title = {
             Image(
                 painter = painterResource(R.drawable.logo02),
+                contentDescription = null,
+                contentScale = ContentScale.None
+            )
+        },
+        actions = {
+            Image(
+                modifier = Modifier.padding(end = 12.dp),
+                painter = painterResource(R.drawable.ai),
                 contentDescription = null,
                 contentScale = ContentScale.None
             )
@@ -160,14 +160,16 @@ fun CustomTopAppBar() {
 }
 
 @Composable
-fun CustomBottomNavigation(
+fun HomeBottomNavigation(
+    currentRoute: String,
     homeNavController: NavHostController
 ) {
     val items = listOf(
-        Triple("home", Icons.Default.Home, "냉장고"),
-        Triple("recipe", Icons.Default.Person, "레시피"),
-        Triple("account", Icons.Default.Person, "계정")
+        Triple("home", Pair(R.drawable.home_selected, R.drawable.home), "냉장고"),
+        Triple("recipe", Pair(R.drawable.recipe_selected, R.drawable.recipe), "레시피"),
+        Triple("account", Pair(R.drawable.account_selected, R.drawable.account), "계정")
     )
+
     Surface(
         tonalElevation = 6.dp,
         shadowElevation = 6.dp,
@@ -176,36 +178,40 @@ fun CustomBottomNavigation(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(56.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
+                .height(64.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
                 .windowInsetsPadding(WindowInsets.navigationBars),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route
-            items.forEach { (route, icon, label) ->
-                IconButton(onClick = {
-                    if (route != currentRoute) {
-
-                    }
-                }) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = label,
-                            tint = if (currentRoute == route)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = label,
-                            fontSize = 10.sp,
-                            color = if (currentRoute == route)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+            items.forEach { (route, iconPair, label) ->
+                val selected = currentRoute == route
+                Column(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
+                        .clickable {
+                            if (!selected) {
+                                homeNavController.navigate(route) {
+                                    popUpTo(homeNavController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        }
+                        .padding(vertical = 8.dp, horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = if (selected) painterResource(iconPair.first) else painterResource(iconPair.second),
+                        contentDescription = null,
+                        contentScale = ContentScale.None
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (selected) CustomGreyColor7 else CustomGreyColor5
+                    )
                 }
             }
         }

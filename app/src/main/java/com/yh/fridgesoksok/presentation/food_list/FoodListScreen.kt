@@ -43,8 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -58,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -123,7 +122,7 @@ fun SearchBar(
     BasicTextField(
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(40.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(color = MaterialTheme.colorScheme.surfaceVariant),
         value = value,
@@ -136,19 +135,20 @@ fun SearchBar(
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    imageVector = Icons.Default.Search,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = null
+                Image(
+                    modifier = Modifier.padding(start = 16.dp, end = 10.dp),
+                    painter = painterResource(R.drawable.search),
+                    contentDescription = null,
+                    contentScale = ContentScale.None
                 )
 
                 Box(modifier = Modifier.weight(1f)) {
                     if (value.isEmpty()) {
                         Text(
                             text = "검색할 내용을 입력해주세요!",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal,
+                            color = CustomGreyColor4
                         )
                     }
                     inner()
@@ -206,9 +206,6 @@ fun FoodListContent(
     selectedType: Type,
     scrollState: ScrollState
 ) {
-    val borderColor = MaterialTheme.colorScheme.outline
-    val borderStrokeWidth = 8.dp
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -219,63 +216,63 @@ fun FoodListContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .drawBehind {
-                    val stroke = borderStrokeWidth.toPx()
-                    val half = stroke / 2
-                    drawLine(borderColor, Offset(0f, half), Offset(size.width, half), stroke)
-                    drawLine(borderColor, Offset(half, 0f), Offset(half, size.height), stroke)
-                    drawLine(
-                        borderColor, Offset(size.width - half, 0f),
-                        Offset(size.width - half, size.height), stroke
-                    )
-                }
+                .background(MaterialTheme.colorScheme.outline)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp)
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(color = MaterialTheme.colorScheme.surfaceVariant)
+                    .verticalScroll(scrollState)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                foods
-                    .filter { it.name.contains(searchQuery, ignoreCase = true) }
-                    .filter { selectedType == Type.All || it.type == selectedType.id }
-                    .chunked(2)
-                    .forEach { rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            rowItems.forEach { food ->
-                                FoodCard(
-                                    food = food,
-                                    period = Period.between(
-                                        LocalDate.now(),
-                                        LocalDate.parse(
-                                            food.endDt,
-                                            DateTimeFormatter.ofPattern("yyyyMMdd")
-                                        )
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                    foods
+                        .filter { it.name.contains(searchQuery, ignoreCase = true) }
+                        .filter { selectedType == Type.All || it.type == selectedType.id }
+                        .chunked(2)
+                        .forEach { rowItems ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                rowItems.forEach { food ->
+                                    FoodCard(
+                                        food = food,
+                                        period = Period.between(
+                                            LocalDate.now(),
+                                            LocalDate.parse(
+                                                food.endDt,
+                                                DateTimeFormatter.ofPattern("yyyyMMdd")
+                                            )
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
 
-                            // 짝수 개가 아닐 때 빈 칸 채우기
-                            if (rowItems.size < 2) {
-                                Spacer(modifier = Modifier.weight(1f))
+                                // 짝수 개가 아닐 때 빈 칸 채우기
+                                if (rowItems.size < 2) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
                             }
                         }
-                    }
-            }
+                }
 
-            Image(
-                modifier = Modifier.align(Alignment.TopCenter),
-                painter = painterResource(id = R.drawable.lighting),
-                contentScale = ContentScale.None,
-                contentDescription = null,
-            )
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter),
+                    painter = painterResource(id = R.drawable.lighting),
+                    contentScale = ContentScale.None,
+                    contentDescription = null,
+                )
+            }
         }
     }
 }
@@ -315,8 +312,7 @@ fun FoodCard(
         Spacer(modifier = Modifier.height(8.dp))
 
         // 아이콘
-        val iconRes =
-            Type.entries.firstOrNull { it.id == food.type }?.icon ?: R.drawable.tmp_ingredients
+        val iconRes = Type.entries.firstOrNull { it.id == food.type }?.icon ?: R.drawable.health
         Image(
             painter = painterResource(iconRes),
             contentDescription = null,
@@ -362,21 +358,21 @@ fun FoodCard(
 }
 
 enum class Type(val id: Int, val label: String, @DrawableRes val icon: Int) {
-    All(0, "전체", R.drawable.tmp_ingredients),
+    All(0, "전체", R.drawable.ingredients),
     Ingredients(1, "식재료", R.drawable.ingredients),
     Beverages(2, "음료", R.drawable.beverages),
     Bakery(3, "빵", R.drawable.bakery),
-    Canned(4, "캔 & 병", R.drawable.tmp_canned),
-    Sauces(5, "소스", R.drawable.tmp_sauces),
-    Dairy(6, "유제품", R.drawable.tmp_daily),
-    Frozen(7, "냉동", R.drawable.tmp_frozen),
-    Health(8, "건강식품", R.drawable.tmp_frozen),
-    Instant(9, "인스턴트", R.drawable.tmp_frozen),
-    Kimchi(10, "김치", R.drawable.tmp_frozen),
-    Meat(11, "고기", R.drawable.tmp_frozen),
-    Noodle(12, "면 & 파스타", R.drawable.tmp_frozen),
-    SideDish(13, "반찬", R.drawable.tmp_frozen),
-    Seafood(14, "해산물", R.drawable.tmp_frozen),
-    Snack(15, "과자", R.drawable.tmp_frozen),
-    Tofu(16, "견과류", R.drawable.tmp_frozen),
+    Canned(4, "캔 & 병", R.drawable.canned),
+    Sauces(5, "소스", R.drawable.sauces),
+    Dairy(6, "유제품", R.drawable.daily),
+    Frozen(7, "냉동", R.drawable.frozen),
+    Health(8, "건강식품", R.drawable.health),
+    Instant(9, "인스턴트", R.drawable.instant),
+    Kimchi(10, "김치", R.drawable.kimchi),
+    Meat(11, "고기", R.drawable.meat),
+    Noodle(12, "면 & 파스타", R.drawable.noodle),
+    SideDish(13, "반찬", R.drawable.side),
+    Seafood(14, "해산물", R.drawable.seafood),
+    Snack(15, "과자", R.drawable.snack),
+    Tofu(16, "견과류", R.drawable.tofu),
 }
