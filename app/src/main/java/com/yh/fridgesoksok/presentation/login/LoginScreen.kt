@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.presentation.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +14,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
@@ -40,32 +38,40 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    // State
     val userToken by viewModel.userToken.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val systemUiController = rememberSystemUiController()
+
+    // 시스템 UI 설정 및 스낵바 처리
+    LaunchedEffect(Unit) {
+        systemUiController.setNavigationBarColor(Color.White)
+
+        viewModel.snackBarMessages.collect {
+            snackBarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     // 로그인 성공 시 네비게이션
     LaunchedEffect(userToken) {
@@ -77,21 +83,6 @@ fun LoginScreen(
         }
     }
 
-    // 로그인 실패 시 메시지
-    LaunchedEffect(Unit) {
-        systemUiController.setNavigationBarColor(Color.White)
-
-        viewModel.snackBarMessages
-            .distinctUntilChanged()
-            .collect { message ->
-                snackBarHostState.showSnackbar(
-                    message = message,
-                    duration = SnackbarDuration.Short
-                )
-            }
-
-    }
-
     // Content
     Box(
         modifier = Modifier
@@ -100,155 +91,189 @@ fun LoginScreen(
             .statusBarsPadding()
             .padding(horizontal = 20.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(R.drawable.logo02),
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = 132.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colorScheme.primaryContainer),
-                painter = painterResource(R.drawable.fridge),
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "냉장고 속속에\n오신 것을 환영합니다!",
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center,
-                color = CustomGreyColor7
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "3초 가입으로 지금바로 시작해보세요.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = CustomGreyColor5
-            )
-        }
-
-        Column(
+        LoginAppLogoHeader()
+        LoginCenterContent()
+        LoginActions(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            BubbleText()
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Button(
-                    modifier = Modifier.wrapContentSize(),
-                    contentPadding = PaddingValues(0.dp),
-                    onClick = { viewModel.createUserToken(Channel.NAVER) },
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.Unspecified
-                    ),
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.kakao),
-                        contentDescription = "카카오",
-                        contentScale = ContentScale.None
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(20.dp))
-
-                Button(
-                    modifier = Modifier.wrapContentSize(),
-                    contentPadding = PaddingValues(0.dp),
-                    onClick = { viewModel.createUserToken(Channel.NAVER) },
-                    shape = CircleShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.Unspecified
-                    ),
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.naver),
-                        contentDescription = "네이버",
-                        contentScale = ContentScale.None
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(46.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .wrapContentHeight(Alignment.CenterVertically),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "임시로 로그인하기",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = CustomGreyColor5
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
-        SnackbarHost(
+            viewModel = viewModel
+        )
+        LoginSnackBar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 16.dp),
-            hostState = snackBarHostState,
-            snackbar = { data ->
-                Box(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .background(
-                            color = Color(0xCC333333),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
+                .navigationBarsPadding(),
+            snackBarHostState = snackBarHostState
+        )
+    }
+}
+
+@Composable
+fun LoginAppLogoHeader() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(R.drawable.logo02),
+            contentDescription = null,
+            contentScale = ContentScale.None
+        )
+    }
+}
+
+@Composable
+fun LoginCenterContent() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubcomposeLayout { constraints ->
+            val textPlaceable = subcompose("text") {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = data.visuals.message,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = "냉장고 속속에\n오신 것을 환영합니다!",
+                        style = MaterialTheme.typography.headlineLarge,
+                        textAlign = TextAlign.Center,
+                        color = CustomGreyColor7
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "3초 가입으로 지금바로 시작해보세요.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = CustomGreyColor5
                     )
                 }
+            }.map { it.measure(constraints) }
+
+            val textHeight = textPlaceable.sumOf { it.height }
+            val textWidth = textPlaceable.maxOf { it.width }
+
+            val imagePlaceable = subcompose("image") {
+                Image(
+                    painter = painterResource(R.drawable.fridge),
+                    contentDescription = null,
+                    contentScale = ContentScale.None,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                )
+            }.map { it.measure(constraints) }.first()
+
+            val centerY = constraints.maxHeight / 2
+            val textY = centerY - textHeight / 2
+            val imageBottomY = textY - 16.dp.roundToPx()
+            val imageY = imageBottomY - imagePlaceable.height
+
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                val textX = (constraints.maxWidth - textWidth) / 2
+                var currentY = textY
+                textPlaceable.forEach {
+                    it.place(textX, currentY)
+                    currentY += it.height
+                }
+
+                val imageX = (constraints.maxWidth - imagePlaceable.width) / 2
+                imagePlaceable.place(imageX, imageY)
             }
+        }
+    }
+}
+
+@Composable
+fun LoginActions(
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        BubbleText()
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.Center) {
+            SocialLoginButton(R.drawable.kakao) { viewModel.createUserToken(Channel.KAKAO) }
+            Spacer(modifier = Modifier.width(20.dp))
+            SocialLoginButton(R.drawable.naver) { viewModel.createUserToken(Channel.NAVER) }
+        }
+        Spacer(modifier = Modifier.height(46.dp))
+        OutlinedGuestLoginButton { viewModel.createUserToken(Channel.GUEST) }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
+}
+
+@Composable
+fun SocialLoginButton(
+    iconResId: Int,
+    onClick: () -> Unit
+) {
+    Button(
+        modifier = Modifier.wrapContentSize(),
+        contentPadding = PaddingValues(0.dp),
+        onClick = onClick,
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Color.Unspecified
+        ),
+    ) {
+        Image(
+            painter = painterResource(id = iconResId),
+            contentDescription = null,
+            contentScale = ContentScale.None
         )
+    }
+}
+
+@Composable
+fun OutlinedGuestLoginButton(
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "임시로 로그인하기",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = CustomGreyColor5
+        )
+    }
+}
+
+@Composable
+fun LoginSnackBar(
+    modifier: Modifier = Modifier,
+    snackBarHostState: SnackbarHostState,
+) {
+    SnackbarHost(
+        modifier = modifier.padding(bottom = 48.dp),
+        hostState = snackBarHostState
+    ) {
+        Box(
+            modifier = Modifier
+                .wrapContentWidth()
+                .background(
+                    color = Color(0xCC333333),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = it.visuals.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+            )
+        }
     }
 }

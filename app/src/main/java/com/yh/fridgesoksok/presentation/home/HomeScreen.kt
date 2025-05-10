@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +39,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -50,6 +53,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
@@ -143,8 +147,10 @@ fun HomeScreen(
 fun CustomTopAppBar() {
     TopAppBar(
         title = {
-            Text(
-                text = "냉장고 속속"
+            Image(
+                painter = painterResource(R.drawable.logo02),
+                contentDescription = null,
+                contentScale = ContentScale.None
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(

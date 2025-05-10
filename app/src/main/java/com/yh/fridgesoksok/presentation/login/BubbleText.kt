@@ -16,13 +16,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
 fun BubbleText() {
-    val bubbleWidth = 140.dp
-    val bubbleHeight = 42.dp
-    val cornerRadiusDp = 16.dp
+    val bubbleWidth = 130.dp
+    val bubbleHeight = 34.dp
+    val cornerRadiusDp = 14.dp
     val tailWidthDp = 10.dp
     val tailHeightDp = 6.dp
 
@@ -94,16 +95,16 @@ fun BubbleText() {
 
             drawPath(
                 path = bubblePath,
-                color = Color(0xFFDDDDDD),
+                color = CustomGreyColor3,
                 style = Stroke(width = 1.dp.toPx())
             )
         }
 
         Text(
+            modifier = Modifier.offset(y = (-tailHeightDp / 2)),
             text = "3초만에 로그인하기",
             style = MaterialTheme.typography.bodySmall,
             color = CustomGreyColor7,
-            modifier = Modifier.offset(y = (-tailHeightDp / 2))
         )
     }
 }

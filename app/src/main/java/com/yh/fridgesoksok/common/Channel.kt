@@ -4,5 +4,6 @@ enum class Channel {
     KAKAO,
     NAVER,
     GOOGLE,
-    FACEBOOK
+    FACEBOOK,
+    GUEST
 }
