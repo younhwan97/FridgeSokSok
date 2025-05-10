@@ -81,7 +81,7 @@ fun HomeScreen(
 
     // Content
     Scaffold(
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { HomeTopAppBar() },
         bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) }
     ) { padding ->

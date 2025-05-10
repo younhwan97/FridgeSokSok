@@ -57,22 +57,20 @@ class UploadViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun updateFoodName(index: Int, newName: String) =
-        updateFood(index) { it.copy(name = newName) }
-
-    fun updateFoodType(index: Int, newType: Int) =
-        updateFood(index) { it.copy(type = newType) }
-
-    fun updateFoodCount(index: Int, newCount: Int) =
-        updateFood(index) { it.copy(count = newCount) }
-
-    fun updateFoodEndDate(index: Int, endDate: String) =
-        updateFood(index) { it.copy(endDt = endDate) }
-
-    private fun updateFood(index: Int, update: (FoodModel) -> FoodModel) {
+    fun increaseCount(index: Int) {
         val list = _newFoods.value.toMutableList()
         if (index in list.indices) {
-            list[index] = update(list[index])
+            val item = list[index]
+            list[index] = item.copy(count = item.count + 1)
+            _newFoods.value = list
+        }
+    }
+
+    fun decreaseCount(index: Int) {
+        val list = _newFoods.value.toMutableList()
+        if (index in list.indices && list[index].count > 1) {
+            val item = list[index]
+            list[index] = item.copy(count = item.count - 1)
             _newFoods.value = list
         }
     }
@@ -86,14 +84,23 @@ class UploadViewModel @Inject constructor(
     }
 
     fun insertEmptyFood() {
-        if (newFoods.value.size < 20)
+        if (newFoods.value.size < 20) {
             _newFoods.value += FoodModel(
                 id = tmpKey++,
-                name = "",
+                name = "길이가길면이렇게보입니다길이가길면이렇게보입니다길이가길면이렇게보입니다길이가길면이렇게보입니다길이가길면이렇게보입니다길이가길면이렇게보입니다",
                 count = 1,
                 startDt = "",
-                endDt = "",
-                type = 20
+                endDt = "20251231",
+                type = 3
             )
+            _newFoods.value += FoodModel(
+                id = tmpKey++,
+                name = "dlatl",
+                count = 1,
+                startDt = "",
+                endDt = "20251231",
+                type = 4
+            )
+        }
     }
 }
