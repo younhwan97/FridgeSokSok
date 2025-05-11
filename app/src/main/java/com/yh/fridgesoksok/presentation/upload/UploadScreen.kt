@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
@@ -73,7 +74,12 @@ fun UploadScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        topBar = { UploadTopAppBar(navController) }
+        topBar = {
+            UploadTopAppBar(
+                onNavigationClick = { navController.popBackStack() },
+                onActionClick = { navController.navigate(Screen.EditFoodScreen.route) }
+            )
+        }
     ) { innerPadding ->
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -100,14 +106,15 @@ fun UploadScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UploadTopAppBar(
-    uploadNavController: NavController
+    onNavigationClick: () -> Unit,
+    onActionClick: () -> Unit
 ) {
     TopAppBar(
         navigationIcon = {
             Image(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .clickable { uploadNavController.popBackStack() },
+                    .clickable { onNavigationClick() },
                 painter = painterResource(R.drawable.back),
                 contentDescription = null,
                 contentScale = ContentScale.None
@@ -123,7 +130,7 @@ fun UploadTopAppBar(
         actions = {
             Button(
                 modifier = Modifier.padding(end = 16.dp),
-                onClick = { },
+                onClick = { onActionClick() },
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonColors(
                     containerColor = MaterialTheme.colorScheme.primary,

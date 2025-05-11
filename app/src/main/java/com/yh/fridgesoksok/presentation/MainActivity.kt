@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
+import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
@@ -59,6 +60,12 @@ class MainActivity : ComponentActivity() {
 
                     composable(route = Screen.UploadScreen.route){
                         UploadScreen(
+                            navController = navController
+                        )
+                    }
+
+                    composable(route = Screen.EditFoodScreen.route){
+                        EditFoodScreen(
                             navController = navController
                         )
                     }

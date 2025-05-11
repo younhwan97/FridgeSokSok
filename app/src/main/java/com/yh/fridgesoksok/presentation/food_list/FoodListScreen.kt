@@ -1,11 +1,12 @@
 package com.yh.fridgesoksok.presentation.food_list
 
 import android.annotation.SuppressLint
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -25,13 +25,8 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,21 +38,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -230,8 +227,8 @@ fun FoodListContent(
                     .verticalScroll(scrollState)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -285,76 +282,107 @@ fun FoodCard(
     modifier: Modifier = Modifier
 ) {
     val dDay = period.toTotalMonths() * 30 + period.days
-    val dDayText = when {
-        dDay < 0 -> "D+${-dDay}"
-        else -> "D-$dDay"
-    }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .padding(12.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(8.dp)
     ) {
-        // D-Day 태그
-        Box(
+        Column(
             modifier = Modifier
-                .background(
-                    if (dDay < 0) MaterialTheme.colorScheme.error else CustomGreyColor3,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .fillMaxWidth()
+                .padding(8.dp)
         ) {
-            Text(text = dDayText, color = Color.White, fontSize = 12.sp)
+            Box(
+                modifier = Modifier
+                    .background(
+                        if (dDay < 0) MaterialTheme.colorScheme.error else CustomGreyColor3,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = when {
+                        dDay < 0 -> "D+${-dDay}"
+                        else -> "D-$dDay"
+                    },
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Image(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                painter = painterResource(Type.entries.firstOrNull { it.id == food.type }?.icon ?: R.drawable.health),
+                contentDescription = null,
+                contentScale = ContentScale.None
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .padding(top = 4.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = food.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CustomGreyColor7,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 아이콘
-        val iconRes = Type.entries.firstOrNull { it.id == food.type }?.icon ?: R.drawable.health
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier
-                .size(48.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 음식 이름
-        Text(
-            text = food.name,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            maxLines = 1,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 수량 조절
         Row(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = Icons.Default.Remove, contentDescription = null)
+            Image(
+                modifier = Modifier.clickable { },
+                painter = painterResource(R.drawable.minus_primary),
+                contentDescription = null,
+                contentScale = ContentScale.None
+            )
             Text(
                 text = food.count.toString(),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                style = MaterialTheme.typography.bodyMedium,
+                color = CustomGreyColor7
             )
-            Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            Image(
+                modifier = Modifier.clickable { },
+                painter = painterResource(R.drawable.plus_primary),
+                contentDescription = null,
+                contentScale = ContentScale.None
+            )
         }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "소비기한 ${food.endDt}",
-            fontSize = 11.sp,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Text(
+                text = "소비기한",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Normal,
+                color = CustomGreyColor5
+            )
+            Text(
+                text = food.endDt,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Normal,
+                color = CustomGreyColor5
+            )
+        }
     }
 }
 
