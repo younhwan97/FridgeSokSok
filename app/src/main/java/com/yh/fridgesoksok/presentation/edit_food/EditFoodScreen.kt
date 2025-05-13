@@ -49,6 +49,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -69,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
@@ -91,11 +95,33 @@ fun EditFoodScreen(
     var selectedDate by remember { mutableStateOf<LocalDate?>(today.plusWeeks(2)) }
     var showDialog by remember { mutableStateOf(false) }
     val formatted = selectedDate?.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) ?: "9999.99.99"
+    var isClicking by remember { mutableStateOf(false) }
+
+    val newFood = remember(selectedType, foodName, count, selectedDate) {
+        FoodModel(
+            id = -1,
+            type = selectedType.id,
+            name = foodName,
+            count = count,
+            startDt = "",
+            endDt = selectedDate?.format(DateTimeFormatter.ofPattern("yyyyMMdd")) ?: "99999999"
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { EditFoodTopAppBar(onNavigationClick = { navController.popBackStack() }) },
-        bottomBar = { EditFoodBottomButton() }
+        topBar = {
+            EditFoodTopAppBar(onNavigationClick = { navController.popBackStack() })
+        },
+        bottomBar = {
+            EditFoodBottomButton(onClick = {
+                if (!isClicking) {
+                    isClicking = true
+                    navController.previousBackStackEntry?.savedStateHandle?.set("newFood", newFood)
+                    navController.popBackStack()
+                }
+            })
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -261,6 +287,9 @@ fun EditFoodName(
     foodName: String,
     onNameChanged: (String) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
     BasicTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -271,7 +300,10 @@ fun EditFoodName(
         onValueChange = { onNameChanged(it) },
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { }),
+        keyboardActions = KeyboardActions(onDone = {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }),
         decorationBox = { inner ->
             Box(
                 modifier = Modifier
@@ -534,7 +566,9 @@ fun EditFoodDateSelector(
 }
 
 @Composable
-fun EditFoodBottomButton() {
+fun EditFoodBottomButton(
+    onClick: () -> Unit
+) {
     Surface(
         modifier = Modifier
             .navigationBarsPadding()
@@ -546,7 +580,7 @@ fun EditFoodBottomButton() {
         color = MaterialTheme.colorScheme.background
     ) {
         Button(
-            onClick = {},
+            onClick = { onClick() },
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(

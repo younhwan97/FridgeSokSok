@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -33,9 +34,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,11 +53,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -64,12 +69,21 @@ fun UploadScreen(
     viewModel: UploadViewModel = hiltViewModel()
 ) {
     val newFoods by viewModel.newFoods.collectAsState()
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+
+    val navBackStackEntryFlow = navController.currentBackStackEntryFlow
+
+    val listState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        val capturedImage = navController.previousBackStackEntry?.savedStateHandle?.get<Bitmap>("capturedImage")
-
-        if (capturedImage != null) viewModel.uploadReceiptImage(capturedImage)
-        else viewModel.insertEmptyFood()
+        navBackStackEntryFlow.collectLatest { entry ->
+            val result = entry.savedStateHandle.get<FoodModel>("newFood")
+            result?.let {
+                viewModel.addFood(it)
+                entry.savedStateHandle.remove<FoodModel>("newFood")
+                listState.animateScrollToItem(0)
+            }
+        }
     }
 
     Scaffold(
@@ -82,11 +96,12 @@ fun UploadScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            state = listState
         ) {
             itemsIndexed(newFoods, key = { _, food -> food.id }) { index, food ->
                 FoodBlock(
