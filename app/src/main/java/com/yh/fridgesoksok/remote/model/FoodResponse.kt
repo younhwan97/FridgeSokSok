@@ -4,12 +4,13 @@ import com.yh.fridgesoksok.data.model.FoodEntity
 import com.yh.fridgesoksok.remote.RemoteMapper
 
 data class FoodResponse(
-    val id: Int,
-    val name: String,
-    val type: Int,
+    val id: String,
+    val fridgeId: String,
+    val itemName: String,
+    val expiryDate: String,
+    val categoryId: Int,
     val count: Int,
-    val startDt: String,
-    val endDt: String,
+    val createdAt: String,
 ) : RemoteMapper<FoodEntity> {
-    override fun toData() = FoodEntity(id, name, type, count, startDt, endDt)
+    override fun toData() = FoodEntity(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
 }

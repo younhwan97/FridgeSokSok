@@ -99,12 +99,13 @@ fun EditFoodScreen(
 
     val newFood = remember(selectedType, foodName, count, selectedDate) {
         FoodModel(
-            id = -1,
-            type = selectedType.id,
-            name = foodName,
+            id = "",
+            fridgeId = "",
+            itemName = foodName,
+            expiryDate = selectedDate?.format(DateTimeFormatter.ofPattern("yyyyMMdd")) ?: "99999999",
+            categoryId = selectedType.id,
             count = count,
-            startDt = "",
-            endDt = selectedDate?.format(DateTimeFormatter.ofPattern("yyyyMMdd")) ?: "99999999"
+            createdAt = ""
         )
     }
 

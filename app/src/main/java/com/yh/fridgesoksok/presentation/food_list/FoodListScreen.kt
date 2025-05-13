@@ -233,8 +233,8 @@ fun FoodListContent(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     foods
-                        .filter { it.name.contains(searchQuery, ignoreCase = true) }
-                        .filter { selectedType == Type.All || it.type == selectedType.id }
+                        .filter { it.itemName.contains(searchQuery, ignoreCase = true) }
+                        .filter { selectedType == Type.All || it.categoryId == selectedType.id }
                         .chunked(2)
                         .forEach { rowItems ->
                             Row(
@@ -247,7 +247,7 @@ fun FoodListContent(
                                         period = Period.between(
                                             LocalDate.now(),
                                             LocalDate.parse(
-                                                food.endDt,
+                                                food.expiryDate,
                                                 DateTimeFormatter.ofPattern("yyyyMMdd")
                                             )
                                         ),
@@ -314,7 +314,7 @@ fun FoodCard(
             Spacer(modifier = Modifier.height(10.dp))
             Image(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                painter = painterResource(Type.entries.firstOrNull { it.id == food.type }?.icon ?: R.drawable.health),
+                painter = painterResource(Type.entries.firstOrNull { it.id == food.categoryId }?.icon ?: R.drawable.health),
                 contentDescription = null,
                 contentScale = ContentScale.None
             )
@@ -326,7 +326,7 @@ fun FoodCard(
                 contentAlignment = Alignment.TopCenter
             ) {
                 Text(
-                    text = food.name,
+                    text = food.itemName,
                     style = MaterialTheme.typography.bodyMedium,
                     color = CustomGreyColor7,
                     textAlign = TextAlign.Center,
@@ -377,7 +377,7 @@ fun FoodCard(
                 color = CustomGreyColor5
             )
             Text(
-                text = food.endDt,
+                text = food.expiryDate,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Normal,
                 color = CustomGreyColor5

@@ -105,10 +105,10 @@ fun UploadScreen(
         ) {
             itemsIndexed(newFoods, key = { _, food -> food.id }) { index, food ->
                 FoodBlock(
-                    name = food.name,
-                    type = food.type,
+                    name = food.itemName,
+                    type = food.categoryId,
                     count = food.count,
-                    endDt = food.endDt,
+                    endDt = food.expiryDate,
                     onDeleteClick = { viewModel.deleteFood(index) },
                     onIncreaseClick = { viewModel.increaseCount(index) },
                     onDecreaseClick = { viewModel.decreaseCount(index) }

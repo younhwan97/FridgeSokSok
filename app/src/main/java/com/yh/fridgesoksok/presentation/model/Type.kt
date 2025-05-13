@@ -24,8 +24,10 @@ enum class Type(val id: Int, val label: String, @DrawableRes val icon: Int, @Dra
     Tofu(17, "견과류", R.drawable.tofu, R.drawable.tofu_large);
 
     companion object {
-        fun fromId(id: Int): Type {
-            return entries.find { it.id == id } ?: All
-        }
+        private val idMap = entries.associateBy { it.id }
+        fun fromId(id: Int): Type = idMap[id] ?: All
     }
 }
+
+val FoodModel.type: Type
+    get() = Type.fromId(categoryId)

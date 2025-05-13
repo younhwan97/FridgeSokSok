@@ -6,13 +6,14 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class FoodModel(
-    val id: Int,
-    var name: String,
-    val type: Int,
+    val id: String,
+    val fridgeId: String,
+    val itemName: String,
+    val expiryDate: String,
+    val categoryId: Int,
     val count: Int = 1,
-    val startDt: String,
-    val endDt: String,
-): Parcelable
+    val createdAt: String,
+) : Parcelable
 
 fun Food.toPresentation() =
-    FoodModel(id, name, type, count, startDt, endDt)
+    FoodModel(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)

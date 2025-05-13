@@ -44,12 +44,13 @@ class UploadViewModel @Inject constructor(
                         // Receipt → FoodModel 매핑
                         val mappedFoods = receiptList.map { receipt ->
                             FoodModel(
-                                id = tmpKey++,
-                                name = receipt.itemName,
+                                id = (tmpKey++).toString(),
+                                fridgeId = "",
+                                itemName = receipt.itemName,
                                 count = receipt.shelfLifeHours,
-                                startDt = "20250101",
-                                endDt = "20251231",
-                                type = 1,
+                                createdAt = "20250101",
+                                expiryDate = "20251231",
+                                categoryId = 1,
                             )
                         }
 
@@ -88,10 +89,10 @@ class UploadViewModel @Inject constructor(
 
     fun addFood(newFood: FoodModel) {
         val currentList = _newFoods.value
-        val usedIds = currentList.map { it.id }.toSet()
+        val usedIds = currentList.mapNotNull { it.id.toIntOrNull() }.toSet()
         val nextId = (0..Int.MAX_VALUE).first { it !in usedIds }
 
-        val updatedList = (currentList + newFood.copy(id = nextId)).sortedByDescending { it.id }
+        val updatedList = (currentList + newFood.copy(id = nextId.toString())).sortedByDescending { it.id }
 
         _newFoods.value = updatedList
     }

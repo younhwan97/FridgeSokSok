@@ -4,12 +4,13 @@ import com.yh.fridgesoksok.data.DataMapper
 import com.yh.fridgesoksok.domain.model.Food
 
 data class FoodEntity(
-    val id: Int,
-    val name: String,
-    val type: Int,
+    val id: String,
+    val fridgeId: String,
+    val itemName: String,
+    val expiryDate: String,
+    val categoryId: Int,
     val count: Int,
-    val startDt: String,
-    val endDt: String,
+    val createdAt: String,
 ) : DataMapper<Food> {
-    override fun toDomain() = Food(id, name, type, count, startDt, endDt)
+    override fun toDomain() = Food(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
 }
