@@ -7,4 +7,6 @@ interface LocalUserDataSource {
     fun loadUser(): UserEntity
 
     fun saveUser(userEntity: UserEntity): Unit
+
+    fun clearUser()
 }

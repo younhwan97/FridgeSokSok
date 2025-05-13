@@ -14,4 +14,6 @@ interface RemoteUserDataSource {
     suspend fun validateUserToken(refreshToken: String): Boolean
 
     suspend fun reissueUserToken(refreshToken: String): TokenEntity
+
+    suspend fun getUserDefaultFridge(): String
 }

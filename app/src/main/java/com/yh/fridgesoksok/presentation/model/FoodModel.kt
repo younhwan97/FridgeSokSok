@@ -17,3 +17,6 @@ data class FoodModel(
 
 fun Food.toPresentation() =
     FoodModel(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
+
+fun FoodModel.toDomain() =
+    Food(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)

@@ -4,12 +4,9 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.yh.fridgesoksok.data.model.FoodEntity
 import com.yh.fridgesoksok.data.model.ReceiptEntity
-import com.yh.fridgesoksok.data.model.UserEntity
-import com.yh.fridgesoksok.data.remote.RemoteDataSource
+import com.yh.fridgesoksok.data.remote.RemoteFoodDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
-import com.yh.fridgesoksok.remote.impl.RemoteUserDataSourceImpl.Companion
-import com.yh.fridgesoksok.remote.model.UserRequest
-import com.yh.fridgesoksok.remote.model.UserResponse
+import com.yh.fridgesoksok.remote.model.toRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -18,9 +15,9 @@ import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-class RemoteDataSourceImpl @Inject constructor(
+class RemoteFoodDataSourceImpl @Inject constructor(
     private val fridgeApiService: FridgeApiService
-) : RemoteDataSource {
+) : RemoteFoodDataSource {
 
     companion object {
         private const val TAG = "RemoteDataLogger"
@@ -41,6 +38,19 @@ class RemoteDataSourceImpl @Inject constructor(
         Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
     }
 
+    override suspend fun addFoodList(foods: List<FoodEntity>): List<FoodEntity> {
+        val action = "addNewFoods"
+        return try {
+            logInput(action, foods)
+            val response = fridgeApiService.addFoodList(foods.map { it.toRequest() }).data
+            logOutput(action, response)
+            response.map { it.toData() }
+        } catch (e: Exception) {
+            logError(action, e)
+            throw e
+        }
+    }
+
     override suspend fun getFoodList(): List<FoodEntity> {
         return fridgeApiService.getFoodList().foodList.map { it.toData() }
     }
@@ -57,7 +67,7 @@ class RemoteDataSourceImpl @Inject constructor(
             receipt.map { it.toData() }
         } catch (e: Exception) {
             logError(action, e)
-            emptyList()
+            throw e
         }
     }
 }

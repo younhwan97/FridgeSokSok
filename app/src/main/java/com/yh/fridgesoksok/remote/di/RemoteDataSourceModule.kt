@@ -1,8 +1,8 @@
 package com.yh.fridgesoksok.remote.di
 
-import com.yh.fridgesoksok.data.remote.RemoteDataSource
+import com.yh.fridgesoksok.data.remote.RemoteFoodDataSource
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
-import com.yh.fridgesoksok.remote.impl.RemoteDataSourceImpl
+import com.yh.fridgesoksok.remote.impl.RemoteFoodDataSourceImpl
 import com.yh.fridgesoksok.remote.impl.RemoteUserDataSourceImpl
 import dagger.Binds
 import dagger.Module
@@ -16,7 +16,7 @@ abstract class RemoteDataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindRemoteDataSource(source: RemoteDataSourceImpl) : RemoteDataSource
+    abstract fun bindRemoteDataSource(source: RemoteFoodDataSourceImpl) : RemoteFoodDataSource
 
     @Binds
     @Singleton

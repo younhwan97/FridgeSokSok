@@ -50,9 +50,9 @@ class RemoteUserDataSourceImpl @Inject constructor(
             }
             logOutput(action, userToken)
             userToken.toData()
-        } catch (e: Exception){
+        } catch (e: Exception) {
             logError(action, e)
-            UserResponse(id = -1L, null, null, null, null).toData()
+            throw e
         }
     }
 
@@ -67,7 +67,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
             userResponse.toData()
         } catch (e: Exception) {
             logError(action, e)
-            UserEntity(id = -1L, null, null, null, null)
+            throw e
         }
     }
 
@@ -81,7 +81,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
             isValid
         } catch (e: Exception) {
             logError(action, e)
-            false
+            throw e
         }
     }
 
@@ -95,7 +95,21 @@ class RemoteUserDataSourceImpl @Inject constructor(
             tokenResponse.toData()
         } catch (e: Exception) {
             logError(action, e)
-            TokenEntity("-1", "-1")
+            throw e
+        }
+    }
+
+    override suspend fun getUserDefaultFridge(): String {
+        val action = "getUserDefaultFridge"
+        return try {
+            logInput(action, action)
+            val response = fridgeApiService.getUserDefaultFridge()
+            val defaultFridge = response.data
+            logOutput(action, defaultFridge)
+            defaultFridge
+        } catch (e: Exception) {
+            logError(action, e)
+            throw e
         }
     }
 }

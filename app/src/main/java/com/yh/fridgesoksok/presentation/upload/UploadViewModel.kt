@@ -4,8 +4,10 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.AddFoodListUseCase
 import com.yh.fridgesoksok.domain.usecase.UploadReceiptImageUseCase
 import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.model.toDomain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UploadViewModel @Inject constructor(
-    private val uploadReceiptImageUseCase: UploadReceiptImageUseCase
+    private val uploadReceiptImageUseCase: UploadReceiptImageUseCase,
+    private val addFoodListUseCase: AddFoodListUseCase
 ) : ViewModel() {
 
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
@@ -95,5 +98,23 @@ class UploadViewModel @Inject constructor(
         val updatedList = (currentList + newFood.copy(id = nextId.toString())).sortedByDescending { it.id }
 
         _newFoods.value = updatedList
+    }
+
+    fun tmp(){
+        addFoodListUseCase(_newFoods.value.map { it.toDomain() }).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    //
+                }
+
+                is Resource.Error -> {
+                    //
+                }
+
+                is Resource.Success -> {
+
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 }

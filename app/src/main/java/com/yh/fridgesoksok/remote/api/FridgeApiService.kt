@@ -1,6 +1,8 @@
 package com.yh.fridgesoksok.remote.api
 
 import com.yh.fridgesoksok.remote.model.CommonResponse
+import com.yh.fridgesoksok.remote.model.FoodRequest
+import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FoodWrapperResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
@@ -34,4 +36,12 @@ interface FridgeApiService {
     @Headers("Content-Type: application/json")
     @POST("auth/refresh")
     suspend fun reissueUserToken(): CommonResponse<TokenResponse>
+
+    @Headers("Content-Type: application/json")
+    @GET("users/user/default-fridge")
+    suspend fun getUserDefaultFridge(): CommonResponse<String>
+
+    @Headers("Content-Type: application/json")
+    @POST("api/foods")
+    suspend fun addFoodList(foods: List<FoodRequest>): CommonResponse<List<FoodResponse>>
 }

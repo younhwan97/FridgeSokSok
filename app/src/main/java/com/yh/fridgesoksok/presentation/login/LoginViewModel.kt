@@ -7,6 +7,7 @@ import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.usecase.CreateUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserUseCase
+import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val createUserTokenUseCase: CreateUserTokenUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-    private val createUserUseCase: CreateUserUseCase
+    private val createUserUseCase: CreateUserUseCase,
+    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
 ) : ViewModel() {
 
     private val _userToken = MutableStateFlow("")
@@ -65,8 +67,25 @@ class LoginViewModel @Inject constructor(
                 is Resource.Success -> {
                     result.data
                         ?.takeIf { it.id != -1L && it.accessToken != null }
-                        ?.let { saveUser(it) }
-                        ?: _snackBarMessages.emit("로그인에 실패하였습니다.")
+                        ?.let { userWithToken ->
+                            getUserDefaultFridge(userWithToken)
+                        } ?: _snackBarMessages.emit("로그인에 실패하였습니다.")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getUserDefaultFridge(user: User) {
+        getUserDefaultFridgeUseCase().onEach { result ->
+            when (result) {
+                is Resource.Loading -> {}
+
+                is Resource.Error -> {
+                    _snackBarMessages.emit("로그인에 실패하였습니다.")
+                }
+
+                is Resource.Success -> {
+                    saveUser(user) // 👈 성공 시 저장
                 }
             }
         }.launchIn(viewModelScope)

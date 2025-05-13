@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.edit_food.EditFoodBottomButton
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -93,6 +97,11 @@ fun UploadScreen(
                 onNavigationClick = { navController.popBackStack() },
                 onActionClick = { navController.navigate(Screen.EditFoodScreen.route) }
             )
+        },
+        bottomBar = {
+            UploadFoodBottomButton (onClick = {
+                viewModel.tmp()
+            })
         }
     ) { innerPadding ->
         LazyColumn(
@@ -324,5 +333,33 @@ fun formatDate(dateString: String): String {
         parsed.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     } catch (e: Exception) {
         "" // 잘못된 포맷일 경우 빈 문자열 반환
+    }
+}
+
+@Composable
+fun UploadFoodBottomButton(
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .fillMaxWidth()
+            .height(54.dp)
+            .padding(horizontal = 16.dp)
+            .offset(y = (-12).dp),
+        tonalElevation = 4.dp,
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Button(
+            onClick = { onClick() },
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "추가하기",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = CustomGreyColor1
+            )
+        }
     }
 }

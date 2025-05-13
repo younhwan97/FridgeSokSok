@@ -3,6 +3,8 @@ package com.yh.fridgesoksok.remote.api
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.yh.fridgesoksok.remote.model.CommonResponse
+import com.yh.fridgesoksok.remote.model.FoodRequest
+import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FoodWrapperResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
@@ -16,6 +18,14 @@ import java.io.InputStream
 class MockApiService(
     private val context: Context
 ) : FridgeApiService {
+
+    override suspend fun getUserDefaultFridge(): CommonResponse<String> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun addFoodList(foods: List<FoodRequest>): CommonResponse<List<FoodResponse>> {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun getFoodList(): FoodWrapperResponse {
         val gson = GsonBuilder()

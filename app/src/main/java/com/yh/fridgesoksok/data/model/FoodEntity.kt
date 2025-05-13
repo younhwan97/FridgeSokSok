@@ -14,3 +14,15 @@ data class FoodEntity(
 ) : DataMapper<Food> {
     override fun toDomain() = Food(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
 }
+
+fun Food.toEntity(): FoodEntity {
+    return FoodEntity(
+        id = this.id,
+        fridgeId = this.fridgeId,
+        itemName = this.itemName,
+        expiryDate = this.expiryDate,
+        categoryId = this.categoryId,
+        count = this.count,
+        createdAt = this.createdAt
+    )
+}

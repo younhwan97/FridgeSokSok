@@ -31,6 +31,10 @@ class UserRepositoryImpl @Inject constructor(
             )
         )
 
+    override fun clearUser() {
+        localUserDataSource.clearUser()
+    }
+
     override fun createUserToken(channel: Channel): Flow<Resource<User>> =
         flowWithResource {
             remoteUserDataSource.createUserToken(channel).toDomain()
@@ -49,6 +53,11 @@ class UserRepositoryImpl @Inject constructor(
     override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> =
         flowWithResource {
             remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
+        }
+
+    override fun getUserDefaultFridge(): Flow<Resource<String>> =
+        flowWithResource {
+            remoteUserDataSource.getUserDefaultFridge()
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =

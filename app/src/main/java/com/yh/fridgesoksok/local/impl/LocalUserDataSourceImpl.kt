@@ -39,4 +39,17 @@ class LocalUserDataSourceImpl @Inject constructor(
 
         edit.apply()
     }
+
+    override fun clearUser() {
+        val spf: SharedPreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
+        val edit = spf.edit()
+
+        edit.putLong("id", -1)
+        edit.putString("accessToken", "")
+        edit.putString("refreshToken", "")
+        edit.putString("username", "")
+        edit.putString("accountType", "")
+
+        edit.apply()
+    }
 }

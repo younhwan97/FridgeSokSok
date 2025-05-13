@@ -12,6 +12,8 @@ interface UserRepository {
 
     fun saveUser(user: User)
 
+    fun clearUser()
+
     fun createUserToken(channel: Channel): Flow<Resource<User>>
 
     fun createUser(user: User): Flow<Resource<User>>
@@ -19,4 +21,6 @@ interface UserRepository {
     fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>>
 
     fun reissueUserToken(refreshToken: String): Flow<Resource<Token>>
+
+    fun getUserDefaultFridge(): Flow<Resource<String>>
 }

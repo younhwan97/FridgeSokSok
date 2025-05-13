@@ -1,9 +1,11 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.User
+import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.ReissueUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
@@ -20,7 +22,8 @@ class OnboardingViewModel @Inject constructor(
     private val loadUserUseCase: LoadUserUseCase,
     private val validateUserTokenUseCase: ValidateUserTokenUseCase,
     private val reissueUserTokenUseCase: ReissueUserTokenUseCase,
-    private val saveUserUseCase: SaveUserUseCase
+    private val saveUserUseCase: SaveUserUseCase,
+    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
 ) : ViewModel() {
 
     private val _userToken = MutableStateFlow("")
@@ -28,6 +31,9 @@ class OnboardingViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
+
+    private val _user = MutableStateFlow(User(-1, "", "", "", ""))
+    val user = _user.asStateFlow()
 
     init {
         /*
@@ -86,23 +92,43 @@ class OnboardingViewModel @Inject constructor(
 
                 is Resource.Success -> {
                     result.data?.let {
-                        saveUser(
-                            User(
-                                id = -1,
-                                accessToken = result.data.accessToken,
-                                refreshToken = result.data.refreshToken,
-                                username = null,
-                                accountType = null
-                            )
+                        _user.value = User(
+                            id = -1,
+                            accessToken = result.data.accessToken,
+                            refreshToken = result.data.refreshToken,
+                            username = null,
+                            accountType = null
                         )
+
+                        getUserDefaultFridge()
                     }
                 }
             }
         }.launchIn(viewModelScope)
     }
 
+    // 유저 기본냉장고 추출
+    private fun getUserDefaultFridge() {
+        getUserDefaultFridgeUseCase().onEach { result ->
+            when (result) {
+                is Resource.Loading -> {}
+
+                is Resource.Error -> {
+                    _isLoading.value = false
+                    _userToken.value = ""
+                }
+
+                is Resource.Success -> {
+                    result.data?.let {
+                        saveUser(_user.value)
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    // 유저 정보 저장
     private fun saveUser(user: User) {
-        // 유저 정보 저장
         saveUserUseCase(user = user)
         // 화면 전환
         _userToken.value = user.accessToken!!
