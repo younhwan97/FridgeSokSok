@@ -46,7 +46,7 @@ class MockApiService(
     }
 
     // @POST("auth/kakao")
-    override suspend fun createUser(userRequest: UserRequest): CommonResponse<UserResponse> {
+    override suspend fun createUserOnServer(provider: String, userRequest: UserRequest): CommonResponse<UserResponse> {
         /*
             {
                 "message": "User created successfully",

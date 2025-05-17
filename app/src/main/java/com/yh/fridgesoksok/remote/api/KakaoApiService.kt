@@ -13,7 +13,7 @@ import kotlin.coroutines.resumeWithException
 class KakaoApiService(
     private val context: Context
 ) {
-    suspend fun createKakaoToken(): UserResponse = suspendCancellableCoroutine { continuation ->
+    suspend fun createUserOnKakao(): UserResponse = suspendCancellableCoroutine { continuation ->
 
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error != null) {

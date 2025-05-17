@@ -15,6 +15,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface FridgeApiService {
     @GET("/")
@@ -26,8 +27,11 @@ interface FridgeApiService {
 
     // User Management
     @Headers("Content-Type: application/json")
-    @POST("auth/kakao")
-    suspend fun createUser(@Body userRequest: UserRequest): CommonResponse<UserResponse>
+    @POST("auth/{provider}")
+    suspend fun createUserOnServer(
+        @Path("provider") provider: String,
+        @Body userRequest: UserRequest
+    ): CommonResponse<UserResponse>
 
     // Auth Control
     @GET("auth/validateRefreshToken")

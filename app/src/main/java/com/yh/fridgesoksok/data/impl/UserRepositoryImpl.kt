@@ -3,7 +3,6 @@ package com.yh.fridgesoksok.data.impl
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
-import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.Token
@@ -30,14 +29,14 @@ class UserRepositoryImpl @Inject constructor(
     override fun clearUser() =
         localUserDataSource.clearUser()
 
-    override fun createUserToken(channel: Channel): Flow<Resource<User>> =
+    override fun createUserOnChannel(channel: Channel): Flow<Resource<User>> =
         flowWithResource {
-            remoteUserDataSource.createUserToken(channel).toDomain()
+            remoteUserDataSource.createUserOnChannel(channel).toDomain()
         }
 
-    override fun createUser(user: User): Flow<Resource<User>> =
+    override fun createUserOnServer(user: User): Flow<Resource<User>> =
         flowWithResource {
-            remoteUserDataSource.createUser(user = user).toDomain()
+            remoteUserDataSource.createUserOnServer(user = user).toDomain()
         }
 
     override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> =

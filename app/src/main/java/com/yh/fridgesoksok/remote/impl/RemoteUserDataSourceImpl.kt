@@ -39,13 +39,13 @@ class RemoteUserDataSourceImpl @Inject constructor(
         Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
     }
 
-    override suspend fun createUserToken(channel: Channel): UserEntity {
+    override suspend fun createUserOnChannel(channel: Channel): UserEntity {
         val action = "createUserToken"
         return try {
             logInput(action, channel)
             val userToken = when (channel) {
-                Channel.KAKAO -> kakaoApiService.createKakaoToken()
-                Channel.NAVER -> naverApiService.createNaverToken()
+                Channel.KAKAO -> kakaoApiService.createUserOnKakao()
+                Channel.NAVER -> naverApiService.createUserOnNaver()
                 else -> UserResponse(id = -1L, null, null, null, null)
             }
             logOutput(action, userToken)
@@ -56,12 +56,16 @@ class RemoteUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun createUser(user: User): UserEntity {
+    override suspend fun createUserOnServer(user: User): UserEntity {
         val action = "createUser"
         return try {
             logInput(action, user)
             val userRequest = UserRequest(token = user.accessToken, username = user.id.toString())
-            val response = fridgeApiService.createUser(userRequest = userRequest)
+            val response = when (user.accountType) {
+                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(provider = "kakao", userRequest = userRequest)
+                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(provider = "naver", userRequest = userRequest)
+                else -> fridgeApiService.createUserOnServer(provider = "", userRequest = userRequest)
+            }
             val userResponse = response.data
             logOutput(action, userResponse)
             userResponse.toData()

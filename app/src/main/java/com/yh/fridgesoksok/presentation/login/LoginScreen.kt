@@ -193,12 +193,12 @@ fun LoginActions(
         BubbleText()
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.Center) {
-            SocialLoginButton(R.drawable.kakao) { viewModel.createUserToken(Channel.KAKAO) }
+            SocialLoginButton(R.drawable.kakao) { viewModel.createUserOnChannel(Channel.KAKAO) }
             Spacer(modifier = Modifier.width(20.dp))
-            SocialLoginButton(R.drawable.naver) { viewModel.createUserToken(Channel.NAVER) }
+            SocialLoginButton(R.drawable.naver) { viewModel.createUserOnChannel(Channel.NAVER) }
         }
         Spacer(modifier = Modifier.height(46.dp))
-        OutlinedGuestLoginButton { viewModel.createUserToken(Channel.GUEST) }
+        OutlinedGuestLoginButton { viewModel.createUserOnChannel(Channel.GUEST) }
         Spacer(modifier = Modifier.height(10.dp))
     }
 }

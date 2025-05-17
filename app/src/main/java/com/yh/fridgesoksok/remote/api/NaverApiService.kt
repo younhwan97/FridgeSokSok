@@ -13,7 +13,7 @@ import kotlin.coroutines.resumeWithException
 class NaverApiService(
     private val appContext: Context
 ) {
-    suspend fun createNaverToken(): UserResponse = suspendCancellableCoroutine { continuation ->
+    suspend fun createUserOnNaver(): UserResponse = suspendCancellableCoroutine { continuation ->
         NaverLoginActivity.pendingCallback = object : OAuthLoginCallback {
             override fun onSuccess() {
                 try {

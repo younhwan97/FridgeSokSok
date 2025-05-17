@@ -7,9 +7,9 @@ import com.yh.fridgesoksok.domain.model.User
 
 interface RemoteUserDataSource {
 
-    suspend fun createUserToken(channel: Channel): UserEntity
+    suspend fun createUserOnChannel(channel: Channel): UserEntity
 
-    suspend fun createUser(user: User): UserEntity
+    suspend fun createUserOnServer(user: User): UserEntity
 
     suspend fun validateUserToken(refreshToken: String): Boolean
 

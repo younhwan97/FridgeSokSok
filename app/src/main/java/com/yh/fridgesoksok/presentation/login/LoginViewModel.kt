@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.User
-import com.yh.fridgesoksok.domain.usecase.CreateUserTokenUseCase
-import com.yh.fridgesoksok.domain.usecase.CreateUserUseCase
+import com.yh.fridgesoksok.domain.usecase.CreateUserOnChannelUseCase
+import com.yh.fridgesoksok.domain.usecase.CreateUserOnServerUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
@@ -24,9 +24,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val createUserTokenUseCase: CreateUserTokenUseCase,
+    private val createUserOnChannelUseCase: CreateUserOnChannelUseCase,
     private val saveUserUseCase: SaveUserUseCase,
-    private val createUserUseCase: CreateUserUseCase,
+    private val createUserOnServerUseCase: CreateUserOnServerUseCase,
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
 ) : ViewModel() {
 
@@ -46,9 +46,9 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun createUserToken(channel: Channel) {
-        // 유저토큰 생성
-        createUserTokenUseCase(channel).onEach { result ->
+    fun createUserOnChannel(channel: Channel) {
+        // (네이버, 카카오 등의) 채널로 부터 유저 생성
+        createUserOnChannelUseCase(channel).onEach { result ->
             when (result) {
                 is Resource.Loading -> Unit
                 is Resource.Error -> fail()
@@ -56,7 +56,7 @@ class LoginViewModel @Inject constructor(
                 is Resource.Success -> {
                     val data = result.data
                     if (data != null && data.id != -1L && data.accessToken != null && data.refreshToken != null) {
-                        createUser(data)
+                        createUserOnServer(data)
                     } else {
                         fail()
                     }
@@ -65,9 +65,9 @@ class LoginViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun createUser(user: User) {
-        // 유저 생성
-        createUserUseCase(user = user).onEach { result ->
+    private fun createUserOnServer(user: User) {
+        // (채널에서 생성한 토큰을 활용해 서버에서) 유저 생성
+        createUserOnServerUseCase(user = user).onEach { result ->
             when (result) {
                 is Resource.Loading -> {}
                 is Resource.Error -> fail()
