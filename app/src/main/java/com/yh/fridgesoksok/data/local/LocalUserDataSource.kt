@@ -6,7 +6,9 @@ interface LocalUserDataSource {
 
     fun loadUser(): UserEntity
 
-    fun saveUser(userEntity: UserEntity): Unit
+    fun saveUser(userEntity: UserEntity)
+
+    fun updateUser(userEntity: UserEntity)
 
     fun clearUser()
 }

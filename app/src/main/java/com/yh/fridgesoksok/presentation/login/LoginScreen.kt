@@ -57,7 +57,7 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val userToken by viewModel.userToken.collectAsState()
+    val isLoginSuccess by viewModel.isLoginSuccess.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val systemUiController = rememberSystemUiController()
 
@@ -74,8 +74,8 @@ fun LoginScreen(
     }
 
     // 로그인 성공 시 네비게이션
-    LaunchedEffect(userToken) {
-        if (userToken.isNotBlank()) {
+    LaunchedEffect(isLoginSuccess) {
+        if (isLoginSuccess) {
             navController.navigate(Screen.HomeScreen.route) {
                 popUpTo(Screen.LoginScreen.route) { inclusive = true }
                 launchSingleTop = true

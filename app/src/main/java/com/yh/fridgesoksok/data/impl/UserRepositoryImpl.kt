@@ -4,6 +4,7 @@ import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.model.UserEntity
+import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
@@ -17,23 +18,17 @@ class UserRepositoryImpl @Inject constructor(
     private val remoteUserDataSource: RemoteUserDataSource
 ) : UserRepository {
 
-    override fun loadUser(): User =
+    override fun loadUser() =
         localUserDataSource.loadUser().toDomain()
 
     override fun saveUser(user: User) =
-        localUserDataSource.saveUser(
-            userEntity = UserEntity(
-                id = user.id,
-                accessToken = user.accessToken,
-                refreshToken = user.refreshToken,
-                username = user.username,
-                accountType = user.accountType
-            )
-        )
+        localUserDataSource.saveUser(user.toEntity())
 
-    override fun clearUser() {
+    override fun updateUser(user: User) =
+        localUserDataSource.updateUser(user.toEntity())
+
+    override fun clearUser() =
         localUserDataSource.clearUser()
-    }
 
     override fun createUserToken(channel: Channel): Flow<Resource<User>> =
         flowWithResource {

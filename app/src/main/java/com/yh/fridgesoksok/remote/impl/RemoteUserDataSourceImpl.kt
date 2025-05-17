@@ -100,7 +100,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getUserDefaultFridge(): String {
-        val action = "getUserDefaultFridge"
+        val action = "defaultFridge"
         return try {
             logInput(action, action)
             val response = fridgeApiService.getUserDefaultFridge()

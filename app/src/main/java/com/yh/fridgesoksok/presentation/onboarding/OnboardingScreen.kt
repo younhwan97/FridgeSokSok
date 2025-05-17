@@ -25,15 +25,22 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
-    val isLoading by viewModel.isLoading.collectAsState()
-    val userToken by viewModel.userToken.collectAsState()
     val systemUiController = rememberSystemUiController()
-    
+    val loadingState by viewModel.loadingState.collectAsState()
+
     // 시스템 UI 설정 및 네비게이션
-    LaunchedEffect(isLoading) {
+    LaunchedEffect(loadingState.isLoading) {
         systemUiController.setNavigationBarColor(primaryColor)
 
-        if (!isLoading) navigateAfterOnboarding(navController, userToken)
+        val nextRoute = if (loadingState.isLoadingSuccess) {
+            Screen.HomeScreen.route
+        } else {
+            Screen.LoginScreen.route
+        }
+
+        navController.navigate(nextRoute) {
+            popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+        }
     }
 
     // Content
@@ -49,13 +56,4 @@ fun OnboardingScreen(
             contentScale = ContentScale.None,
         )
     }
-}
-
-private fun navigateAfterOnboarding(
-    navController: NavController,
-    userToken: String
-) {
-    val nextRoute = if (userToken.isBlank()) Screen.LoginScreen.route else Screen.HomeScreen.route
-
-    navController.navigate(nextRoute) { popUpTo(Screen.OnboardingScreen.route) { inclusive = true } }
 }

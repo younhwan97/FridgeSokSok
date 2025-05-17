@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.remote.di
 import android.content.Context
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
+import com.yh.fridgesoksok.remote.api.LoggingHeaderInterceptor
 import com.yh.fridgesoksok.remote.api.MockApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.api.RequestHeaderInterceptor
@@ -26,6 +27,8 @@ internal object NetworkModule {
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
+        // Authorization 감추지 않도록
+        redactHeader("Nothing")
     }
 
     @Provides
@@ -35,8 +38,9 @@ internal object NetworkModule {
             readTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
             writeTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
             connectTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)
-            addNetworkInterceptor(requestHeaderInterceptor)
-            addInterceptor(loggingInterceptor)
+            addInterceptor(requestHeaderInterceptor)            // 1. 토큰 주입
+            addInterceptor(LoggingHeaderInterceptor())          // 2. 토큰 직접 로그
+            addInterceptor(loggingInterceptor)                  // 3. 전체 요청/응답 로그
         }.build()
     }
 

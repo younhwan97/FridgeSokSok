@@ -12,6 +12,8 @@ interface UserRepository {
 
     fun saveUser(user: User)
 
+    fun updateUser(user: User)
+
     fun clearUser()
 
     fun createUserToken(channel: Channel): Flow<Resource<User>>
