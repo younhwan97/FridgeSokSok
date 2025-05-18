@@ -50,8 +50,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,9 +70,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
-import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.model.FoodMode
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
@@ -86,42 +88,48 @@ import kotlin.math.ceil
 
 @Composable
 fun EditFoodScreen(
-    navController: NavController
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    viewModel: EditFoodViewModel = hiltViewModel()
 ) {
-    var selectedType by remember { mutableStateOf(Type.Ingredients) }
-    var foodName by remember { mutableStateOf("") }
-    var count by remember { mutableIntStateOf(1) }
-    val today = remember { LocalDate.now() }
-    var selectedDate by remember { mutableStateOf<LocalDate?>(today.plusWeeks(2)) }
+    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+    val formatted2 = DateTimeFormatter.ofPattern("yyyy.MM.dd")
     var showDialog by remember { mutableStateOf(false) }
-    val formatted = selectedDate?.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) ?: "9999.99.99"
     var isClicking by remember { mutableStateOf(false) }
+    var food by remember { mutableStateOf(sharedViewModel.editFood.value) }
 
-    val newFood = remember(selectedType, foodName, count, selectedDate) {
-        FoodModel(
-            id = "",
-            fridgeId = "",
-            itemName = foodName,
-            expiryDate = selectedDate?.format(DateTimeFormatter.ofPattern("yyyyMMdd")) ?: "99999999",
-            categoryId = selectedType.id,
-            count = count,
-            createdAt = ""
-        )
+    LaunchedEffect(Unit) {
+        // 공유모델 값 초기화
+        sharedViewModel.clearEditFood()
     }
 
+    // Content
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            EditFoodTopAppBar(onNavigationClick = { navController.popBackStack() })
+            EditFoodTopAppBar(
+                title = if (food.foodMode == FoodMode.EDIT) "식품 변경하기" else "식품 추가하기",
+                onNavigationClick = { navController.popBackStack() })
         },
         bottomBar = {
-            EditFoodBottomButton(onClick = {
-                if (!isClicking) {
-                    isClicking = true
-                    navController.previousBackStackEntry?.savedStateHandle?.set("newFood", newFood)
-                    navController.popBackStack()
-                }
-            })
+            EditFoodBottomButton(
+                text = if (food.foodMode == FoodMode.EDIT) "변경하기" else "추가하기",
+                onClick = {
+                    if (!isClicking) {
+                        isClicking = true
+                        if (food.mode != 2) {
+                            // 냉장고 ID 셋팅
+                            food = food.copy(fridgeId = "123")
+                            // 모드 셋팅
+                            food = food.copy(mode = 1)
+                            // 공유모델 값 세팅
+                            sharedViewModel.setEditFood(food)
+                        } else {
+                            //
+                        }
+                        navController.popBackStack()
+                    }
+                })
         }
     ) { innerPadding ->
         Column(
@@ -130,19 +138,32 @@ fun EditFoodScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            EditFoodImage(selectedType.iconLarge)
+            EditFoodImage(Type.fromId(food.categoryId).iconLarge)
+
             Spacer(modifier = Modifier.height(20.dp))
-            EditFoodLabeledField("유형") { EditFoodTypeDropDown(selectedType) { selectedType = it } }
-            EditFoodLabeledField("식품명") { EditFoodName(foodName) { foodName = it } }
-            EditFoodLabeledField("수량") { EditFoodCount(count) { count = it } }
-            EditFoodLabeledField("소비기한") { EditFoodDateInput(formatted, selectedDate != null) { showDialog = true } }
+
+            EditFoodLabeledField("유형") {
+                EditFoodTypeDropDown(Type.fromId(food.categoryId)) { food = food.copy(categoryId = it.id) }
+            }
+
+            EditFoodLabeledField("식품명") {
+                EditFoodName(food.itemName) { food = food.copy(itemName = it) }
+            }
+
+            EditFoodLabeledField("수량") {
+                EditFoodCount(food.count) { food = food.copy(count = it) }
+            }
+
+            EditFoodLabeledField("소비기한") {
+                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(formatted2)) { showDialog = true }
+            }
         }
 
         if (showDialog) {
             EditFoodDateSelector(
-                selectedDate = selectedDate,
+                selectedDate = LocalDate.parse(food.expiryDate, formatter),
                 onDismissRequest = { showDialog = false },
-                onConfirm = { selectedDate = it }
+                onConfirm = { food = food.copy(expiryDate = it.format(formatter)) }
             )
         }
     }
@@ -151,6 +172,7 @@ fun EditFoodScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditFoodTopAppBar(
+    title: String,
     onNavigationClick: () -> Unit
 ) {
     TopAppBar(
@@ -166,7 +188,7 @@ fun EditFoodTopAppBar(
         },
         title = {
             Text(
-                text = "식품 추가하기",
+                text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = CustomGreyColor7
             )
@@ -367,7 +389,7 @@ fun EditFoodCount(
 }
 
 @Composable
-fun EditFoodDateInput(formatted: String, isValid: Boolean, onClick: () -> Unit) {
+fun EditFoodDateInput(formatted: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -381,7 +403,7 @@ fun EditFoodDateInput(formatted: String, isValid: Boolean, onClick: () -> Unit) 
         Text(
             modifier = Modifier.align(Alignment.CenterStart),
             text = formatted,
-            color = if (isValid) Color.Black else Color(0xFFB4B4C0),
+            color = Color.Black,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(
@@ -568,6 +590,7 @@ fun EditFoodDateSelector(
 
 @Composable
 fun EditFoodBottomButton(
+    text: String,
     onClick: () -> Unit
 ) {
     Surface(
@@ -585,7 +608,7 @@ fun EditFoodBottomButton(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "추가하기",
+                text = text,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = CustomGreyColor1

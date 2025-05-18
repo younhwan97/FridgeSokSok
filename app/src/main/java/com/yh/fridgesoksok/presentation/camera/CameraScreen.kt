@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.camera
 
-import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.media.MediaActionSound
@@ -14,92 +13,76 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.SharedViewModel
 
 @Composable
 fun CameraScreen(
-    navController: NavController
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    
-    // 네비게이션바 색상 설정
-    val window = (context as Activity).window
-    SideEffect { window.navigationBarColor = Color.Black.toArgb() }
+    val systemUiController = rememberSystemUiController()
 
-    // 카메라 컨트롤
-    val controller: LifecycleCameraController = remember {
+    val cameraController = remember {
         LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE
-            )
+            setEnabledUseCases(CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE)
         }
     }
 
-    // 캡쳐 이미지
-    val capturedImageBitmap = remember { mutableStateOf<Bitmap?>(null) }
+    var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var isExiting by remember { mutableStateOf(false) }
+    var isScreenActive by remember { mutableStateOf(true) }
 
-    // 뒤로가기 핸들링
-    BackHandler(enabled = true) {
-        if (capturedImageBitmap.value != null) {
-            capturedImageBitmap.value = null
-        } else {
-            controller.unbind()
+    LaunchedEffect(Unit) {
+        systemUiController.setNavigationBarColor(Color.Black)
+    }
+
+    fun exitCameraScreen() {
+        if (!isExiting) {
+            isExiting = true
+            isScreenActive = false
             navController.popBackStack()
+            cameraController.unbind()
         }
     }
 
-    // 컴포저블 종료 시 리소스 정리
-    DisposableEffect(Unit) {
-        onDispose {
-            controller.unbind()
+    BackHandler(enabled = true) {
+        if (capturedImageBitmap != null) {
+            capturedImageBitmap = null
+        } else {
+            exitCameraScreen()
         }
     }
 
-    // UI
+    if (!isScreenActive) return
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        if (capturedImageBitmap.value == null) {
+        if (capturedImageBitmap == null) {
             Spacer(modifier = Modifier.height(72.dp))
 
             Box(
@@ -111,12 +94,14 @@ fun CameraScreen(
                 AndroidView(
                     factory = {
                         PreviewView(it).apply {
-                            this.controller = controller
-                            controller.bindToLifecycle(lifecycleOwner)
+                            this.controller = cameraController
+                            cameraController.bindToLifecycle(lifecycleOwner)
                             scaleType = PreviewView.ScaleType.FILL_CENTER
                         }
                     },
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer(alpha = if (isScreenActive) 1f else 0f)
                 )
             }
 
@@ -129,14 +114,10 @@ fun CameraScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 왼쪽 빈 공간
                 Spacer(modifier = Modifier.weight(1f))
 
-                // 촬영 버튼
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        ,
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -149,7 +130,7 @@ fun CameraScreen(
                         onClick = {
                             MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
 
-                            controller.takePicture(
+                            cameraController.takePicture(
                                 ContextCompat.getMainExecutor(context),
                                 object : OnImageCapturedCallback() {
                                     override fun onCaptureSuccess(image: ImageProxy) {
@@ -166,7 +147,7 @@ fun CameraScreen(
                                             matrix, true
                                         )
 
-                                        capturedImageBitmap.value = bitmap
+                                        capturedImageBitmap = bitmap
                                     }
 
                                     override fun onError(exception: ImageCaptureException) {
@@ -186,14 +167,9 @@ fun CameraScreen(
                     }
                 }
 
-                // 나가기 버튼
                 TextButton(
-                    onClick = {
-                        controller.unbind()
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
+                    onClick = { exitCameraScreen() },
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = "나가기",
@@ -212,7 +188,7 @@ fun CameraScreen(
                     .weight(1f)
             ) {
                 Image(
-                    bitmap = capturedImageBitmap.value!!.asImageBitmap(),
+                    bitmap = capturedImageBitmap!!.asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,9 +205,8 @@ fun CameraScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 다시찍기 버튼
                 TextButton(
-                    onClick = { capturedImageBitmap.value = null },
+                    onClick = { capturedImageBitmap = null },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
@@ -241,15 +216,15 @@ fun CameraScreen(
                     )
                 }
 
-                // 가운데 빈 공간
                 Spacer(modifier = Modifier.weight(1f))
 
-                // 사용하기 버튼
                 TextButton(
                     onClick = {
-                        navController.currentBackStackEntry?.savedStateHandle
-                            ?.set("capturedImage", capturedImageBitmap.value)
-                        navController.navigate(Screen.UploadScreen.route)
+                        if (!isExiting) {
+                            isExiting = true
+                            sharedViewModel.setImage(capturedImageBitmap!!)
+                            navController.navigate(Screen.UploadScreen.route)
+                        }
                     },
                     modifier = Modifier.weight(1f)
                 ) {

@@ -20,7 +20,11 @@ class MockApiService(
 ) : FridgeApiService {
 
     override suspend fun getUserDefaultFridge(): CommonResponse<String> {
-        TODO("Not yet implemented")
+        return CommonResponse(
+            message = "User created successfully",
+            data = "123",
+            status = 200
+        )
     }
 
     override suspend fun addFoodList(foods: List<FoodRequest>): CommonResponse<List<FoodResponse>> {

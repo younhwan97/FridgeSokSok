@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.upload
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,12 +23,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,11 +33,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,36 +53,41 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.edit_food.EditFoodBottomButton
-import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.model.FoodMode
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
-import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun UploadScreen(
     navController: NavController,
+    sharedViewModel: SharedViewModel,
     viewModel: UploadViewModel = hiltViewModel()
 ) {
-    val newFoods by viewModel.newFoods.collectAsState()
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-
-    val navBackStackEntryFlow = navController.currentBackStackEntryFlow
-
     val listState = rememberLazyListState()
+    var isExiting by remember { mutableStateOf(false) }
+    val newFoods by viewModel.newFoods.collectAsState()
+    val receiptImage by sharedViewModel.receipt.collectAsState()
+    val editedFood by sharedViewModel.editFood.collectAsState()
 
-    LaunchedEffect(Unit) {
-        navBackStackEntryFlow.collectLatest { entry ->
-            val result = entry.savedStateHandle.get<FoodModel>("newFood")
-            result?.let {
+    LaunchedEffect(receiptImage) {
+        receiptImage?.let {
+            viewModel.uploadReceiptImage(it)
+            sharedViewModel.clearImage()
+        }
+    }
+
+    LaunchedEffect(editedFood) {
+        editedFood.let {
+            if (it.itemName.isNotBlank() && it.fridgeId.isNotBlank() && it.foodMode == FoodMode.ADD) {
                 viewModel.addFood(it)
-                entry.savedStateHandle.remove<FoodModel>("newFood")
                 listState.animateScrollToItem(0)
+                sharedViewModel.clearEditFood()
             }
         }
     }
@@ -94,12 +96,17 @@ fun UploadScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
             UploadTopAppBar(
-                onNavigationClick = { navController.popBackStack() },
+                onNavigationClick = {
+                    if (!isExiting) {
+                        isExiting = true
+                        navController.popBackStack()
+                    }
+                },
                 onActionClick = { navController.navigate(Screen.EditFoodScreen.route) }
             )
         },
         bottomBar = {
-            UploadFoodBottomButton (onClick = {
+            UploadFoodBottomButton(onClick = {
                 viewModel.tmp()
             })
         }
@@ -146,7 +153,7 @@ fun UploadTopAppBar(
         },
         title = {
             Text(
-                text = "식품 등록하기",
+                text = "식품 추가하기",
                 style = MaterialTheme.typography.headlineMedium,
                 color = CustomGreyColor7
             )

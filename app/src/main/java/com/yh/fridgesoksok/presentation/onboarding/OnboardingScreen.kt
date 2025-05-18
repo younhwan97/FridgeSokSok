@@ -39,7 +39,7 @@ fun OnboardingScreen(
         }
 
         navController.navigate(nextRoute) {
-            popUpTo(Screen.OnboardingScreen.route) { inclusive = true }
+            popUpTo(0) { inclusive = true }
         }
     }
 

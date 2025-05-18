@@ -4,11 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
@@ -26,49 +31,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             FridgeSokSokTheme {
                 val navController = rememberNavController()
+                // 전역 뷰모델 (Activity-Scoped ViewModel)
+                val activityViewModel: SharedViewModel = hiltViewModel()
 
                 NavHost(
                     navController = navController,
                     startDestination = Screen.OnboardingScreen.route,
                 ) {
-                    composable(route = Screen.OnboardingScreen.route) {
-                        OnboardingScreen(
-                            navController = navController
-                        )
-                    }
-
-                    composable(route = Screen.LoginScreen.route) {
-                        LoginScreen(
-                            navController = navController
-                        )
-                    }
-
-                    composable(route = Screen.HomeScreen.route) {
-                        HomeScreen(
-                            navController = navController
-                        )
-                    }
-
+                    composable(Screen.OnboardingScreen.route) { OnboardingScreen(navController) }
+                    composable(Screen.LoginScreen.route) { LoginScreen(navController) }
+                    composable(Screen.HomeScreen.route) { HomeScreen(navController, activityViewModel) }
+                    composable(Screen.UploadScreen.route) { UploadScreen(navController, activityViewModel) }
+                    composable(Screen.EditFoodScreen.route) { EditFoodScreen(navController, activityViewModel) }
                     composable(
-                        route = Screen.CameraScreen.route,
-                        enterTransition = { slideInVertically(initialOffsetY = { it }) },
-                        exitTransition = { slideOutVertically(targetOffsetY = { it }) }) {
-                        CameraScreen(
-                            navController = navController
-                        )
-                    }
-
-                    composable(route = Screen.UploadScreen.route){
-                        UploadScreen(
-                            navController = navController
-                        )
-                    }
-
-                    composable(route = Screen.EditFoodScreen.route){
-                        EditFoodScreen(
-                            navController = navController
-                        )
-                    }
+                        Screen.CameraScreen.route,
+                        enterTransition = { slideInVertically(initialOffsetY = { it }) + fadeIn() },
+                        exitTransition = { slideOutVertically(targetOffsetY = { it }) + fadeOut() },
+                    ) { CameraScreen(navController, activityViewModel) }
                 }
             }
         }

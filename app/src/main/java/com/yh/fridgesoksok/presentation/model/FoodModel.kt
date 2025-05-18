@@ -13,10 +13,23 @@ data class FoodModel(
     val categoryId: Int,
     val count: Int = 1,
     val createdAt: String,
-) : Parcelable
+    val mode: Int = 1
+) : Parcelable {
+    val foodMode: FoodMode
+        get() = FoodMode.from(mode)
+}
 
 fun Food.toPresentation() =
     FoodModel(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
 
 fun FoodModel.toDomain() =
     Food(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt)
+
+enum class FoodMode(val value: Int) {
+    ADD(1),   // 추가
+    EDIT(2);  // 변경
+
+    companion object {
+        fun from(value: Int): FoodMode = entries.find { it.value == value } ?: ADD
+    }
+}

@@ -77,8 +77,7 @@ fun LoginScreen(
     LaunchedEffect(isLoginSuccess) {
         if (isLoginSuccess) {
             navController.navigate(Screen.HomeScreen.route) {
-                popUpTo(Screen.LoginScreen.route) { inclusive = true }
-                launchSingleTop = true
+                popUpTo(0) { inclusive = true }
             }
         }
     }

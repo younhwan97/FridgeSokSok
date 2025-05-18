@@ -48,7 +48,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.model.FoodMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
@@ -63,6 +67,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun FoodListScreen(
     modifier: Modifier = Modifier,
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
     viewModel: FoodListViewModel = hiltViewModel()
 ) {
     val foods by viewModel.foodList.collectAsState()
@@ -102,6 +108,8 @@ fun FoodListScreen(
 
         FoodListContent(
             modifier = Modifier.fillMaxSize(),
+            navController = navController,
+            sharedViewModel = sharedViewModel,
             foods = foods,
             searchQuery = searchQuery,
             selectedType = selectedType,
@@ -199,6 +207,8 @@ fun TypeChips(
 @Composable
 fun FoodListContent(
     modifier: Modifier = Modifier,
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
     foods: List<FoodModel>,
     searchQuery: String,
     selectedType: Type,
@@ -243,6 +253,7 @@ fun FoodListContent(
                             ) {
                                 rowItems.forEach { food ->
                                     FoodCard(
+                                        modifier = Modifier.weight(1f),
                                         food = food,
                                         period = Period.between(
                                             LocalDate.now(),
@@ -251,7 +262,10 @@ fun FoodListContent(
                                                 DateTimeFormatter.ofPattern("yyyyMMdd")
                                             )
                                         ),
-                                        modifier = Modifier.weight(1f)
+                                        onClick = {
+                                            sharedViewModel.setEditFood(food.copy(mode = FoodMode.EDIT.value))
+                                            navController.navigate(Screen.EditFoodScreen.route)
+                                        }
                                     )
                                 }
 
@@ -277,9 +291,10 @@ fun FoodListContent(
 
 @Composable
 fun FoodCard(
+    modifier: Modifier = Modifier,
     food: FoodModel,
     period: Period,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val dDay = period.toTotalMonths() * 30 + period.days
 
@@ -289,6 +304,7 @@ fun FoodCard(
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.background)
             .padding(8.dp)
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier
@@ -369,7 +385,7 @@ fun FoodCard(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
-        ){
+        ) {
             Text(
                 text = "소비기한",
                 style = MaterialTheme.typography.bodySmall,

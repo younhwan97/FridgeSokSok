@@ -12,10 +12,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.toSet
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,37 +26,40 @@ class UploadViewModel @Inject constructor(
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     var newFoods = _newFoods.asStateFlow()
 
-    private var tmpKey = 0
-
     fun uploadReceiptImage(bitmap: Bitmap) {
         uploadReceiptImageUseCase(bitmap).onEach { result ->
             when (result) {
-                is Resource.Loading -> {
-                    //
-                }
-
-                is Resource.Error -> {
-                    //
-                }
+                is Resource.Loading -> {}
+                is Resource.Error -> {}
 
                 is Resource.Success -> {
                     val receiptList = result.data
 
                     if (receiptList != null) {
-                        // Receipt → FoodModel 매핑
+                        val usedIds = _newFoods.value.mapNotNull { it.id.toIntOrNull() }.toSet()
+                        var nextId = (0..Int.MAX_VALUE).first { it !in usedIds }
+
+                        val now = LocalDate.now()
+                        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+
                         val mappedFoods = receiptList.map { receipt ->
+                            val expiryDate = now
+                                .atStartOfDay()
+                                .plusHours(receipt.shelfLifeHours.toLong())
+                                .toLocalDate()
+
                             FoodModel(
-                                id = (tmpKey++).toString(),
+                                id = (nextId++).toString(),
                                 fridgeId = "",
                                 itemName = receipt.itemName,
-                                count = receipt.shelfLifeHours,
-                                createdAt = "20250101",
-                                expiryDate = "20251231",
-                                categoryId = 1,
+                                count = receipt.count,
+                                createdAt = now.format(formatter),
+                                expiryDate = expiryDate.format(formatter),
+                                categoryId = receipt.categoryId,
                             )
                         }
 
-                        _newFoods.value += mappedFoods // 기존 목록에 추가
+                        _newFoods.value += mappedFoods
                     }
                 }
             }
@@ -100,7 +102,7 @@ class UploadViewModel @Inject constructor(
         _newFoods.value = updatedList
     }
 
-    fun tmp(){
+    fun tmp() {
         addFoodListUseCase(_newFoods.value.map { it.toDomain() }).onEach { result ->
             when (result) {
                 is Resource.Loading -> {

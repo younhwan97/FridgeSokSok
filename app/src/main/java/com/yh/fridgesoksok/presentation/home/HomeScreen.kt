@@ -52,6 +52,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
@@ -60,7 +61,8 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    sharedViewModel: SharedViewModel
 ) {
     val homeNavController = rememberNavController()
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
@@ -90,7 +92,7 @@ fun HomeScreen(
                 navController = homeNavController,
                 startDestination = "home",
             ) {
-                composable("home") { FoodListScreen(modifier = Modifier.fillMaxSize()) }
+                composable("home") { FoodListScreen(modifier = Modifier.fillMaxSize(), navController, sharedViewModel) }
                 composable("recipe") { Column(modifier = Modifier.fillMaxSize()) {} }
                 composable("account") { Column(modifier = Modifier.fillMaxSize()) {} }
             }
