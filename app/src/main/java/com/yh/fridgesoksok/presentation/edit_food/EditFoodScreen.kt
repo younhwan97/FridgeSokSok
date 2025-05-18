@@ -1,5 +1,10 @@
 package com.yh.fridgesoksok.presentation.edit_food
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -98,6 +103,8 @@ fun EditFoodScreen(
     var isClicking by remember { mutableStateOf(false) }
     var food by remember { mutableStateOf(sharedViewModel.editFood.value) }
 
+    var nameError by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         // 공유모델 값 초기화
         sharedViewModel.clearEditFood()
@@ -115,6 +122,11 @@ fun EditFoodScreen(
             EditFoodBottomButton(
                 text = if (food.foodMode == FoodMode.EDIT) "변경하기" else "추가하기",
                 onClick = {
+                    if (food.itemName.isBlank()) {
+                        nameError = true
+                        return@EditFoodBottomButton
+                    }
+
                     if (!isClicking) {
                         isClicking = true
                         if (food.mode != 2) {
@@ -143,19 +155,27 @@ fun EditFoodScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             EditFoodLabeledField("유형") {
-                EditFoodTypeDropDown(Type.fromId(food.categoryId)) { food = food.copy(categoryId = it.id) }
+                EditFoodTypeDropDown(Type.fromId(food.categoryId)) {
+                    food = food.copy(categoryId = it.id)
+                }
             }
 
-            EditFoodLabeledField("식품명") {
-                EditFoodName(food.itemName) { food = food.copy(itemName = it) }
+            EditFoodLabeledField("식품명", filedError = nameError) {
+                EditFoodName(food.itemName) {
+                    food = food.copy(itemName = it)
+                }
             }
 
             EditFoodLabeledField("수량") {
-                EditFoodCount(food.count) { food = food.copy(count = it) }
+                EditFoodCount(food.count) {
+                    food = food.copy(count = it)
+                }
             }
 
             EditFoodLabeledField("소비기한") {
-                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(formatted2)) { showDialog = true }
+                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(formatted2)) {
+                    showDialog = true
+                }
             }
         }
 
@@ -222,15 +242,33 @@ fun EditFoodImage(
 @Composable
 fun EditFoodLabeledField(
     label: String,
+    filedError: Boolean = false,
     content: @Composable () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = CustomGreyColor7
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = CustomGreyColor7
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            AnimatedVisibility(
+                visible = filedError,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Text(
+                    text = "값을 입력해주세요!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
         content()
         Spacer(modifier = Modifier.height(20.dp))
