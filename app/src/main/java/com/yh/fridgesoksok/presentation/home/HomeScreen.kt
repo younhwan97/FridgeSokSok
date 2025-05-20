@@ -98,7 +98,7 @@ fun HomeScreen(
             )
 
             // ------------------ FAB(Floating Action Button) ------------------ //
-            if (currentRoute == "home") {
+            if (currentRoute == Screen.FridgeTab.route) {
                 // FAB Overlay Screen
                 if (isFabMenuExpanded)
                     Box(

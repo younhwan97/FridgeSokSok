@@ -108,13 +108,13 @@ fun EditFoodScreen(
     var food by remember {
         mutableStateOf(
             sharedViewModel.editFood.value ?: FoodModel(
-                id = "",
-                fridgeId = "",
+                id = "NEW",
+                fridgeId = "NEW",
                 itemName = "",
                 expiryDate = today.plusWeeks(2).format(formatter),
                 categoryId = Type.Ingredients.id,
                 count = 1,
-                createdAt = today.format(formatter)
+                createdAt = ""
             )
         )
     }

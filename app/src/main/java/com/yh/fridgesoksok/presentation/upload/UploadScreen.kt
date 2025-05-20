@@ -87,7 +87,7 @@ fun UploadScreen(
 
     LaunchedEffect(newFood) {
         newFood?.let {
-            if (it.itemName.isNotBlank() && it.fridgeId.isNotBlank()) {
+            if (it.itemName.isNotBlank()) {
                 val index = sharedViewModel.editIndex.value
                 if (index != null) {
                     // 목록(foods) 내 수정의 경우
@@ -116,13 +116,13 @@ fun UploadScreen(
                 },
                 onActionClick = {
                     val emptyFood = FoodModel(
-                        id = "",
-                        fridgeId = "",
+                        id = "NEW",
+                        fridgeId = "NEW",
                         itemName = "",
                         expiryDate = LocalDate.now().plusWeeks(2).format(DateTimeFormatter.ofPattern("yyyyMMdd")),
                         categoryId = Type.Ingredients.id,
                         count = 1,
-                        createdAt = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                        createdAt = ""
                     )
 
                     sharedViewModel.setEditFood(emptyFood, EditSource.CREATE)
