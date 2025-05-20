@@ -54,7 +54,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,8 +77,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.model.FoodMode
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
@@ -98,16 +98,25 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val formatted2 = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+    val today = remember { LocalDate.now() }
+
     var showDialog by remember { mutableStateOf(false) }
     var isClicking by remember { mutableStateOf(false) }
-    var food by remember { mutableStateOf(sharedViewModel.editFood.value) }
-
     var nameError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        // 공유모델 값 초기화
-        sharedViewModel.clearEditFood()
+    val editSource by sharedViewModel.editSource.collectAsState()
+    var food by remember {
+        mutableStateOf(
+            sharedViewModel.editFood.value ?: FoodModel(
+                id = "",
+                fridgeId = "",
+                itemName = "",
+                expiryDate = today.plusWeeks(2).format(formatter),
+                categoryId = Type.Ingredients.id,
+                count = 1,
+                createdAt = today.format(formatter)
+            )
+        )
     }
 
     // Content
@@ -115,12 +124,12 @@ fun EditFoodScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
-                title = if (food.foodMode == FoodMode.EDIT) "식품 변경하기" else "식품 추가하기",
+                title = "식품 추가하기",
                 onNavigationClick = { navController.popBackStack() })
         },
         bottomBar = {
             EditFoodBottomButton(
-                text = if (food.foodMode == FoodMode.EDIT) "변경하기" else "추가하기",
+                text = "추가하기",
                 onClick = {
                     if (food.itemName.isBlank()) {
                         nameError = true
@@ -129,16 +138,20 @@ fun EditFoodScreen(
 
                     if (!isClicking) {
                         isClicking = true
-                        if (food.mode != 2) {
-                            // 냉장고 ID 셋팅
-                            food = food.copy(fridgeId = "123")
-                            // 모드 셋팅
-                            food = food.copy(mode = 1)
-                            // 공유모델 값 세팅
-                            sharedViewModel.setEditFood(food)
-                        } else {
-                            //
+
+                        when (editSource) {
+                            EditSource.HOME -> {
+                                // 서버 업데이트 로직 필요
+                            }
+
+                            EditSource.UPLOAD, EditSource.CREATE -> {
+                                sharedViewModel.setNewFood(food.copy(fridgeId = "tmp"))
+                            }
+
+                            null -> {
+                            }
                         }
+
                         navController.popBackStack()
                     }
                 })
@@ -173,7 +186,7 @@ fun EditFoodScreen(
             }
 
             EditFoodLabeledField("소비기한") {
-                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(formatted2)) {
+                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
                     showDialog = true
                 }
             }

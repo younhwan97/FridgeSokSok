@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.food_list
+package com.yh.fridgesoksok.presentation.fridge
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
@@ -50,9 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.model.FoodMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
@@ -69,7 +69,7 @@ fun FoodListScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     sharedViewModel: SharedViewModel,
-    viewModel: FoodListViewModel = hiltViewModel()
+    viewModel: FridgeViewModel = hiltViewModel()
 ) {
     val foods by viewModel.foodList.collectAsState()
     var input by remember { mutableStateOf("") }
@@ -263,7 +263,7 @@ fun FoodListContent(
                                             )
                                         ),
                                         onClick = {
-                                            sharedViewModel.setEditFood(food.copy(mode = FoodMode.EDIT.value))
+                                            sharedViewModel.setEditFood(food, EditSource.HOME)
                                             navController.navigate(Screen.EditFoodScreen.route)
                                         }
                                     )

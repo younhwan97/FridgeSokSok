@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.food_list
+package com.yh.fridgesoksok.presentation.fridge
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @HiltViewModel
-class FoodListViewModel @Inject constructor(
+class FridgeViewModel @Inject constructor(
     private val getFoodListUseCase: GetFoodListUseCase
 ) : ViewModel() {
 

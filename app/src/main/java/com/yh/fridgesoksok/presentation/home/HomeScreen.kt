@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,9 +54,11 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.food_list.FoodListScreen
+import com.yh.fridgesoksok.presentation.account.AccountScreen
+import com.yh.fridgesoksok.presentation.fridge.FoodListScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
+import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
@@ -67,8 +70,8 @@ fun HomeScreen(
     val homeNavController = rememberNavController()
     var fabOffset by remember { mutableStateOf(Offset.Zero) }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
-    val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: "home"
+    val currentRoute by homeNavController.currentBackStackEntryAsState()
+        .let { derivedStateOf { it.value?.destination?.route ?: Screen.FridgeTab.route } }
     val systemUiController = rememberSystemUiController()
 
     // 시스템 UI 설정
@@ -88,14 +91,11 @@ fun HomeScreen(
         bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) }
     ) { padding ->
         BoxWithConstraints(Modifier.padding(padding)) {
-            NavHost(
-                navController = homeNavController,
-                startDestination = "home",
-            ) {
-                composable("home") { FoodListScreen(modifier = Modifier.fillMaxSize(), navController, sharedViewModel) }
-                composable("recipe") { Column(modifier = Modifier.fillMaxSize()) {} }
-                composable("account") { Column(modifier = Modifier.fillMaxSize()) {} }
-            }
+            HomeTabNavHost(
+                homeNavController = homeNavController,
+                mainNavController = navController,
+                sharedViewModel = sharedViewModel
+            )
 
             // ------------------ FAB(Floating Action Button) ------------------ //
             if (currentRoute == "home") {
@@ -162,16 +162,37 @@ fun HomeTopAppBar() {
 }
 
 @Composable
+fun HomeTabNavHost(
+    homeNavController: NavHostController,
+    mainNavController: NavController,
+    sharedViewModel: SharedViewModel
+) {
+    NavHost(
+        navController = homeNavController,
+        startDestination = Screen.FridgeTab.route
+    ) {
+        composable(Screen.FridgeTab.route) {
+            FoodListScreen(
+                modifier = Modifier.fillMaxSize(),
+                navController = mainNavController,
+                sharedViewModel = sharedViewModel
+            )
+        }
+        composable(Screen.RecipeTab.route) {
+            RecipeScreen()
+        }
+        composable(Screen.AccountTab.route) {
+            AccountScreen()
+        }
+    }
+}
+
+
+@Composable
 fun HomeBottomNavigation(
     currentRoute: String,
     homeNavController: NavHostController
 ) {
-    val items = listOf(
-        Triple("home", Pair(R.drawable.home_selected, R.drawable.home), "냉장고"),
-        Triple("recipe", Pair(R.drawable.recipe_selected, R.drawable.recipe), "레시피"),
-        Triple("account", Pair(R.drawable.account_selected, R.drawable.account), "계정")
-    )
-
     Surface(
         tonalElevation = 6.dp,
         shadowElevation = 6.dp,
@@ -185,15 +206,15 @@ fun HomeBottomNavigation(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            items.forEach { (route, iconPair, label) ->
-                val selected = currentRoute == route
+            Screen.bottomNavItems.forEach { screen ->
+                val selected = currentRoute == screen.route
                 Column(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                         .clickable {
                             if (!selected) {
-                                homeNavController.navigate(route) {
+                                homeNavController.navigate(screen.route) {
                                     popUpTo(homeNavController.graph.startDestinationId) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
@@ -203,17 +224,21 @@ fun HomeBottomNavigation(
                         .padding(vertical = 8.dp, horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = if (selected) painterResource(iconPair.first) else painterResource(iconPair.second),
-                        contentDescription = null,
-                        contentScale = ContentScale.None
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (selected) CustomGreyColor7 else CustomGreyColor5
-                    )
+                    screen.selectedIcon?.let {
+                        Image(
+                            painter = painterResource(if (selected) screen.selectedIcon else screen.unselectedIcon!!),
+                            contentDescription = null,
+                            contentScale = ContentScale.None
+                        )
+                    }
+                    screen.label?.let {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (selected) CustomGreyColor7 else CustomGreyColor5
+                        )
+                    }
                 }
             }
         }

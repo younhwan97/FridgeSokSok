@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.upload
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,9 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.model.FoodMode
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
@@ -69,24 +71,34 @@ fun UploadScreen(
     sharedViewModel: SharedViewModel,
     viewModel: UploadViewModel = hiltViewModel()
 ) {
+    val newFoods by viewModel.newFoods.collectAsState()
+    val newFood by sharedViewModel.newFood.collectAsState()
+    val receipt by sharedViewModel.receipt.collectAsState()
+
     val listState = rememberLazyListState()
     var isExiting by remember { mutableStateOf(false) }
-    val newFoods by viewModel.newFoods.collectAsState()
-    val receiptImage by sharedViewModel.receipt.collectAsState()
-    val editedFood by sharedViewModel.editFood.collectAsState()
 
-    LaunchedEffect(receiptImage) {
-        receiptImage?.let {
+    LaunchedEffect(receipt) {
+        receipt?.let {
             viewModel.uploadReceiptImage(it)
             sharedViewModel.clearImage()
         }
     }
 
-    LaunchedEffect(editedFood) {
-        editedFood.let {
-            if (it.itemName.isNotBlank() && it.fridgeId.isNotBlank() && it.foodMode == FoodMode.ADD) {
-                viewModel.addFood(it)
-                listState.animateScrollToItem(0)
+    LaunchedEffect(newFood) {
+        newFood?.let {
+            if (it.itemName.isNotBlank() && it.fridgeId.isNotBlank()) {
+                val index = sharedViewModel.editIndex.value
+                if (index != null) {
+                    // 목록(foods) 내 수정의 경우
+                    viewModel.updateFood(index, it)
+                } else {
+                    // 신규 추가의 경우
+                    viewModel.addFood(it)
+                    listState.animateScrollToItem(0)
+                }
+
+                sharedViewModel.clearNewFood()
                 sharedViewModel.clearEditFood()
             }
         }
@@ -102,7 +114,20 @@ fun UploadScreen(
                         navController.popBackStack()
                     }
                 },
-                onActionClick = { navController.navigate(Screen.EditFoodScreen.route) }
+                onActionClick = {
+                    val emptyFood = FoodModel(
+                        id = "",
+                        fridgeId = "",
+                        itemName = "",
+                        expiryDate = LocalDate.now().plusWeeks(2).format(DateTimeFormatter.ofPattern("yyyyMMdd")),
+                        categoryId = Type.Ingredients.id,
+                        count = 1,
+                        createdAt = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                    )
+
+                    sharedViewModel.setEditFood(emptyFood, EditSource.CREATE)
+                    navController.navigate(Screen.EditFoodScreen.route)
+                }
             )
         },
         bottomBar = {
@@ -127,7 +152,11 @@ fun UploadScreen(
                     endDt = food.expiryDate,
                     onDeleteClick = { viewModel.deleteFood(index) },
                     onIncreaseClick = { viewModel.increaseCount(index) },
-                    onDecreaseClick = { viewModel.decreaseCount(index) }
+                    onDecreaseClick = { viewModel.decreaseCount(index) },
+                    onUpdateClick = {
+                        sharedViewModel.setEditFood(food, EditSource.UPLOAD, index)
+                        navController.navigate(Screen.EditFoodScreen.route)
+                    }
                 )
             }
         }
@@ -198,7 +227,8 @@ fun FoodBlock(
     endDt: String,
     onDeleteClick: () -> Unit,
     onIncreaseClick: () -> Unit,
-    onDecreaseClick: () -> Unit
+    onDecreaseClick: () -> Unit,
+    onUpdateClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -321,7 +351,7 @@ fun FoodBlock(
                 .height(40.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { },
+                .clickable { onUpdateClick() },
             contentAlignment = Alignment.Center
         ) {
             Text(

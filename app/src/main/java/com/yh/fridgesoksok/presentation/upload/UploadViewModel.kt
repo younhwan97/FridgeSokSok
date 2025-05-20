@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -100,6 +101,14 @@ class UploadViewModel @Inject constructor(
         val updatedList = (currentList + newFood.copy(id = nextId.toString())).sortedByDescending { it.id }
 
         _newFoods.value = updatedList
+    }
+
+    fun updateFood(index: Int, updated: FoodModel) {
+        _newFoods.update { list ->
+            if (index in list.indices) {
+                list.toMutableList().apply { this[index] = updated }
+            } else list
+        }
     }
 
     fun tmp() {

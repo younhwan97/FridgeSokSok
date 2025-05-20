@@ -11,9 +11,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
@@ -38,16 +36,43 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = Screen.OnboardingScreen.route,
                 ) {
-                    composable(Screen.OnboardingScreen.route) { OnboardingScreen(navController) }
-                    composable(Screen.LoginScreen.route) { LoginScreen(navController) }
-                    composable(Screen.HomeScreen.route) { HomeScreen(navController, activityViewModel) }
-                    composable(Screen.UploadScreen.route) { UploadScreen(navController, activityViewModel) }
-                    composable(Screen.EditFoodScreen.route) { EditFoodScreen(navController, activityViewModel) }
+                    composable(
+                        Screen.OnboardingScreen.route
+                    ) {
+                        OnboardingScreen(navController)
+                    }
+
+                    composable(
+                        Screen.LoginScreen.route
+                    ) {
+                        LoginScreen(navController)
+                    }
+
+                    composable(
+                        Screen.HomeScreen.route
+                    ) {
+                        HomeScreen(navController, activityViewModel)
+                    }
+
+                    composable(
+                        Screen.UploadScreen.route
+                    ) {
+                        UploadScreen(navController, activityViewModel)
+                    }
+
+                    composable(
+                        Screen.EditFoodScreen.route
+                    ) {
+                        EditFoodScreen(navController, activityViewModel)
+                    }
+
                     composable(
                         Screen.CameraScreen.route,
                         enterTransition = { slideInVertically(initialOffsetY = { it }) + fadeIn() },
                         exitTransition = { slideOutVertically(targetOffsetY = { it }) + fadeOut() },
-                    ) { CameraScreen(navController, activityViewModel) }
+                    ) {
+                        CameraScreen(navController, activityViewModel)
+                    }
                 }
             }
         }
