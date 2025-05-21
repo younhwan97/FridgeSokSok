@@ -77,8 +77,8 @@ class LoginViewModel @Inject constructor(
                     if (data != null && data.id != -1L && data.accessToken != null && data.refreshToken != null) {
                         _user.value = data.toPresentation()
                         saveUser()
-                        // getUserDefaultFridge()
                         _isLoginSuccess.value = true
+                        //getUserDefaultFridge()
                     } else {
                         fail()
                     }

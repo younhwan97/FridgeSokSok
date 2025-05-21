@@ -1,5 +1,6 @@
 {
-  "results": [
+  "message": "Food list retrieved",
+  "data": [
     {
       "id": "123",
       "fridgeId": "123",
@@ -9,5 +10,6 @@
       "count": 1,
       "createdAt": "20250401"
     }
-  ]
+  ],
+  "status": 200
 }

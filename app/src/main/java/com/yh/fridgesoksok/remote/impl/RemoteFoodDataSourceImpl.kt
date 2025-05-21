@@ -42,7 +42,7 @@ class RemoteFoodDataSourceImpl @Inject constructor(
         val action = "addNewFoods"
         return try {
             logInput(action, foods)
-            val response = fridgeApiService.addFoodList(foods.map { it.toRequest() }).data
+            val response = fridgeApiService.addFoods(fridgeId = "", foodList = foods.map { it.toRequest() }).data
             logOutput(action, response)
             response.map { it.toData() }
         } catch (e: Exception) {
@@ -52,7 +52,7 @@ class RemoteFoodDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getFoodList(): List<FoodEntity> {
-        return fridgeApiService.getFoodList().foodList.map { it.toData() }
+        return fridgeApiService.getFoods("temp").data.map { it.toData() }
     }
 
     override suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity> {

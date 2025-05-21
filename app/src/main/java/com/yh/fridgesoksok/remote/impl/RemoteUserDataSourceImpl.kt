@@ -9,7 +9,7 @@ import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
-import com.yh.fridgesoksok.remote.model.UserRequest
+import com.yh.fridgesoksok.remote.model.TokenRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -60,11 +60,11 @@ class RemoteUserDataSourceImpl @Inject constructor(
         val action = "createUser"
         return try {
             logInput(action, user)
-            val userRequest = UserRequest(token = user.accessToken, username = user.id.toString())
+            val tokenRequest = TokenRequest(token = user.accessToken ?: "", username = user.id.toString())
             val response = when (user.accountType) {
-                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(provider = "kakao", userRequest = userRequest)
-                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(provider = "naver", userRequest = userRequest)
-                else -> fridgeApiService.createUserOnServer(provider = "", userRequest = userRequest)
+                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(provider = "kakao", tokenRequest = tokenRequest)
+                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(provider = "naver", tokenRequest = tokenRequest)
+                else -> fridgeApiService.createUserOnServer(provider = "", tokenRequest = tokenRequest)
             }
             val userResponse = response.data
             logOutput(action, userResponse)
