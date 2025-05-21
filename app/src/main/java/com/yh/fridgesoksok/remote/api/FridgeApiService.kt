@@ -1,13 +1,13 @@
 package com.yh.fridgesoksok.remote.api
 
 import com.yh.fridgesoksok.remote.model.CommonResponse
-import com.yh.fridgesoksok.remote.model.FoodRequest
+import com.yh.fridgesoksok.remote.model.FoodAddRequest
 import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
-import com.yh.fridgesoksok.remote.model.TmpUserRequest
-import com.yh.fridgesoksok.remote.model.TokenRequest
+import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
+import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -28,7 +28,7 @@ interface FridgeApiService {
     @POST("foods")
     suspend fun addFoods(
         @Query("fridgeId") fridgeId: String,
-        @Body foodList: List<FoodRequest>
+        @Body foodList: List<FoodAddRequest>
     ): CommonResponse<List<FoodResponse>>
 
     @GET("foods/fridge/{fridgeId}")
@@ -87,7 +87,7 @@ interface FridgeApiService {
     @Headers("Content-Type: application/json")
     @POST("users/create")
     suspend fun createTmpUser(
-        @Body tmpUserRequest: TmpUserRequest
+        @Body userTmpCreateRequest: UserTmpCreateRequest
     ): CommonResponse<UserResponse>
 
     @GET("users/user/default-fridge")
@@ -99,7 +99,7 @@ interface FridgeApiService {
     @POST("auth/{provider}")
     suspend fun createUserOnServer(
         @Path("provider") provider: String,
-        @Body tokenRequest: TokenRequest
+        @Body userCreateRequest: UserCreateRequest
     ): CommonResponse<UserResponse>
 
     @POST("auth/refresh")

@@ -4,24 +4,22 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.yh.fridgesoksok.remote.model.CommonResponse
-import com.yh.fridgesoksok.remote.model.FoodRequest
+import com.yh.fridgesoksok.remote.model.FoodAddRequest
 import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
-import com.yh.fridgesoksok.remote.model.TmpUserRequest
-import com.yh.fridgesoksok.remote.model.TokenRequest
+import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
+import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserResponse
 import okhttp3.MultipartBody
-import retrofit2.http.Multipart
-import java.io.InputStream
 
 // TEST
 class MockApiService(
     private val context: Context
 ) : FridgeApiService {
 
-    override suspend fun createTmpUser(tmpUserRequest: TmpUserRequest): CommonResponse<UserResponse> {
+    override suspend fun createTmpUser(userTmpCreateRequest: UserTmpCreateRequest): CommonResponse<UserResponse> {
         TODO("Not yet implemented")
     }
 
@@ -41,7 +39,7 @@ class MockApiService(
         TODO("Not yet implemented")
     }
 
-    override suspend fun addFoods(fridgeId: String, foodList: List<FoodRequest>): CommonResponse<List<FoodResponse>> {
+    override suspend fun addFoods(fridgeId: String, foodList: List<FoodAddRequest>): CommonResponse<List<FoodResponse>> {
         TODO("Not yet implemented")
     }
 
@@ -84,7 +82,7 @@ class MockApiService(
     }
 
     // @POST("auth/kakao")
-    override suspend fun createUserOnServer(provider: String, tokenRequest: TokenRequest): CommonResponse<UserResponse> {
+    override suspend fun createUserOnServer(provider: String, userCreateRequest: UserCreateRequest): CommonResponse<UserResponse> {
         /*
             {
                 "message": "User created successfully",

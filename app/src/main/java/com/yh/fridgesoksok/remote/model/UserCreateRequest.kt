@@ -1,6 +1,6 @@
 package com.yh.fridgesoksok.remote.model
 
-data class TokenRequest(
+data class UserCreateRequest(
     val token: String,
     val username: String
 )
