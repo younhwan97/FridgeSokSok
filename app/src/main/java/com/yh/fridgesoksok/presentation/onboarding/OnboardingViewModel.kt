@@ -47,24 +47,25 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun startOnboarding() {
+        val start = System.currentTimeMillis()
         val user = UserModel.fromLocal(loadUserUseCase())
+
         if (!user.isTokenValid()) {
             fail("No refresh token")
             return
         }
 
-        _state.value = OnboardingState.Loaded(user)
-        validateToken(user)
+        validateToken(user, start)
     }
 
     // 유저 리프레쉬 토큰 유효성 확인
-    private fun validateToken(user: UserModel) {
+    private fun validateToken(user: UserModel, startTime: Long) {
         validateUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Loading -> Unit
                 is Resource.Error -> fail("Refresh token validation failed")
                 is Resource.Success -> {
-                    if (result.data == true) reissueToken(user)
+                    if (result.data == true) reissueToken(user, startTime)
                     else fail("Invalid RefreshToken")
                 }
             }
@@ -72,7 +73,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     // 유저 (엑세스+리프레쉬) 토큰 갱신
-    private fun reissueToken(user: UserModel) {
+    private fun reissueToken(user: UserModel, startTime: Long) {
         reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Loading -> {}
@@ -80,8 +81,7 @@ class OnboardingViewModel @Inject constructor(
                 is Resource.Success -> {
                     result.data?.let {
                         val updatedUser = user.withReissuedToken(it.accessToken, it.refreshToken)
-                        _state.value = OnboardingState.Loaded(updatedUser)
-                        getDefaultFridge(updatedUser)
+                        getDefaultFridge(updatedUser, startTime)
                     } ?: fail("Reissued token is null")
                 }
             }
@@ -89,7 +89,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     // 유저 기본냉장고 추출
-    private fun getDefaultFridge(user: UserModel) {
+    private fun getDefaultFridge(user: UserModel, startTime: Long) {
         getUserDefaultFridgeUseCase().onEach { result ->
             when (result) {
                 is Resource.Loading -> {}
@@ -98,7 +98,11 @@ class OnboardingViewModel @Inject constructor(
                     result.data?.let {
                         val updatedUser = user.withDefaultFridgeId(it.id)
                         updateUserUseCase(updatedUser.toDomain())
+
+                        delayUntilMinimumTime(startTime)
                         _state.value = OnboardingState.Success
+
+                        Log.d("User INFO", updatedUser.toString())
                     } ?: fail("Fridge ID is empty")
                 }
             }
@@ -108,5 +112,10 @@ class OnboardingViewModel @Inject constructor(
     private fun fail(reason: String) {
         Log.e("Onboarding", "Fail: $reason")
         _state.value = OnboardingState.Error(reason)
+    }
+
+    private suspend fun delayUntilMinimumTime(startTime: Long, minMs: Long = 1000) {
+        val elapsed = System.currentTimeMillis() - startTime
+        if (elapsed < minMs) delay(minMs - elapsed)
     }
 }

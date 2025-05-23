@@ -25,16 +25,14 @@ fun OnboardingScreen(
     navController: NavController,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val systemUiController = rememberSystemUiController()
     val onboardingState by viewModel.state.collectAsState()
+    val systemUiController = rememberSystemUiController()
+    val primaryColor = MaterialTheme.colorScheme.primary
 
-    // 시스템 UI 설정 및 네비게이션
     LaunchedEffect(onboardingState) {
+        // 시스템 UI 설정
         systemUiController.setNavigationBarColor(primaryColor)
-
-        delay(1000)
-
+        // 네비게이션
         when (onboardingState) {
             is OnboardingState.Success -> {
                 navController.navigate(Screen.HomeScreen.route) {
@@ -48,9 +46,7 @@ fun OnboardingScreen(
                 }
             }
 
-            else -> {
-                // Loading or Loaded 상태일 때는 화면 전환 X
-            }
+            else -> { /* Loading 상태일 때는 화면 전환 X */ }
         }
     }
 
@@ -63,7 +59,7 @@ fun OnboardingScreen(
     ) {
         Image(
             painter = painterResource(R.drawable.logo01),
-            contentDescription = "logo",
+            contentDescription = "AppLogo",
             contentScale = ContentScale.None,
         )
     }
