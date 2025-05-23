@@ -8,5 +8,5 @@ class AddFoodListUseCase @Inject constructor(
     private val foodRepository: FoodRepository
 ) {
     operator fun invoke(foods: List<Food>) =
-        foodRepository.addFoodList(foods)
+        foodRepository.addFoods(foods)
 }

@@ -83,7 +83,7 @@ interface FridgeApiService {
     ): CommonResponse<FridgeResponse>
 
     /* ************************************************************* */
-    /* ************************ User API ************************ */
+    /* ************************ User API *************************** */
     @Headers("Content-Type: application/json")
     @POST("users/create")
     suspend fun createTmpUser(
@@ -91,10 +91,10 @@ interface FridgeApiService {
     ): CommonResponse<UserResponse>
 
     @GET("users/user/default-fridge")
-    suspend fun getUserDefaultFridge(): CommonResponse<String>
+    suspend fun getUserDefaultFridge(): CommonResponse<FridgeResponse>
 
     /* ************************************************************* */
-    /* ************************ Oauth API ************************ */
+    /* ************************ Oauth API ************************** */
     @Headers("Content-Type: application/json")
     @POST("auth/{provider}")
     suspend fun createUserOnServer(

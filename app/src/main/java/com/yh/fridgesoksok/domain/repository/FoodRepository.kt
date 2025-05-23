@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.Flow
 
 interface FoodRepository {
 
-    fun addFoodList(foods: List<Food>): Flow<Resource<List<Food>>>
+    fun addFoods(foods: List<Food>): Flow<Resource<List<Food>>>
 
-    fun getFoodList(): Flow<Resource<List<Food>>>
+    fun getFoods(): Flow<Resource<List<Food>>>
 
     fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>>
+
+    fun updateFood(food: Food): Flow<Resource<Food>>
 }

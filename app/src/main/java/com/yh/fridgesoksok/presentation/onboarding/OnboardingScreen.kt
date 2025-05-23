@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
+import kotlinx.coroutines.delay
 
 @Composable
 fun OnboardingScreen(
@@ -26,20 +27,30 @@ fun OnboardingScreen(
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val systemUiController = rememberSystemUiController()
-    val loadingState by viewModel.loadingState.collectAsState()
+    val onboardingState by viewModel.state.collectAsState()
 
     // 시스템 UI 설정 및 네비게이션
-    LaunchedEffect(loadingState.isLoading) {
+    LaunchedEffect(onboardingState) {
         systemUiController.setNavigationBarColor(primaryColor)
 
-        val nextRoute = if (loadingState.isLoadingSuccess) {
-            Screen.HomeScreen.route
-        } else {
-            Screen.LoginScreen.route
-        }
+        delay(1000)
 
-        navController.navigate(nextRoute) {
-            popUpTo(0) { inclusive = true }
+        when (onboardingState) {
+            is OnboardingState.Success -> {
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+
+            is OnboardingState.Error -> {
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+
+            else -> {
+                // Loading or Loaded 상태일 때는 화면 전환 X
+            }
         }
     }
 

@@ -38,8 +38,8 @@ class RemoteFoodDataSourceImpl @Inject constructor(
         Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
     }
 
-    override suspend fun addFoodList(foods: List<FoodEntity>): List<FoodEntity> {
-        val action = "addNewFoods"
+    override suspend fun addFoods(foods: List<FoodEntity>): List<FoodEntity> {
+        val action = "addFoods"
         return try {
             logInput(action, foods)
             val response = fridgeApiService.addFoods(fridgeId = "", foodList = foods.map { it.toRequest() }).data
@@ -51,7 +51,7 @@ class RemoteFoodDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getFoodList(): List<FoodEntity> {
+    override suspend fun getFoods(): List<FoodEntity> {
         return fridgeApiService.getFoods("temp").data.map { it.toData() }
     }
 
@@ -69,6 +69,10 @@ class RemoteFoodDataSourceImpl @Inject constructor(
             logError(action, e)
             throw e
         }
+    }
+
+    override suspend fun updateFood(foodEntity: FoodEntity): FoodEntity {
+        TODO("Not yet implemented")
     }
 }
 

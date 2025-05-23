@@ -3,8 +3,10 @@ package com.yh.fridgesoksok.data.impl
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
+import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
+import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
@@ -49,9 +51,9 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
         }
 
-    override fun getUserDefaultFridge(): Flow<Resource<String>> =
+    override fun getUserDefaultFridge(): Flow<Resource<Fridge>> =
         flowWithResource {
-            remoteUserDataSource.getUserDefaultFridge()
+            remoteUserDataSource.getUserDefaultFridge().toDomain()
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =

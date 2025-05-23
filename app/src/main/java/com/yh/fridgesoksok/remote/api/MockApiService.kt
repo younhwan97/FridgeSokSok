@@ -18,48 +18,32 @@ import okhttp3.MultipartBody
 class MockApiService(
     private val context: Context
 ) : FridgeApiService {
-
-    override suspend fun createTmpUser(userTmpCreateRequest: UserTmpCreateRequest): CommonResponse<UserResponse> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun createFridge(fridgeName: String): CommonResponse<FridgeResponse> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun deleteFood(foodId: String): CommonResponse<Any> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun deleteFridge(fridgeId: String): CommonResponse<Any> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun updateFridgeName(fridgeId: String, newName: String): CommonResponse<FridgeResponse> {
-        TODO("Not yet implemented")
-    }
-
+    /* ********************************************************** */
+    /* ************************ Food API ************************ */
     override suspend fun addFoods(fridgeId: String, foodList: List<FoodAddRequest>): CommonResponse<List<FoodResponse>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun updateFood(foodId: String, itemName: String, expiryDate: String, categoryId: Int, count: Int): CommonResponse<FoodResponse> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun deleteAllFridges(): CommonResponse<Any> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getFridges(): CommonResponse<List<FridgeResponse>> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getUserDefaultFridge(): CommonResponse<String> {
         return CommonResponse(
-            message = "User created successfully",
-            data = "123",
-            status = 200
+            message = "Food items added",
+            status = 200,
+            data = listOf(
+                FoodResponse(
+                    id = "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+                    fridgeId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    itemName = "Milk",
+                    expiryDate = "2023-11-30",
+                    categoryId = 2,
+                    count = 1,
+                    createdAt = "2023-10-15T14:30:00Z"
+                ),
+                FoodResponse(
+                    id = "a9b8c7d6-e5f4-3210-fedc-ba9876543210",
+                    fridgeId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    itemName = "Eggs",
+                    expiryDate = "2023-12-10",
+                    categoryId = 3,
+                    count = 12,
+                    createdAt = "2023-10-16T09:15:00Z"
+                )
+            )
         )
     }
 
@@ -77,24 +61,64 @@ class MockApiService(
         }
     }
 
+    override suspend fun updateFood(foodId: String, itemName: String, expiryDate: String, categoryId: Int, count: Int): CommonResponse<FoodResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteFood(foodId: String): CommonResponse<Any> {
+        TODO("Not yet implemented")
+    }
+
+    /* ************************************************************* */
+    /* ************************ Receipt API ************************ */
     override suspend fun uploadReceiptImage(image: MultipartBody.Part): CommonResponse<List<ReceiptResponse>> {
         TODO("Not yet implemented")
     }
 
-    // @POST("auth/kakao")
+    /* ************************************************************* */
+    /* ************************ Receipt API ************************ */
+    override suspend fun getFridges(): CommonResponse<List<FridgeResponse>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun createFridge(fridgeName: String): CommonResponse<FridgeResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteAllFridges(): CommonResponse<Any> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteFridge(fridgeId: String): CommonResponse<Any> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateFridgeName(fridgeId: String, newName: String): CommonResponse<FridgeResponse> {
+        TODO("Not yet implemented")
+    }
+
+    /* ************************************************************* */
+    /* ************************ User API *************************** */
+    override suspend fun createTmpUser(userTmpCreateRequest: UserTmpCreateRequest): CommonResponse<UserResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserDefaultFridge(): CommonResponse<FridgeResponse> {
+        return CommonResponse(
+            message = "User created successfully",
+            data = FridgeResponse(
+                id = "",
+                createdAt = "",
+                fridgeName = "",
+                foodProducts = emptyList()
+            ),
+            status = 200
+        )
+    }
+
+    /* ************************************************************* */
+    /* ************************ Oauth API ************************** */
     override suspend fun createUserOnServer(provider: String, userCreateRequest: UserCreateRequest): CommonResponse<UserResponse> {
-        /*
-            {
-                "message": "User created successfully",
-                "data": {
-                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
-                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
-                    "username": "john_doe",
-                    "accountType": "temp"
-                },
-                "status": 200
-            }
-        */
         return CommonResponse(
             message = "User created successfully",
             data = UserResponse(
@@ -108,37 +132,21 @@ class MockApiService(
         )
     }
 
-    // @GET("auth/validateRefreshToken")
-    override suspend fun validateUserToken(): CommonResponse<Boolean> {
-        /*
-            {
-              "message": "string",
-              "data": {},
-              "status": 0
-            }
-         */
-        return CommonResponse(
-            message = "",
-            data = true,
-            status = 200
-        )
-    }
-
-    // @POST("auth/refresh")
     override suspend fun reissueUserToken(): CommonResponse<TokenResponse> {
-        /*
-            {
-              "message": "string",
-              "data": {},
-              "status": 0
-            }
-         */
         return CommonResponse(
             message = "",
             data = TokenResponse(
                 accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
                 refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9"
             ),
+            status = 200
+        )
+    }
+
+    override suspend fun validateUserToken(): CommonResponse<Boolean> {
+        return CommonResponse(
+            message = "",
+            data = true,
             status = 200
         )
     }

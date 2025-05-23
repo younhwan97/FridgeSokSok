@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.remote.impl
 
 import android.util.Log
 import com.yh.fridgesoksok.common.Channel
+import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
@@ -11,6 +12,7 @@ import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
+import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -46,6 +48,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
             val userToken = when (channel) {
                 Channel.KAKAO -> kakaoApiService.createUserOnKakao()
                 Channel.NAVER -> naverApiService.createUserOnNaver()
+                Channel.GUEST -> fridgeApiService.createTmpUser(UserTmpCreateRequest(username = "tmp", accountType = "temp")).data
                 else -> UserResponse(id = -1L, null, null, null, null)
             }
             logOutput(action, userToken)
@@ -103,14 +106,14 @@ class RemoteUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserDefaultFridge(): String {
+    override suspend fun getUserDefaultFridge(): FridgeEntity {
         val action = "defaultFridge"
         return try {
             logInput(action, action)
             val response = fridgeApiService.getUserDefaultFridge()
             val defaultFridge = response.data
             logOutput(action, defaultFridge)
-            defaultFridge
+            defaultFridge.toData()
         } catch (e: Exception) {
             logError(action, e)
             throw e

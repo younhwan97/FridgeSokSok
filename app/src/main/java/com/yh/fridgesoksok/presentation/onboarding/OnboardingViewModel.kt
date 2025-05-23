@@ -14,6 +14,8 @@ import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -30,43 +32,39 @@ class OnboardingViewModel @Inject constructor(
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
 ) : ViewModel() {
 
-    private val _loadingState = MutableStateFlow(LoadingState())
-    val loadingState = _loadingState.asStateFlow()
-
-    private val _user = MutableStateFlow(UserModel(-1, null, null, null, null))
-    val user = _user.value
+    private val _state = MutableStateFlow<OnboardingState>(OnboardingState.Loading)
+    val state = _state.asStateFlow()
 
     init {
         /* 온보딩 프로세스
-           1. 로컬 유저정보 로드
-           2. 토큰이 유효성 확인
-           3. 유저토큰 갱신
-           4. 로컬 유저정보 업데이트
-           5. 유저 기본냉장고 ID 추출 */
+        1. 로컬 유저정보 로드
+        2. 토큰이 유효성 확인
+        3. 유저토큰 갱신
+        4. 유저 기본냉장고 ID 추출
+        5. 로컬 유저정보 업데이트 */
 
-        _user.value = loadUserUseCase().toPresentation()
-
-        _user.value.refreshToken
-            ?.takeIf { it.isNotBlank() }
-            ?.let {
-                validateUserToken(it)
-            } ?: fail("")
+        startOnboarding()
     }
 
-    private fun fail(reason: String? = null) {
-        reason?.let { Log.e("Onboarding", "Fail reason: $it") }
-        _loadingState.update { it.copy(isLoading = false, isLoadingSuccess = false) }
+    private fun startOnboarding() {
+        val user = UserModel.fromLocal(loadUserUseCase())
+        if (!user.isTokenValid()) {
+            fail("No refresh token")
+            return
+        }
+
+        _state.value = OnboardingState.Loaded(user)
+        validateToken(user)
     }
 
     // 유저 리프레쉬 토큰 유효성 확인
-    private fun validateUserToken(refreshToken: String) {
-        validateUserTokenUseCase(refreshToken = refreshToken).onEach { result ->
+    private fun validateToken(user: UserModel) {
+        validateUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Loading -> Unit
-                is Resource.Error -> fail()
-
+                is Resource.Error -> fail("Refresh token validation failed")
                 is Resource.Success -> {
-                    if (result.data == true) reissueUserToken(refreshToken = refreshToken)
+                    if (result.data == true) reissueToken(user)
                     else fail("Invalid RefreshToken")
                 }
             }
@@ -74,53 +72,41 @@ class OnboardingViewModel @Inject constructor(
     }
 
     // 유저 (엑세스+리프레쉬) 토큰 갱신
-    private fun reissueUserToken(refreshToken: String) {
-        reissueUserTokenUseCase(refreshToken = refreshToken).onEach { result ->
+    private fun reissueToken(user: UserModel) {
+        reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Loading -> {}
-                is Resource.Error -> fail()
-
+                is Resource.Error -> fail("Token reissue failed")
                 is Resource.Success -> {
-                    result.data?.let { newToken ->
-                        _user.update {
-                            it.copy(
-                                accessToken = newToken.accessToken,
-                                refreshToken = newToken.refreshToken
-                            )
-                        }
-                        updateUser()
-                        getUserDefaultFridge()
+                    result.data?.let {
+                        val updatedUser = user.withReissuedToken(it.accessToken, it.refreshToken)
+                        _state.value = OnboardingState.Loaded(updatedUser)
+                        getDefaultFridge(updatedUser)
                     } ?: fail("Reissued token is null")
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    // 유저 정보 저장
-    private fun updateUser() {
-        updateUserUseCase(_user.value.toDomain())
-    }
-
     // 유저 기본냉장고 추출
-    private fun getUserDefaultFridge() {
+    private fun getDefaultFridge(user: UserModel) {
         getUserDefaultFridgeUseCase().onEach { result ->
             when (result) {
                 is Resource.Loading -> {}
-                is Resource.Error -> fail()
-
+                is Resource.Error -> fail("Failed to get default fridge")
                 is Resource.Success -> {
-                    if (!result.data.isNullOrBlank()) {
-                        _loadingState.update {
-                            it.copy(
-                                isLoading = false,
-                                isLoadingSuccess = true
-                            )
-                        }
-                    } else {
-                        fail("Default fridge is empty")
-                    }
+                    result.data?.let {
+                        val updatedUser = user.withDefaultFridgeId(it.id)
+                        updateUserUseCase(updatedUser.toDomain())
+                        _state.value = OnboardingState.Success
+                    } ?: fail("Fridge ID is empty")
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun fail(reason: String) {
+        Log.e("Onboarding", "Fail: $reason")
+        _state.value = OnboardingState.Error(reason)
     }
 }

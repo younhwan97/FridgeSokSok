@@ -8,6 +8,7 @@ import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnChannelUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnServerUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
+import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
@@ -25,15 +26,16 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val createUserOnChannelUseCase: CreateUserOnChannelUseCase,
+    private val loadUserUseCase: LoadUserUseCase,
     private val saveUserUseCase: SaveUserUseCase,
     private val createUserOnServerUseCase: CreateUserOnServerUseCase,
-    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
+    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase,
 ) : ViewModel() {
 
     private val _isLoginSuccess = MutableStateFlow(false)
     val isLoginSuccess: StateFlow<Boolean> = _isLoginSuccess
 
-    private val _user = MutableStateFlow(UserModel(-1, null, null, null, null))
+    private val _user = MutableStateFlow(UserModel.fromLocal(loadUserUseCase()))
     val user = _user.value
 
     private val _snackBarMessages = MutableSharedFlow<String>()
@@ -56,7 +58,16 @@ class LoginViewModel @Inject constructor(
                 is Resource.Success -> {
                     val data = result.data
                     if (data != null && data.id != -1L && data.accessToken != null && data.refreshToken != null) {
-                        createUserOnServer(data)
+                        if (data.accountType == "temp") {
+                            // 임시 로그인의 경우 서버 유저생성 스킵
+                            _user.value = data.toPresentation()
+                            saveUser()
+                            _isLoginSuccess.value = true
+                            // getUserDefaultFridge()
+                        } else {
+                            // 채널에서 생성한 토큰을 이용해 서버 유저생성
+                            createUserOnServer(data)
+                        }
                     } else {
                         fail()
                     }
@@ -77,8 +88,7 @@ class LoginViewModel @Inject constructor(
                     if (data != null && data.id != -1L && data.accessToken != null && data.refreshToken != null) {
                         _user.value = data.toPresentation()
                         saveUser()
-                        _isLoginSuccess.value = true
-                        //getUserDefaultFridge()
+                        getUserDefaultFridge()
                     } else {
                         fail()
                     }

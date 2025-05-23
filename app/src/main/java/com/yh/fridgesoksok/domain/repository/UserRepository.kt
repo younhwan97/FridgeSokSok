@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.domain.repository
 
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
 import kotlinx.coroutines.flow.Flow
@@ -24,5 +25,5 @@ interface UserRepository {
 
     fun reissueUserToken(refreshToken: String): Flow<Resource<Token>>
 
-    fun getUserDefaultFridge(): Flow<Resource<String>>
+    fun getUserDefaultFridge(): Flow<Resource<Fridge>>
 }
