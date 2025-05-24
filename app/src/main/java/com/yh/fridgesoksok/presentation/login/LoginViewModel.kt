@@ -1,9 +1,9 @@
 package com.yh.fridgesoksok.presentation.login
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Channel
+import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnChannelUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnServerUseCase
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,20 +37,29 @@ class LoginViewModel @Inject constructor(
 
     // (네이버, 카카오 등의) 채널로 부터 유저 생성
     fun createUserOnChannel(channel: Channel) {
+        Logger.i("Login", "로그인 시도 $channel")
+
         createUserOnChannelUseCase(channel).onEach { result ->
             when (result) {
-                is Resource.Loading -> Unit
-                is Resource.Error -> fail("채널 로그인 실패")
-                is Resource.Success -> result.data.orFail("유효하지 않은 유저 데이터") {
-                    val user = UserModel.fromLocal(it)
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data == null) {
+                        fail("채널 응답 데이터 없음")
+                        return@onEach
+                    }
+
+                    Logger.d("Login", "채널 로그인 성공 $data")
+                    val user = UserModel.fromLocal(data)
 
                     if (user.accountType == "temp") {
-                        saveUserUseCase(user.toDomain())
                         getUserDefaultFridge(user)
                     } else {
                         createUserOnServer(user)
                     }
                 }
+
+                is Resource.Error -> fail("채널 로그인 실패 (${result.message})")
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
@@ -58,17 +68,25 @@ class LoginViewModel @Inject constructor(
     private fun createUserOnServer(user: UserModel) {
         createUserOnServerUseCase(user = user.toDomain()).onEach { result ->
             when (result) {
-                is Resource.Loading -> Unit
-                is Resource.Error -> fail("서버 유저 생성 실패")
-                is Resource.Success -> result.data.orFail("서버 응답 데이터 없음 또는 무효") { serverUser ->
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data == null) {
+                        fail("서버 응답 데이터 없음")
+                        return@onEach
+                    }
+
+                    Logger.d("Login", "서버 유저 생성 성공 $data")
                     val updatedUser = user.withUpdatedUserInfo(
-                        newAccess = serverUser.accessToken.orEmpty(),
-                        newRefresh = serverUser.refreshToken.orEmpty(),
-                        newName = serverUser.username.orEmpty(),
-                        newAccountType = serverUser.accountType.orEmpty()
+                        newAccess = data.accessToken.orEmpty(),
+                        newRefresh = data.refreshToken.orEmpty(),
+                        newName = data.username.orEmpty(),
+                        newAccountType = data.accountType.orEmpty()
                     )
                     getUserDefaultFridge(updatedUser)
                 }
+
+                is Resource.Error -> fail("서버 유저 생성 실패 (${result.message})")
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
@@ -76,23 +94,33 @@ class LoginViewModel @Inject constructor(
     private fun getUserDefaultFridge(user: UserModel) {
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
-                is Resource.Loading -> Unit
-                is Resource.Error -> fail("기본 냉장고 조회 실패")
-                is Resource.Success -> result.data.orFail("기본 냉장고 정보가 없음") { fridge ->
-                    val updatedUser = user.withDefaultFridgeId(fridge.id)
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data == null) {
+                        fail("기본 냉장고ID 없음 (data=null)")
+                        return@onEach
+                    }
+
+                    val updatedUser = user.withDefaultFridgeId(data.id)
                     saveUserUseCase(updatedUser.toDomain())
                     _state.value = LoginState.Success
+
+                    Logger.d("Login", "유저정보 셋팅 성공 $updatedUser")
+                    Logger.i("Login", "로그인 성공: id=${updatedUser.id}, name=${updatedUser.username}")
                 }
+
+                is Resource.Error -> fail("기본 냉장고ID 조회 실패 (${result.message})")
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
     private fun fail(reason: String) {
-        Log.e("Onboarding", "Fail: $reason")
-        _state.value = LoginState.Error(reason)
-    }
+        Logger.e("Login", "$reason → 로그인 실패")
+        _state.value = LoginState.Error
 
-    private inline fun <T> T?.orFail(reason: String, onSuccess: (T) -> Unit) {
-        if (this == null) fail(reason) else onSuccess(this)
+        viewModelScope.launch {
+            _snackBarMessages.emit("로그인 실패")
+        }
     }
 }

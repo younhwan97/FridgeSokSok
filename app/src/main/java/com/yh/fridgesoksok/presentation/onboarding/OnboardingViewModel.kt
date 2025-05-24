@@ -48,7 +48,8 @@ class OnboardingViewModel @Inject constructor(
         val user = UserModel.fromLocal(loadUserUseCase())
 
         if (user.refreshToken.isBlank()) {
-            return fail("토큰 없음")
+            fail("토큰 없음")
+            return
         }
 
         validateToken(user, start)
@@ -59,15 +60,16 @@ class OnboardingViewModel @Inject constructor(
         validateUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    if (result.data == true) {
-                        Logger.d("Onboarding", "리프레쉬 토큰 유효")
-                        reissueToken(user, startTime)
-                    } else {
+                    if (result.data != true) {
                         fail("리프레쉬 토큰 무효")
+                        return@onEach
                     }
+
+                    Logger.d("Onboarding", "리프레쉬 토큰 유효")
+                    reissueToken(user, startTime)
                 }
 
-                is Resource.Error -> fail("토큰 검증 오류")
+                is Resource.Error -> fail("토큰 검증 오류 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -78,16 +80,18 @@ class OnboardingViewModel @Inject constructor(
         reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    result.data?.let {
-                        Logger.d("Onboarding", "토큰 갱신 성공")
-                        val updatedUser = user.withReissuedToken(it.accessToken, it.refreshToken)
-                        getDefaultFridge(updatedUser, startTime)
-                    } ?: run {
-                        fail("토큰 갱신 실패 (null)")
+                    val data = result.data
+                    if (data == null) {
+                        fail("토큰 갱신 실패 (data=null)")
+                        return@onEach
                     }
+
+                    Logger.d("Onboarding", "토큰 갱신 성공")
+                    val updatedUser = user.withReissuedToken(data.accessToken, data.refreshToken)
+                    getDefaultFridge(updatedUser, startTime)
                 }
 
-                is Resource.Error -> fail("토큰 갱신 실패")
+                is Resource.Error -> fail("토큰 갱신 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -98,21 +102,23 @@ class OnboardingViewModel @Inject constructor(
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    result.data?.let {
-                        val updatedUser = user.withDefaultFridgeId(it.id)
-                        updateUserUseCase(updatedUser.toDomain())
-
-                        delayUntilMinimumTime(startTime)
-                        _state.value = OnboardingState.Success
-
-                        Logger.d("Onboarding", "유저정보 셋팅 성공 $updatedUser")
-                        Logger.i("Onboarding", "온보딩 완료")
-                    } ?: run {
+                    val data = result.data
+                    if (data == null) {
                         fail("기본 냉장고ID 없음 (data=null)")
+                        return@onEach
                     }
+
+                    val updatedUser = user.withDefaultFridgeId(data.id)
+                    updateUserUseCase(updatedUser.toDomain())
+
+                    delayUntilMinimumTime(startTime)
+                    _state.value = OnboardingState.Success
+
+                    Logger.d("Onboarding", "유저정보 셋팅 성공 $updatedUser")
+                    Logger.i("Onboarding", "온보딩 완료")
                 }
 
-                is Resource.Error -> fail("기본 냉장고ID 조회 실패")
+                is Resource.Error -> fail("기본 냉장고ID 조회 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
