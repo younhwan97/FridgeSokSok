@@ -19,11 +19,12 @@ class NaverApiService(
                 try {
                     continuation.resume(
                         UserResponse(
-                            id = 0,
+                            id = "tmp",
                             accessToken = NaverIdLoginSDK.getAccessToken(),
                             refreshToken = NaverIdLoginSDK.getRefreshToken(),
                             username = "",
-                            accountType = "NAVER"
+                            accountType = "NAVER",
+                            defaultFridgeId = null
                         )
                     )
                 } catch (e: Exception) {

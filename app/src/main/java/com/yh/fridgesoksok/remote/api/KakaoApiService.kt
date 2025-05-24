@@ -29,11 +29,12 @@ class KakaoApiService(
                         // 사용자 정보 요청 성공
                         continuation.resume(
                             UserResponse(
-                                id = user.id ?: -1L,
+                                id = user.id.toString(),
                                 accessToken = token.accessToken,
                                 refreshToken = token.refreshToken,
                                 username = "",
-                                accountType = "KAKAO"
+                                accountType = "KAKAO",
+                                defaultFridgeId = null
                             )
                         )
                     }
@@ -66,11 +67,12 @@ class KakaoApiService(
                             // 사용자 정보 요청 성공
                             continuation.resume(
                                 UserResponse(
-                                    id = user.id ?: -1L,
+                                    id = user.id.toString(),
                                     accessToken = token.accessToken,
                                     refreshToken = token.refreshToken,
                                     username = "",
-                                    accountType = "KAKAO"
+                                    accountType = "KAKAO",
+                                    defaultFridgeId = null
                                 )
                             )
                         }

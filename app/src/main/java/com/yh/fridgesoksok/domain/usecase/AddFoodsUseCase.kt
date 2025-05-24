@@ -4,9 +4,9 @@ import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import javax.inject.Inject
 
-class AddFoodListUseCase @Inject constructor(
+class AddFoodsUseCase @Inject constructor(
     private val foodRepository: FoodRepository
 ) {
-    operator fun invoke(foods: List<Food>) =
-        foodRepository.addFoods(foods)
+    operator fun invoke(fridgeId: String, foods: List<Food>) =
+        foodRepository.addFoods(fridgeId, foods)
 }

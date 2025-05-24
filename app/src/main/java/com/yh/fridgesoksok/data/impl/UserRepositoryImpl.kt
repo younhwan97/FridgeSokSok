@@ -3,7 +3,7 @@ package com.yh.fridgesoksok.data.impl
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
-import com.yh.fridgesoksok.data.model.FridgeEntity
+import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.Fridge
@@ -44,7 +44,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override fun createUserOnServer(user: User): Flow<Resource<User>> =
         flowWithResource {
-            remoteUserDataSource.createUserOnServer(user = user).toDomain()
+            remoteUserDataSource.createUserOnServer(user = user.toEntity()).toDomain()
         }
 
     override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> =

@@ -1,20 +1,34 @@
 package com.yh.fridgesoksok.data.model
 
-import com.yh.fridgesoksok.data.DataMapper
 import com.yh.fridgesoksok.domain.model.User
 
 data class UserEntity(
-    val id: Long,
-    val accessToken: String?,
-    val refreshToken: String?,
-    val username: String?,
-    val accountType: String?
-) : DataMapper<User> {
-    override fun toDomain() = User(id, accessToken, refreshToken, username, accountType)
+    val id: String,
+    val accessToken: String,
+    val refreshToken: String,
+    val username: String,
+    val accountType: String,
+    val defaultFridgeId: String
+)
+
+fun UserEntity.toDomain(): User {
+    return User(
+        id = id,
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+        username = username,
+        accountType = accountType,
+        defaultFridgeId = defaultFridgeId
+    )
 }
 
 fun User.toEntity(): UserEntity {
     return UserEntity(
-        id, accessToken, refreshToken, username, accountType
+        id = id,
+        accountType = accessToken,
+        refreshToken = refreshToken,
+        username = username,
+        accessToken = accountType,
+        defaultFridgeId = defaultFridgeId
     )
 }

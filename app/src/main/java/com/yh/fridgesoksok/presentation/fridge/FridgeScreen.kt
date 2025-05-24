@@ -71,7 +71,7 @@ fun FoodListScreen(
     sharedViewModel: SharedViewModel,
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
-    val foods by viewModel.foodList.collectAsState()
+    val foods by viewModel.foods.collectAsState()
     var input by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf(Type.All) }

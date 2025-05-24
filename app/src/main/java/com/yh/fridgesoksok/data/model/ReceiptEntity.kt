@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.data.model
 
-import com.yh.fridgesoksok.data.DataMapper
 import com.yh.fridgesoksok.domain.model.Receipt
 
 data class ReceiptEntity(
@@ -11,7 +10,16 @@ data class ReceiptEntity(
     val shelfLifeHours: Int,
     val categoryId: Int,
     val count: Int
-) : DataMapper<Receipt> {
-    override fun toDomain() =
-        Receipt(id, itemName, expirationDescription, foodType, shelfLifeHours, categoryId, count)
+)
+
+fun ReceiptEntity.toDomain(): Receipt {
+    return Receipt(
+        id = id,
+        itemName = itemName,
+        expirationDescription = expirationDescription,
+        foodType = foodType,
+        shelfLifeHours = shelfLifeHours,
+        categoryId = categoryId,
+        count = count
+    )
 }

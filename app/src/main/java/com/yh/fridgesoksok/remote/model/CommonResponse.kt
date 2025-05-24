@@ -6,7 +6,7 @@ data class CommonResponse<T> (
     @SerializedName("message")
     val message: String,
     @SerializedName("data")
-    val data: T,
+    val data: T?,
     @SerializedName("status")
     val status: Int
 )

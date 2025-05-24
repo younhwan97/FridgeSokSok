@@ -122,11 +122,12 @@ class MockApiService(
         return CommonResponse(
             message = "User created successfully",
             data = UserResponse(
-                id = 777,
+                id = "777",
                 accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
                 refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWQiOiIxMjMiLCJpYXQiOjE1MTYyMzkwMjJ9",
                 username = "mock",
-                accountType = "kakao"
+                accountType = "kakao",
+                defaultFridgeId = null
             ),
             status = 200
         )

@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.upload
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -132,7 +131,7 @@ fun UploadScreen(
         },
         bottomBar = {
             UploadFoodBottomButton(onClick = {
-                viewModel.tmp()
+                viewModel.addFoods()
             })
         }
     ) { innerPadding ->

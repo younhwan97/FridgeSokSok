@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.data.impl
 
 import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteFoodDataSource
 import com.yh.fridgesoksok.domain.model.Food
@@ -15,14 +16,14 @@ class FoodRepositoryImpl @Inject constructor(
     private val remoteFoodDataSource: RemoteFoodDataSource
 ) : FoodRepository {
 
-    override fun addFoods(foods: List<Food>): Flow<Resource<List<Food>>> =
+    override fun addFoods(fridgeId: String, foods: List<Food>): Flow<Resource<List<Food>>> =
         flowWithResource {
-            remoteFoodDataSource.addFoods(foods.map { it.toEntity() }).map { it.toDomain() }
+            remoteFoodDataSource.addFoods(fridgeId, foods.map { it.toEntity() }).map { it.toDomain() }
         }
 
-    override fun getFoods(): Flow<Resource<List<Food>>> =
+    override fun getFoods(fridgeId: String): Flow<Resource<List<Food>>> =
         flowWithResource {
-            remoteFoodDataSource.getFoods().map { it.toDomain() }
+            remoteFoodDataSource.getFoods(fridgeId).map { it.toDomain() }
         }
 
     override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> =

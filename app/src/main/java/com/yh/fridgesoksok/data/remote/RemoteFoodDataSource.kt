@@ -6,9 +6,9 @@ import com.yh.fridgesoksok.data.model.ReceiptEntity
 
 interface RemoteFoodDataSource {
 
-    suspend fun addFoods(foods: List<FoodEntity>): List<FoodEntity>
+    suspend fun addFoods(fridgeId: String, foods: List<FoodEntity>): List<FoodEntity>
 
-    suspend fun getFoods(): List<FoodEntity>
+    suspend fun getFoods(fridgeId: String): List<FoodEntity>
 
     suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity>
 

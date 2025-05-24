@@ -3,7 +3,8 @@ package com.yh.fridgesoksok.presentation.fridge
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
-import com.yh.fridgesoksok.domain.usecase.GetFoodListUseCase
+import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
+import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,18 +16,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FridgeViewModel @Inject constructor(
-    private val getFoodListUseCase: GetFoodListUseCase
+    private val getFoodsUseCase: GetFoodsUseCase,
+    private val loadUserUseCase: LoadUserUseCase
 ) : ViewModel() {
 
-    private val _foodList = MutableStateFlow<List<FoodModel>>(emptyList())
-    val foodList = _foodList.asStateFlow()
+    private val _foods = MutableStateFlow<List<FoodModel>>(emptyList())
+    val foods = _foods.asStateFlow()
 
     init {
         loadFoods()
     }
 
     private fun loadFoods() {
-        getFoodListUseCase().onEach { result ->
+        val fridgeId = loadUserUseCase().defaultFridgeId
+
+        getFoodsUseCase(fridgeId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     //
@@ -37,7 +41,7 @@ class FridgeViewModel @Inject constructor(
                 }
 
                 is Resource.Success -> {
-                    _foodList.value = result.data!!.map { it.toPresentation() }.sortedBy { it.expiryDate }
+                    _foods.value = result.data!!.map { it.toPresentation() }.sortedBy { it.expiryDate }
                 }
             }
         }.launchIn(viewModelScope)

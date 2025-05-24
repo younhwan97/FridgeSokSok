@@ -2,10 +2,12 @@ package com.yh.fridgesoksok.remote.impl
 
 import android.graphics.Bitmap
 import android.util.Log
+import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.FoodEntity
 import com.yh.fridgesoksok.data.model.ReceiptEntity
 import com.yh.fridgesoksok.data.remote.RemoteFoodDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
+import com.yh.fridgesoksok.remote.model.toEntity
 import com.yh.fridgesoksok.remote.model.toRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -19,54 +21,45 @@ class RemoteFoodDataSourceImpl @Inject constructor(
     private val fridgeApiService: FridgeApiService
 ) : RemoteFoodDataSource {
 
-    companion object {
-        private const val TAG = "RemoteDataLogger"
-    }
-
-    private fun logInput(action: String, input: Any?) {
-        Log.d(TAG, "[$action][INPUT] $input")
-    }
-
-    private fun logOutput(action: String, output: Any?) {
-        Log.d(TAG, "[$action][OUTPUT] $output")
-    }
-
-    private fun logError(action: String, e: Exception) {
-        val httpException = e as? HttpException
-        val errorBody = httpException?.response()?.errorBody()?.string()
-        val errorMsg = e.localizedMessage ?: "Unknown error"
-        Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
-    }
-
-    override suspend fun addFoods(foods: List<FoodEntity>): List<FoodEntity> {
-        val action = "addFoods"
+    override suspend fun addFoods(fridgeId: String, foods: List<FoodEntity>): List<FoodEntity> {
         return try {
-            logInput(action, foods)
-            val response = fridgeApiService.addFoods(fridgeId = "", foodList = foods.map { it.toRequest() }).data
-            logOutput(action, response)
-            response.map { it.toData() }
+            Logger.d("RemoteFoodData", "addFoods INPUT $fridgeId, $foods")
+            val response = fridgeApiService.addFoods(
+                fridgeId = fridgeId,
+                foodList = foods.map { it.toRequest() }
+            )
+            val data = response.data ?: throw IllegalStateException("addFoods data(=null)")
+            data.map { it.toEntity() }
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteFoodData", "addFoods 실패", e)
             throw e
         }
     }
 
-    override suspend fun getFoods(): List<FoodEntity> {
-        return fridgeApiService.getFoods("temp").data.map { it.toData() }
+    override suspend fun getFoods(fridgeId: String): List<FoodEntity> {
+        return try {
+            Logger.d("RemoteFoodData", "getFoods INPUT $fridgeId")
+            val response = fridgeApiService.getFoods(
+                fridgeId = fridgeId
+            )
+            val data = response.data ?: throw IllegalStateException("getFoods data(=null)")
+            data.map { it.toEntity() }
+        } catch (e: Exception) {
+            Logger.e("RemoteFoodData", "getFoods 실패", e)
+            throw e
+        }
     }
 
     override suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity> {
-        val action = "uploadReceiptImage"
         return try {
-            logInput(action, img)
+            Logger.d("RemoteFoodData", "uploadReceipt INPUT $img")
             val resized = resizeBitmap(img, 1080, 1080)
             val part = bitmapToMultipart(resized)
             val response = fridgeApiService.uploadReceiptImage(part)
-            val receipt = response.data
-            logOutput(action, receipt)
-            receipt.map { it.toData() }
+            val data = response.data ?: throw IllegalStateException("uploadReceipt data(=null)")
+            data.map { it.toEntity() }
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteFoodData", "uploadReceipt 실패", e)
             throw e
         }
     }

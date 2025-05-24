@@ -1,19 +1,17 @@
 package com.yh.fridgesoksok.remote.impl
 
-import android.util.Log
 import com.yh.fridgesoksok.common.Channel
+import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
-import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
-import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
-import retrofit2.HttpException
+import com.yh.fridgesoksok.remote.model.toEntity
 import javax.inject.Inject
 
 class RemoteUserDataSourceImpl @Inject constructor(
@@ -22,100 +20,78 @@ class RemoteUserDataSourceImpl @Inject constructor(
     private val fridgeApiService: FridgeApiService
 ) : RemoteUserDataSource {
 
-    companion object {
-        private const val TAG = "RemoteUserLogger"
-    }
-
-    private fun logInput(action: String, input: Any?) {
-        Log.d(TAG, "[$action][INPUT] $input")
-    }
-
-    private fun logOutput(action: String, output: Any?) {
-        Log.d(TAG, "[$action][OUTPUT] $output")
-    }
-
-    private fun logError(action: String, e: Exception) {
-        val httpException = e as? HttpException
-        val errorBody = httpException?.response()?.errorBody()?.string()
-        val errorMsg = e.localizedMessage ?: "Unknown error"
-        Log.e(TAG, "[$action][ERROR] Exception: $errorMsg\nBody: ${errorBody ?: "No error body"}")
-    }
-
     override suspend fun createUserOnChannel(channel: Channel): UserEntity {
-        val action = "createUserToken"
         return try {
-            logInput(action, channel)
-            val userToken = when (channel) {
+            Logger.d("RemoteUserData", "createUserOnChannel INPUT $channel")
+            val data = when (channel) {
                 Channel.KAKAO -> kakaoApiService.createUserOnKakao()
                 Channel.NAVER -> naverApiService.createUserOnNaver()
                 Channel.GUEST -> fridgeApiService.createTmpUser(UserTmpCreateRequest(username = "tmp", accountType = "temp")).data
-                else -> UserResponse(id = -1L, null, null, null, null)
-            }
-            logOutput(action, userToken)
-            userToken.toData()
+            } ?: throw IllegalStateException("createUserOnChannel data(=null)")
+
+            data.toEntity()
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteUserData", "createUserOnChannel 실패", e)
             throw e
         }
     }
 
-    override suspend fun createUserOnServer(user: User): UserEntity {
-        val action = "createUser"
+    override suspend fun createUserOnServer(user: UserEntity): UserEntity {
         return try {
-            logInput(action, user)
-            val userCreateRequest = UserCreateRequest(token = user.accessToken ?: "", username = user.id.toString())
+            Logger.d("RemoteUserData", "createUserOnServer INPUT $user")
             val response = when (user.accountType) {
-                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(provider = "kakao", userCreateRequest = userCreateRequest)
-                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(provider = "naver", userCreateRequest = userCreateRequest)
-                else -> fridgeApiService.createUserOnServer(provider = "", userCreateRequest = userCreateRequest)
+                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(
+                    provider = "kakao",
+                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.id)
+                )
+
+                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(
+                    provider = "naver",
+                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.id)
+                )
+
+                else -> null
             }
-            val userResponse = response.data
-            logOutput(action, userResponse)
-            userResponse.toData()
+            val data = response?.data ?: throw IllegalStateException("createUserOnServer data(=null)")
+            data.toEntity()
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteUserData", "createUserOnServer 실패", e)
             throw e
         }
     }
 
     override suspend fun validateUserToken(refreshToken: String): Boolean {
-        val action = "validateUserToken"
         return try {
-            logInput(action, refreshToken)
+            Logger.d("RemoteUserData", "validateUserToken INPUT $refreshToken")
             val response = fridgeApiService.validateUserToken()
-            val isValid = response.data
-            logOutput(action, isValid)
-            isValid
+            val data = response.data ?: throw IllegalStateException("validateUserToken data(=null)")
+            data
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteUserData", "validateUserToken 실패", e)
             throw e
         }
     }
 
     override suspend fun reissueUserToken(refreshToken: String): TokenEntity {
-        val action = "reissueUserToken"
         return try {
-            logInput(action, refreshToken)
+            Logger.d("RemoteUserData", "reissueUserToken INPUT $refreshToken")
             val response = fridgeApiService.reissueUserToken()
-            val tokenResponse = response.data
-            logOutput(action, tokenResponse)
-            tokenResponse.toData()
+            val data = response.data ?: throw IllegalStateException("reissueUserToken data(=null)")
+            data.toEntity()
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteUserData", "reissueUserToken 실패", e)
             throw e
         }
     }
 
     override suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity {
-        val action = "defaultFridge"
         return try {
-            logInput(action, action)
+            Logger.d("RemoteUserData", "getUserDefaultFridge INPUT $accessToken")
             val response = fridgeApiService.getUserDefaultFridge("Bearer $accessToken")
-            val defaultFridge = response.data
-            logOutput(action, defaultFridge)
-            defaultFridge.toData()
+            val data = response.data ?: throw IllegalStateException("getUserDefaultFridge data(=null)")
+            data.toEntity()
         } catch (e: Exception) {
-            logError(action, e)
+            Logger.e("RemoteUserData", "getUserDefaultFridge 실패", e)
             throw e
         }
     }
