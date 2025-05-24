@@ -25,5 +25,5 @@ interface UserRepository {
 
     fun reissueUserToken(refreshToken: String): Flow<Resource<Token>>
 
-    fun getUserDefaultFridge(): Flow<Resource<Fridge>>
+    fun getUserDefaultFridge(accessToken: String): Flow<Resource<Fridge>>
 }

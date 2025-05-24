@@ -13,6 +13,7 @@ import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
@@ -91,7 +92,9 @@ interface FridgeApiService {
     ): CommonResponse<UserResponse>
 
     @GET("users/user/default-fridge")
-    suspend fun getUserDefaultFridge(): CommonResponse<FridgeResponse>
+    suspend fun getUserDefaultFridge(
+        @Header("Authorization") token: String
+    ): CommonResponse<FridgeResponse>
 
     /* ************************************************************* */
     /* ************************ Oauth API ************************** */

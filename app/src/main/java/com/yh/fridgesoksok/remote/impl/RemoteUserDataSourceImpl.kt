@@ -106,11 +106,11 @@ class RemoteUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserDefaultFridge(): FridgeEntity {
+    override suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity {
         val action = "defaultFridge"
         return try {
             logInput(action, action)
-            val response = fridgeApiService.getUserDefaultFridge()
+            val response = fridgeApiService.getUserDefaultFridge("Bearer $accessToken")
             val defaultFridge = response.data
             logOutput(action, defaultFridge)
             defaultFridge.toData()

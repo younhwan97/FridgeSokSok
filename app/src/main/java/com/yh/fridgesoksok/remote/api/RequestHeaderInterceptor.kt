@@ -25,9 +25,10 @@ class RequestHeaderInterceptor @Inject constructor(
             else -> accessToken
         }
 
-        val requestWithHeaders = if (token != null) {
+        val hasAuthHeader = originalRequest.header("Authorization") != null
+        val requestWithHeaders = if (!hasAuthHeader && token != null) {
             originalRequest.newBuilder()
-                .addHeader("Authorization", "Bearer $token")
+                .header("Authorization", "Bearer $token")
                 .build()
         } else {
             originalRequest

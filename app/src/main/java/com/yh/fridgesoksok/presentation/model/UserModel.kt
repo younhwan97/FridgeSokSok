@@ -29,7 +29,8 @@ data class UserModel private constructor(
     fun withDefaultFridgeId(id: String): UserModel =
         copy(defaultFridgeId = id)
 
-    fun isTokenValid(): Boolean = refreshToken.isNotBlank()
+    fun withUpdatedUserInfo(newAccess: String, newRefresh: String, newName: String, newAccountType: String): UserModel =
+        copy(accessToken = newAccess, refreshToken = newRefresh, username = newName, accountType = newAccountType)
 }
 
 // Mapper

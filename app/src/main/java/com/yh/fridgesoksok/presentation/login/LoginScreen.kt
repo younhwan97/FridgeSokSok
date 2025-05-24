@@ -57,14 +57,14 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val isLoginSuccess by viewModel.isLoginSuccess.collectAsState()
+    val loginState by viewModel.state.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     val systemUiController = rememberSystemUiController()
 
-    // 시스템 UI 설정 및 스낵바 처리
     LaunchedEffect(Unit) {
+        // 시스템 UI 설정
         systemUiController.setNavigationBarColor(Color.White)
-
+        // 스낵바 처리
         viewModel.snackBarMessages.collect {
             snackBarHostState.showSnackbar(
                 message = it,
@@ -73,9 +73,9 @@ fun LoginScreen(
         }
     }
 
-    // 로그인 성공 시 네비게이션
-    LaunchedEffect(isLoginSuccess) {
-        if (isLoginSuccess) {
+    LaunchedEffect(loginState) {
+        // 로그인 성공 시 네비게이션
+        if (loginState is LoginState.Success) {
             navController.navigate(Screen.HomeScreen.route) {
                 popUpTo(0) { inclusive = true }
             }

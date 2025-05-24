@@ -6,6 +6,6 @@ import javax.inject.Inject
 class GetUserDefaultFridgeUseCase @Inject constructor(
     val repository: UserRepository
 ) {
-    operator fun invoke() =
-        repository.getUserDefaultFridge()
+    operator fun invoke(accessToken: String) =
+        repository.getUserDefaultFridge(accessToken)
 }

@@ -51,9 +51,9 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
         }
 
-    override fun getUserDefaultFridge(): Flow<Resource<Fridge>> =
+    override fun getUserDefaultFridge(accessToken: String): Flow<Resource<Fridge>> =
         flowWithResource {
-            remoteUserDataSource.getUserDefaultFridge().toDomain()
+            remoteUserDataSource.getUserDefaultFridge(accessToken).toDomain()
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
