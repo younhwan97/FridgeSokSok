@@ -61,6 +61,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -76,6 +77,12 @@ fun UploadScreen(
 
     val listState = rememberLazyListState()
     var isExiting by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.addFoodsSuccess.collectLatest {
+            navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+        }
+    }
 
     LaunchedEffect(receipt) {
         receipt?.let {

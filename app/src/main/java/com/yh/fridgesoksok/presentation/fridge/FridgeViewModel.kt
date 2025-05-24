@@ -20,29 +20,25 @@ class FridgeViewModel @Inject constructor(
     private val loadUserUseCase: LoadUserUseCase
 ) : ViewModel() {
 
+    private val _state = MutableStateFlow<FridgeState>(FridgeState.Loading)
+    val state = _state.asStateFlow()
+
     private val _foods = MutableStateFlow<List<FoodModel>>(emptyList())
     val foods = _foods.asStateFlow()
 
-    init {
-        loadFoods()
-    }
-
-    private fun loadFoods() {
+    fun loadFoods() {
         val fridgeId = loadUserUseCase().defaultFridgeId
 
         getFoodsUseCase(fridgeId).onEach { result ->
             when (result) {
-                is Resource.Loading -> {
-                    //
-                }
-
-                is Resource.Error -> {
-                    //
-                }
-
                 is Resource.Success -> {
-                    _foods.value = result.data!!.map { it.toPresentation() }.sortedBy { it.expiryDate }
+                    val list = result.data?.map { it.toPresentation() }.orEmpty()
+                    _foods.value = list.sortedBy { it.expiryDate }
+                    _state.value = FridgeState.Success
                 }
+
+                is Resource.Error -> _state.value = FridgeState.Error
+                is Resource.Loading -> _state.value = FridgeState.Loading
             }
         }.launchIn(viewModelScope)
     }

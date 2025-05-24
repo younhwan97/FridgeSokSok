@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.fridge
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -30,6 +31,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +50,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
@@ -71,6 +81,7 @@ fun FoodListScreen(
     sharedViewModel: SharedViewModel,
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
+    val fridgeState by viewModel.state.collectAsState()
     val foods by viewModel.foods.collectAsState()
     var input by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
@@ -79,9 +90,16 @@ fun FoodListScreen(
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    if (input.isBlank()) {
-        searchQuery = ""
+    if (input.isBlank()) searchQuery = ""
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.loadFoods()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(modifier = modifier) {
@@ -110,6 +128,7 @@ fun FoodListScreen(
             modifier = Modifier.fillMaxSize(),
             navController = navController,
             sharedViewModel = sharedViewModel,
+            fridgeState = fridgeState,
             foods = foods,
             searchQuery = searchQuery,
             selectedType = selectedType,
@@ -209,6 +228,7 @@ fun FoodListContent(
     modifier: Modifier = Modifier,
     navController: NavController,
     sharedViewModel: SharedViewModel,
+    fridgeState: FridgeState,
     foods: List<FoodModel>,
     searchQuery: String,
     selectedType: Type,
@@ -234,56 +254,81 @@ fun FoodListContent(
                     .padding(top = 8.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(color = MaterialTheme.colorScheme.surfaceVariant)
-                    .verticalScroll(scrollState)
             ) {
-                Column(
-                    modifier = Modifier.padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    foods
-                        .filter { it.itemName.contains(searchQuery, ignoreCase = true) }
-                        .filter { selectedType == Type.All || it.categoryId == selectedType.id }
-                        .chunked(2)
-                        .forEach { rowItems ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                Crossfade(
+                    modifier = Modifier.fillMaxSize(),
+                    targetState = fridgeState
+                ) { state ->
+                    if (state is FridgeState.Success) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(scrollState)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                rowItems.forEach { food ->
-                                    FoodCard(
-                                        modifier = Modifier.weight(1f),
-                                        food = food,
-                                        period = Period.between(
-                                            LocalDate.now(),
-                                            LocalDate.parse(
-                                                food.expiryDate,
-                                                DateTimeFormatter.ofPattern("yyyyMMdd")
-                                            )
-                                        ),
-                                        onClick = {
-                                            sharedViewModel.setEditFood(food, EditSource.HOME)
-                                            navController.navigate(Screen.EditFoodScreen.route)
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                foods
+                                    .filter { it.itemName.contains(searchQuery, ignoreCase = true) }
+                                    .filter { selectedType == Type.All || it.categoryId == selectedType.id }
+                                    .chunked(2)
+                                    .forEach { rowItems ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        ) {
+                                            rowItems.forEach { food ->
+                                                FoodCard(
+                                                    modifier = Modifier.weight(1f),
+                                                    food = food,
+                                                    period = Period.between(
+                                                        LocalDate.now(),
+                                                        LocalDate.parse(
+                                                            food.expiryDate,
+                                                            DateTimeFormatter.ofPattern("yyyyMMdd")
+                                                        )
+                                                    ),
+                                                    onClick = {
+                                                        sharedViewModel.setEditFood(food, EditSource.HOME)
+                                                        navController.navigate(Screen.EditFoodScreen.route)
+                                                    }
+                                                )
+                                            }
+
+                                            // 짝수 개가 아닐 때 빈 칸 채우기
+                                            if (rowItems.size < 2) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
                                         }
-                                    )
-                                }
-
-                                // 짝수 개가 아닐 때 빈 칸 채우기
-                                if (rowItems.size < 2) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                    }
                             }
-                        }
-                }
 
-                Image(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter),
-                    painter = painterResource(id = R.drawable.lighting),
-                    contentScale = ContentScale.None,
-                    contentDescription = null,
-                )
+                            Image(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter),
+                                painter = painterResource(id = R.drawable.lighting),
+                                contentScale = ContentScale.None,
+                                contentDescription = null,
+                            )
+                        }
+                    } else {
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
+                        val progress by animateLottieCompositionAsState(
+                            composition = composition,
+                            iterations = LottieConstants.IterateForever
+                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            LottieAnimation(
+                                modifier = Modifier.align(Alignment.Center),
+                                composition = composition,
+                                progress = { progress },
+                            )
+                        }
+                    }
+                }
             }
         }
     }

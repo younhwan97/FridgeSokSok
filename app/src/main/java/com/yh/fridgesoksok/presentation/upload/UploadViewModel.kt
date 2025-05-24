@@ -12,11 +12,14 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -30,6 +33,9 @@ class UploadViewModel @Inject constructor(
 
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     var newFoods = _newFoods.asStateFlow()
+
+    private val _addFoodsSuccess = MutableSharedFlow<Unit>()
+    val addFoodsSuccess = _addFoodsSuccess.asSharedFlow()
 
     fun uploadReceiptImage(bitmap: Bitmap) {
         uploadReceiptImageUseCase(bitmap).onEach { result ->
@@ -74,10 +80,10 @@ class UploadViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val foodModel = result.data?.map { it.toPresentation() }
-                    Log.d("tset4444", foodModel.toString())
-                    if (foodModel != null && foodModel.size == _newFoods.value.size) {
-                        //
-                        //Log.d("tset4444", foodModel.toString())
+                    if (foodModel != null) {
+                        viewModelScope.launch {
+                            _addFoodsSuccess.emit(Unit)
+                        }
                     }
                 }
 
