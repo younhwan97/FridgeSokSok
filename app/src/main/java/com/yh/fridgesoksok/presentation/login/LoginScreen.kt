@@ -49,6 +49,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.login.comp.BubbleText
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 

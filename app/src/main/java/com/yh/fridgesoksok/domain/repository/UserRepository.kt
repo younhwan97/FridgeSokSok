@@ -11,11 +11,11 @@ interface UserRepository {
 
     fun loadUser(): User
 
-    fun saveUser(user: User)
+    fun saveUser(user: User): Flow<Resource<Boolean>>
 
-    fun updateUser(user: User)
+    fun updateUser(user: User): Flow<Resource<Boolean>>
 
-    fun clearUser()
+    fun clearUser(): Flow<Resource<Boolean>>
 
     fun createUserOnChannel(channel: Channel): Flow<Resource<User>>
 

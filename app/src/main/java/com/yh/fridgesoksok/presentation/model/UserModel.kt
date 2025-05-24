@@ -23,6 +23,9 @@ data class UserModel private constructor(
         }
     }
 
+    fun isValid(): Boolean =
+        accessToken.isNotBlank() && refreshToken.isNotBlank()
+
     fun withReissuedToken(newAccess: String, newRefresh: String): UserModel =
         copy(accessToken = newAccess, refreshToken = newRefresh)
 

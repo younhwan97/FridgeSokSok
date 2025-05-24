@@ -6,9 +6,9 @@ interface LocalUserDataSource {
 
     fun loadUser(): UserEntity
 
-    fun saveUser(userEntity: UserEntity)
+    suspend fun saveUser(userEntity: UserEntity): Boolean
 
-    fun updateUser(userEntity: UserEntity)
+    suspend fun updateUser(userEntity: UserEntity): Boolean
 
-    fun clearUser()
+    suspend fun clearUser(): Boolean
 }

@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.login
+package com.yh.fridgesoksok.presentation.login.comp
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box

@@ -11,20 +11,22 @@ import com.yh.fridgesoksok.domain.usecase.UpdateUserUseCase
 import com.yh.fridgesoksok.domain.usecase.ValidateUserTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
+import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val loadUserUseCase: LoadUserUseCase,
+    private val updateUserUseCase: UpdateUserUseCase,
     private val validateUserTokenUseCase: ValidateUserTokenUseCase,
     private val reissueUserTokenUseCase: ReissueUserTokenUseCase,
-    private val updateUserUseCase: UpdateUserUseCase,
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
 ) : ViewModel() {
 
@@ -35,8 +37,8 @@ class OnboardingViewModel @Inject constructor(
         Logger.i("Onboarding", "온보딩 시작")
         /* 온보딩 프로세스
         1. 로컬 유저정보 로드
-        2. 토큰이 유효성 확인
-        3. 유저토큰 갱신
+        2. 토큰 유효성 확인
+        3. 토큰 갱신
         4. 유저 기본냉장고 ID 추출
         5. 로컬 유저정보 업데이트 */
 
@@ -47,11 +49,7 @@ class OnboardingViewModel @Inject constructor(
         val start = System.currentTimeMillis()
         val user = UserModel.fromLocal(loadUserUseCase())
 
-        if (user.refreshToken.isBlank()) {
-            fail("토큰 없음")
-            return
-        }
-
+        if (!user.isValid()) return fail("토큰 없음")
         validateToken(user, start)
     }
 
@@ -60,16 +58,14 @@ class OnboardingViewModel @Inject constructor(
         validateUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    if (result.data != true) {
-                        fail("리프레쉬 토큰 무효")
-                        return@onEach
-                    }
+                    val isTokenValid = result.data ?: false
+                    if (!isTokenValid) return@onEach fail("리프레쉬 토큰 무효")
 
                     Logger.d("Onboarding", "리프레쉬 토큰 유효")
                     reissueToken(user, startTime)
                 }
 
-                is Resource.Error -> fail("토큰 검증 오류 (${result.message})")
+                is Resource.Error -> fail("리프레쉬 토큰 검증오류 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -80,14 +76,11 @@ class OnboardingViewModel @Inject constructor(
         reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    val data = result.data
-                    if (data == null) {
-                        fail("토큰 갱신 실패 (data=null)")
-                        return@onEach
-                    }
+                    val tokenModel = result.data?.toPresentation()
+                    if (tokenModel == null || !tokenModel.isValid()) return@onEach fail("토큰 유효하지 않음")
 
                     Logger.d("Onboarding", "토큰 갱신 성공")
-                    val updatedUser = user.withReissuedToken(data.accessToken, data.refreshToken)
+                    val updatedUser = user.withReissuedToken(tokenModel.accessToken, tokenModel.refreshToken)
                     getDefaultFridge(updatedUser, startTime)
                 }
 
@@ -102,23 +95,38 @@ class OnboardingViewModel @Inject constructor(
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    val data = result.data
-                    if (data == null) {
-                        fail("기본 냉장고ID 없음 (data=null)")
-                        return@onEach
+                    val fridgeModel = result.data?.toPresentation()
+                    if (fridgeModel == null || !fridgeModel.isValid()) return@onEach fail("기본 냉장고ID 추출 실패")
+
+                    Logger.d("Onboarding", "기본 냉장고ID 추출 성공")
+                    val updatedUser = user.withDefaultFridgeId(fridgeModel.id)
+                    updateUser(updatedUser, startTime)
+                }
+
+                is Resource.Error -> fail("기본 냉장고ID 추출 실패 (${result.message})")
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    // 유저 저장
+    private fun updateUser(user: UserModel, startTime: Long) {
+        updateUserUseCase(user.toDomain()).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val isUserUpdated = result.data ?: false
+                    if (!isUserUpdated) return@onEach fail("유저 저장 실패")
+
+                    viewModelScope.launch {
+                        delayUntilMinimumTime(startTime)
+                        _state.value = OnboardingState.Success
                     }
 
-                    val updatedUser = user.withDefaultFridgeId(data.id)
-                    updateUserUseCase(updatedUser.toDomain())
-
-                    delayUntilMinimumTime(startTime)
-                    _state.value = OnboardingState.Success
-
-                    Logger.d("Onboarding", "유저정보 셋팅 성공 $updatedUser")
+                    Logger.d("Onboarding", "유저 저장 성공 $user")
                     Logger.i("Onboarding", "온보딩 완료")
                 }
 
-                is Resource.Error -> fail("기본 냉장고ID 조회 실패 (${result.message})")
+                is Resource.Error -> fail("유저 저장 실패 ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)

@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.domain.usecase
 
+import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import javax.inject.Inject
 
@@ -7,6 +8,6 @@ import javax.inject.Inject
 class LoadUserUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-    operator fun invoke() =
+    operator fun invoke(): User =
         userRepository.loadUser()
 }

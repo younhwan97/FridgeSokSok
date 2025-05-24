@@ -22,14 +22,20 @@ class UserRepositoryImpl @Inject constructor(
     override fun loadUser() =
         localUserDataSource.loadUser().toDomain()
 
-    override fun saveUser(user: User) =
-        localUserDataSource.saveUser(user.toEntity())
+    override fun saveUser(user: User): Flow<Resource<Boolean>> =
+        flowWithResource<Boolean> {
+            localUserDataSource.saveUser(user.toEntity())
+        }
 
-    override fun updateUser(user: User) =
-        localUserDataSource.updateUser(user.toEntity())
+    override fun updateUser(user: User): Flow<Resource<Boolean>> =
+        flowWithResource<Boolean> {
+            localUserDataSource.updateUser(user.toEntity())
+        }
 
-    override fun clearUser() =
-        localUserDataSource.clearUser()
+    override fun clearUser(): Flow<Resource<Boolean>> =
+        flowWithResource<Boolean> {
+            localUserDataSource.clearUser()
+        }
 
     override fun createUserOnChannel(channel: Channel): Flow<Resource<User>> =
         flowWithResource {

@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.login
+package com.yh.fridgesoksok.presentation.login.comp
 
 import android.app.Activity
 import android.os.Bundle

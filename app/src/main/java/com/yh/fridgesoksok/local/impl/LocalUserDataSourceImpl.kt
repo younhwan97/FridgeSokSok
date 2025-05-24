@@ -25,21 +25,15 @@ class LocalUserDataSourceImpl @Inject constructor(
     private fun getPreferences(): SharedPreferences =
         context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    private inline fun editAndApply(block: SharedPreferences.Editor.() -> Unit) {
-        getPreferences().edit().apply {
+    private inline fun editAndCommit(block: SharedPreferences.Editor.() -> Unit): Boolean {
+        val success = getPreferences().edit().apply {
             block()
-            apply()
-        }
-    }
+        }.commit()
 
-    private fun log(action: String, type: String, message: Any?) {
-        val logMsg = "[$action][$type] $message"
-        if (type == "ERROR") Log.e(TAG, logMsg)
-        else Log.d(TAG, logMsg)
+        return success
     }
 
     override fun loadUser(): UserEntity {
-        val action = "loadUser"
         val prefs = getPreferences()
 
         val user = UserEntity(
@@ -50,15 +44,11 @@ class LocalUserDataSourceImpl @Inject constructor(
             accountType = prefs.getString(KEY_ACCOUNT_TYPE, null)
         )
 
-        log(action, "OUTPUT", user)
         return user
     }
 
-    override fun saveUser(userEntity: UserEntity) {
-        val action = "saveUser"
-        log(action, "INPUT", userEntity)
-
-        editAndApply {
+    override suspend fun saveUser(userEntity: UserEntity): Boolean {
+        return editAndCommit {
             putLong(KEY_ID, userEntity.id)
             putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
             putString(KEY_REFRESH_TOKEN, userEntity.refreshToken)
@@ -67,11 +57,8 @@ class LocalUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override fun updateUser(userEntity: UserEntity) {
-        val action = "updateUser"
-        log(action, "INPUT", userEntity)
-
-        editAndApply {
+    override suspend fun updateUser(userEntity: UserEntity): Boolean {
+        return editAndCommit {
             if (userEntity.id != -1L) putLong(KEY_ID, userEntity.id)
             userEntity.accessToken?.let { putString(KEY_ACCESS_TOKEN, it) }
             userEntity.refreshToken?.let { putString(KEY_REFRESH_TOKEN, it) }
@@ -80,16 +67,12 @@ class LocalUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override fun clearUser() {
-        val action = "clearUser"
-        log(action, "INPUT", "Clearing user info")
-
-        editAndApply {
+    override suspend fun clearUser(): Boolean =
+        editAndCommit {
             remove(KEY_ID)
             remove(KEY_ACCESS_TOKEN)
             remove(KEY_REFRESH_TOKEN)
             remove(KEY_USERNAME)
             remove(KEY_ACCOUNT_TYPE)
         }
-    }
 }
