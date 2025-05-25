@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.model.Type
 
 @Composable
-fun FoodTypeChips(
+fun FoodTypeFilter(
     types: List<Type>,
     selectedType: Type,
     onTypeSelected: (Type) -> Unit

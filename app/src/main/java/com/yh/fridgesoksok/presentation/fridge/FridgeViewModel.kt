@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.fridge
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -8,9 +9,11 @@ import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateFoodUseCase
 import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -32,11 +35,16 @@ class FridgeViewModel @Inject constructor(
     private val _foods = MutableStateFlow<List<FoodModel>>(emptyList())
     val foods = _foods.asStateFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _selectedType = MutableStateFlow(Type.All)
+    val selectedType = _selectedType.asStateFlow()
+
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>()) // 중복처리 방지
 
     fun loadFoods() {
         val fridgeId = loadUserUseCase().defaultFridgeId
-
         getFoodsUseCase(fridgeId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -90,11 +98,18 @@ class FridgeViewModel @Inject constructor(
 
     private fun executeSingleAction(id: String, block: () -> kotlinx.coroutines.flow.Flow<Resource<*>>) {
         if (!_pendingActions.add(id)) return
-
         block().onEach {
             if (it !is Resource.Loading) {
                 _pendingActions.remove(id)
             }
         }.launchIn(viewModelScope)
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun updateSelectedType(type: Type) {
+        _selectedType.value = type
     }
 }

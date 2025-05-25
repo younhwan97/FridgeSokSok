@@ -54,7 +54,7 @@ import java.time.Period
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun FoodListContent(
+fun FoodListSection(
     foods: List<FoodModel>,
     fridgeState: FridgeState,
     searchQuery: String,
@@ -112,7 +112,7 @@ fun FoodListContent(
                                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                                         ) {
                                             rowItems.forEach { food ->
-                                                FoodCard(
+                                                FoodContent(
                                                     modifier = Modifier.weight(1f),
                                                     food = food,
                                                     period = Period.between(
@@ -165,7 +165,7 @@ fun FoodListContent(
 }
 
 @Composable
-fun FoodCard(
+fun FoodContent(
     modifier: Modifier = Modifier,
     food: FoodModel,
     period: Period,

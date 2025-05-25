@@ -55,7 +55,7 @@ import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.account.AccountScreen
-import com.yh.fridgesoksok.presentation.fridge.FoodListScreen
+import com.yh.fridgesoksok.presentation.fridge.FridgeScreen
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
 import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
 import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
@@ -172,7 +172,7 @@ fun HomeTabNavHost(
         startDestination = Screen.FridgeTab.route
     ) {
         composable(Screen.FridgeTab.route) {
-            FoodListScreen(
+            FridgeScreen(
                 modifier = Modifier.fillMaxSize(),
                 navController = mainNavController,
                 sharedViewModel = sharedViewModel
