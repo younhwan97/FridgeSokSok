@@ -10,7 +10,9 @@ interface RemoteFoodDataSource {
 
     suspend fun getFoods(fridgeId: String): List<FoodEntity>
 
-    suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity>
+    suspend fun deleteFood(foodId: String): Boolean
 
     suspend fun updateFood(foodEntity: FoodEntity): FoodEntity
+
+    suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity>
 }

@@ -25,10 +25,10 @@ fun UserEntity.toDomain(): User {
 fun User.toEntity(): UserEntity {
     return UserEntity(
         id = id,
-        accountType = accessToken,
+        accountType = accountType,
         refreshToken = refreshToken,
         username = username,
-        accessToken = accountType,
+        accessToken = accessToken,
         defaultFridgeId = defaultFridgeId
     )
 }

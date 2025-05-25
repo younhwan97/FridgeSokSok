@@ -26,14 +26,19 @@ class FoodRepositoryImpl @Inject constructor(
             remoteFoodDataSource.getFoods(fridgeId).map { it.toDomain() }
         }
 
-    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> =
-        flowWithResource {
-            remoteFoodDataSource.uploadReceiptImage(img = img).map { it.toDomain() }
-        }
-
     override fun updateFood(food: Food): Flow<Resource<Food>> =
         flowWithResource {
             remoteFoodDataSource.updateFood(food.toEntity()).toDomain()
+        }
+
+    override fun deleteFood(foodId: String): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteFoodDataSource.deleteFood(foodId)
+        }
+
+    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> =
+        flowWithResource {
+            remoteFoodDataSource.uploadReceiptImage(img = img).map { it.toDomain() }
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =

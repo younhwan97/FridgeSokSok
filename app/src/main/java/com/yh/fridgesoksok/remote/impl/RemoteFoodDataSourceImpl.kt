@@ -15,6 +15,8 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.HttpException
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class RemoteFoodDataSourceImpl @Inject constructor(
@@ -50,6 +52,41 @@ class RemoteFoodDataSourceImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateFood(foodEntity: FoodEntity): FoodEntity {
+        val domainFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        val serverFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+        return try {
+            Logger.d("RemoteFoodData", "updateFood INPUT $foodEntity")
+            val response = fridgeApiService.updateFood(
+                foodId = foodEntity.id,
+                itemName = foodEntity.itemName,
+                expiryDate = LocalDate.parse(foodEntity.expiryDate, domainFormatter).format(serverFormatter),
+                categoryId = foodEntity.categoryId,
+                count = foodEntity.count
+            )
+            val data = response.data ?: throw IllegalStateException("updateFood data(=null)")
+            data.toEntity()
+        } catch (e: Exception) {
+            Logger.e("RemoteFoodData", "updateFood 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun deleteFood(foodId: String): Boolean {
+        return try {
+            Logger.d("RemoteFoodData", "deleteFood INPUT $foodId")
+            val response = fridgeApiService.deleteFood(
+                foodId = foodId
+            )
+            val data = response.status
+            data == 200
+        } catch (e: Exception) {
+            Logger.e("RemoteFoodData", "deleteFood 실패", e)
+            throw e
+        }
+    }
+
     override suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity> {
         return try {
             Logger.d("RemoteFoodData", "uploadReceipt INPUT $img")
@@ -62,10 +99,6 @@ class RemoteFoodDataSourceImpl @Inject constructor(
             Logger.e("RemoteFoodData", "uploadReceipt 실패", e)
             throw e
         }
-    }
-
-    override suspend fun updateFood(foodEntity: FoodEntity): FoodEntity {
-        TODO("Not yet implemented")
     }
 }
 

@@ -12,7 +12,9 @@ interface FoodRepository {
 
     fun getFoods(fridgeId: String): Flow<Resource<List<Food>>>
 
-    fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>>
-
     fun updateFood(food: Food): Flow<Resource<Food>>
+
+    fun deleteFood(foodId: String): Flow<Resource<Boolean>>
+
+    fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>>
 }
