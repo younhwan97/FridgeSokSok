@@ -27,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,11 +70,10 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel
 ) {
     val homeNavController = rememberNavController()
-    var fabOffset by remember { mutableStateOf(Offset.Zero) }
+    val systemUiController = rememberSystemUiController()
     var isFabMenuExpanded by remember { mutableStateOf(false) }
     val currentRoute by homeNavController.currentBackStackEntryAsState()
         .let { derivedStateOf { it.value?.destination?.route ?: Screen.FridgeTab.route } }
-    val systemUiController = rememberSystemUiController()
 
     // 시스템 UI 설정
     SideEffect {
@@ -88,48 +89,42 @@ fun HomeScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = { HomeTopAppBar() },
-        bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) }
+        bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) },
+        floatingActionButton = {
+            if (currentRoute == Screen.FridgeTab.route) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FloatingActionMenus(
+                        expanded = isFabMenuExpanded,
+                        onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
+                        onUploadClick = {},
+                        onManualClick = { navController.navigate(Screen.UploadScreen.route) }
+                    )
+
+                    FloatingActionButton(
+                        modifier = Modifier
+                            .zIndex(1f)
+                            .align(Alignment.End),
+                        expanded = isFabMenuExpanded,
+                        onClick = { isFabMenuExpanded = !isFabMenuExpanded },
+                    )
+                }
+            }
+        }
     ) { padding ->
-        BoxWithConstraints(Modifier.padding(padding)) {
+        Box(Modifier.padding(padding)) {
             HomeTabNavHost(
                 homeNavController = homeNavController,
                 mainNavController = navController,
                 sharedViewModel = sharedViewModel
             )
 
-            // ------------------ FAB(Floating Action Button) ------------------ //
-            if (currentRoute == Screen.FridgeTab.route) {
-                // FAB Overlay Screen
-                if (isFabMenuExpanded)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
-                            .clickable { isFabMenuExpanded = false }
-                    )
-
-                // FAB
-                FloatingActionButton(
+            // FAB Overlay Screen
+            if (currentRoute == Screen.FridgeTab.route && isFabMenuExpanded) {
+                Box(
                     modifier = Modifier
-                        .onGloballyPositioned { fabOffset = it.positionInParent() } // FAB 위치 추출
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = 16.dp)
-                        .zIndex(1f),
-                    expanded = isFabMenuExpanded,
-                    onClick = { isFabMenuExpanded = !isFabMenuExpanded },
-                )
-
-                // FAB Menu
-                FloatingActionMenus(
-                    expanded = isFabMenuExpanded,
-                    fabOffset = fabOffset,
-                    screenWidth = constraints.maxWidth.toFloat(),
-                    screenHeight = constraints.maxHeight.toFloat(),
-                    menuWidthDp = 186.dp,
-                    menuHeightDp = 150.dp,
-                    onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
-                    onUploadClick = {},
-                    onManualClick = { navController.navigate(Screen.UploadScreen.route) }
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.2f))
+                        .clickable { isFabMenuExpanded = false }
                 )
             }
         }
@@ -186,7 +181,6 @@ fun HomeTabNavHost(
         }
     }
 }
-
 
 @Composable
 fun HomeBottomNavigation(

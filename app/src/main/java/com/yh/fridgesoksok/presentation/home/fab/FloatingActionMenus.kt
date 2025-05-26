@@ -16,12 +16,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.absoluteOffset
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,35 +28,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import com.yh.fridgesoksok.R
 
 @Composable
 fun FloatingActionMenus(
     expanded: Boolean,
-    fabOffset: Offset,
-    screenWidth: Float,
-    screenHeight: Float,
-    menuWidthDp: Dp,
-    menuHeightDp: Dp,
     onCaptureClick: () -> Unit,
     onUploadClick: () -> Unit,
     onManualClick: () -> Unit,
 ) {
-    val menuWidth = with(LocalDensity.current) { menuWidthDp.toPx() }
-    val menuHeight = with(LocalDensity.current) { menuHeightDp.toPx() }
-
     val context = LocalContext.current
     val cameraPermission = android.Manifest.permission.CAMERA
     val cameraPermissionLauncher =
@@ -70,7 +53,6 @@ fun FloatingActionMenus(
                 onCaptureClick()
             } else {
                 // 권한 거부
-
             }
         }
 
@@ -78,28 +60,6 @@ fun FloatingActionMenus(
         visible = expanded,
         enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeIn(),
         exit = scaleOut(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeOut(),
-        modifier = Modifier
-            .zIndex(2f)
-            .absoluteOffset {
-                val fabX = fabOffset.x
-                val fabY = fabOffset.y
-
-                // X 좌표 보정: 메뉴가 오른쪽으로 삐져나가는 경우 왼쪽으로 당김
-                val offsetX = when {
-                    fabX + menuWidth > screenWidth -> (screenWidth - menuWidth).toInt()
-                    else -> (fabX - menuWidth + 100.dp.toPx()).toInt()
-                }
-
-                // Y 좌표 보정: FAB 위로 띄우되, 너무 위면 아래로 이동
-                val offsetY = if (fabY - menuHeight > 0) {
-                    (fabY - menuHeight).toInt()
-                } else {
-                    // 위에 공간 없으면 아래로
-                    (fabY + 100.dp.toPx()).toInt()
-                }
-
-                IntOffset(offsetX - 32, offsetY - 32)
-            }
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -108,16 +68,14 @@ fun FloatingActionMenus(
                     color = Color.White,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .width(menuWidthDp)
-                .height(menuHeightDp)
+                .width(186.dp)
+                .height(150.dp)
                 .clip(RoundedCornerShape(16.dp))
         ) {
             FabMenu(
                 onClick = {
-                    if (!hasRequiredPermissions(context = context))
-                        cameraPermissionLauncher.launch(cameraPermission)
-                    else
-                        onCaptureClick()
+                    if (hasRequiredPermissions(context = context)) onCaptureClick()
+                    else cameraPermissionLauncher.launch(cameraPermission)
                 },
                 iconResource = painterResource(R.drawable.camera),
                 text = "영수증 찍기"
