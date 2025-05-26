@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.theme.CustomBackGroundColor
-import com.yh.fridgesoksok.presentation.theme.CustomPrimaryColor
 
 @Composable
 fun FloatingActionButton(
