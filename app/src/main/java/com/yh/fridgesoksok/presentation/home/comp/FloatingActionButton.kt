@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.home.fab
+package com.yh.fridgesoksok.presentation.home.comp
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

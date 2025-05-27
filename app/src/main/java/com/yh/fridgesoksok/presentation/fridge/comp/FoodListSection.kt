@@ -46,8 +46,11 @@ import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.fridge.FridgeState
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor6
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import java.time.LocalDate
 import java.time.Period
@@ -176,6 +179,20 @@ fun FoodContent(
     val dDay = period.toTotalMonths() * 30 + period.days
     val interactionSource = remember { MutableInteractionSource() }
 
+    val badgeBackgroundColor = when {
+        dDay < 0 -> CustomGreyColor6
+        dDay in 0..2 -> MaterialTheme.colorScheme.error
+        dDay in 3..7 -> Color(0xFFFFA940)
+        else -> CustomGreyColor3
+    }
+
+    val badgeTextColor = when {
+        dDay < 0 -> Color.White
+        dDay in 0..2 -> Color.White
+        dDay in 3..7 -> Color.Black
+        else -> MaterialTheme.colorScheme.primary
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -199,14 +216,15 @@ fun FoodContent(
                 Box(
                     modifier = Modifier
                         .background(
-                            if (dDay < 0) MaterialTheme.colorScheme.error else CustomGreyColor3,
+                            badgeBackgroundColor,
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = if (dDay < 0) "D+${-dDay}" else "D-$dDay",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = badgeTextColor
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))

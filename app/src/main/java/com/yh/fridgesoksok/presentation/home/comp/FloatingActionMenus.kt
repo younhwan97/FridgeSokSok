@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.home.fab
+package com.yh.fridgesoksok.presentation.home.comp
 
 import android.content.Context
 import android.content.pm.PackageManager

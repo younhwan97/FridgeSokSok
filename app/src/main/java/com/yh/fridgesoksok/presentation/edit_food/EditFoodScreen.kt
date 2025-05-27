@@ -124,12 +124,12 @@ fun EditFoodScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
-                title = "식품 추가하기",
+                title = if (editSource == EditSource.HOME) "변경하기" else "식품 추가하기",
                 onNavigationClick = { navController.popBackStack() })
         },
         bottomBar = {
             EditFoodBottomButton(
-                text = "추가하기",
+                text = if (editSource == EditSource.HOME) "변경하기" else "추가하기",
                 onClick = {
                     if (food.itemName.isBlank()) {
                         nameError = true

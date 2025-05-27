@@ -52,8 +52,8 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.account.AccountScreen
 import com.yh.fridgesoksok.presentation.fridge.FridgeScreen
-import com.yh.fridgesoksok.presentation.home.fab.FloatingActionButton
-import com.yh.fridgesoksok.presentation.home.fab.FloatingActionMenus
+import com.yh.fridgesoksok.presentation.home.comp.FloatingActionButton
+import com.yh.fridgesoksok.presentation.home.comp.FloatingActionMenus
 import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
@@ -82,7 +82,7 @@ fun HomeScreen(
     // Content
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { HomeTopAppBar() },
+        topBar = { HomeTopAppBar(currentRoute) },
         bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) },
         floatingActionButton = {
             if (currentRoute == Screen.FridgeTab.route) {
@@ -127,7 +127,9 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar() {
+fun HomeTopAppBar(
+    currentRoute: String
+) {
     TopAppBar(
         title = {
             Image(
@@ -137,12 +139,14 @@ fun HomeTopAppBar() {
             )
         },
         actions = {
-            Image(
-                modifier = Modifier.padding(end = 12.dp),
-                painter = painterResource(R.drawable.ai),
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
+            if (currentRoute == Screen.FridgeTab.route){
+                Image(
+                    modifier = Modifier.padding(end = 12.dp),
+                    painter = painterResource(R.drawable.ai),
+                    contentDescription = null,
+                    contentScale = ContentScale.None
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
@@ -162,7 +166,6 @@ fun HomeTabNavHost(
     ) {
         composable(Screen.FridgeTab.route) {
             FridgeScreen(
-                modifier = Modifier.fillMaxSize(),
                 navController = mainNavController,
                 sharedViewModel = sharedViewModel
             )
