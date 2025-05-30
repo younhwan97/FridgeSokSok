@@ -30,15 +30,15 @@ class SharedViewModel @Inject constructor() : ViewModel() {
             - Upload에서 진입한 경우, 수정 대상 index 정보를 함께 저장하여 업로드 리스트에서 항목 갱신이 가능하게 함
     */
 
-    // 🔸 Receipt Image (Camera -> Upload)
+    // Receipt Image (Camera -> Upload)
     private val _receipt = MutableStateFlow<Bitmap?>(null)
     val receipt = _receipt.asStateFlow()
 
-    // 🔸 Edit 후 반영할 데이터
+    // Edit 후 반영할 데이터
     private val _newFood = MutableStateFlow<FoodModel?>(null)
     val newFood = _newFood.asStateFlow()
 
-    // 🔸 EditSource: Edit 진입 시 출처 (Home / Upload / Create)
+    // EditSource: Edit 진입 시 출처 (Home / Upload / Create)
     private val _editSource = MutableStateFlow<EditSource?>(null)
     val editSource = _editSource.asStateFlow()
 

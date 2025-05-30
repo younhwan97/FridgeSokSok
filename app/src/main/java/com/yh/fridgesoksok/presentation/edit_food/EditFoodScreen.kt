@@ -1,10 +1,5 @@
 package com.yh.fridgesoksok.presentation.edit_food
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -79,6 +74,8 @@ import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodImage
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodLabeledField
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -98,9 +95,8 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val today = remember { LocalDate.now() }
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showDateSelectorDialog by remember { mutableStateOf(false) }
     var isClicking by remember { mutableStateOf(false) }
     var nameError by remember { mutableStateOf(false) }
 
@@ -111,7 +107,7 @@ fun EditFoodScreen(
                 id = "NEW",
                 fridgeId = "NEW",
                 itemName = "",
-                expiryDate = today.plusWeeks(2).format(formatter),
+                expiryDate = LocalDate.now().plusWeeks(2).format(formatter),
                 categoryId = Type.Ingredients.id,
                 count = 1,
                 createdAt = ""
@@ -144,12 +140,12 @@ fun EditFoodScreen(
                                 viewModel.updateFood(food)
                             }
 
-                            EditSource.UPLOAD, EditSource.CREATE -> {
+                            EditSource.UPLOAD,
+                            EditSource.CREATE -> {
                                 sharedViewModel.setNewFood(food.copy(fridgeId = "tmp"))
                             }
 
-                            null -> {
-                            }
+                            else -> Unit
                         }
 
                         navController.popBackStack()
@@ -161,11 +157,10 @@ fun EditFoodScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             EditFoodImage(Type.fromId(food.categoryId).iconLarge)
-
-            Spacer(modifier = Modifier.height(20.dp))
 
             EditFoodLabeledField("유형") {
                 EditFoodTypeDropDown(Type.fromId(food.categoryId)) {
@@ -173,7 +168,7 @@ fun EditFoodScreen(
                 }
             }
 
-            EditFoodLabeledField("식품명", filedError = nameError) {
+            EditFoodLabeledField("식품명", fieldError = nameError) {
                 EditFoodName(food.itemName) {
                     food = food.copy(itemName = it)
                 }
@@ -187,15 +182,15 @@ fun EditFoodScreen(
 
             EditFoodLabeledField("소비기한") {
                 EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
-                    showDialog = true
+                    showDateSelectorDialog = true
                 }
             }
         }
 
-        if (showDialog) {
+        if (showDateSelectorDialog) {
             EditFoodDateSelector(
                 selectedDate = LocalDate.parse(food.expiryDate, formatter),
-                onDismissRequest = { showDialog = false },
+                onDismissRequest = { showDateSelectorDialog = false },
                 onConfirm = { food = food.copy(expiryDate = it.format(formatter)) }
             )
         }
@@ -232,61 +227,7 @@ fun EditFoodTopAppBar(
     )
 }
 
-@Composable
-fun EditFoodImage(
-    iconRes: Int
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            contentScale = ContentScale.None
-        )
-    }
-}
 
-@Composable
-fun EditFoodLabeledField(
-    label: String,
-    filedError: Boolean = false,
-    content: @Composable () -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = CustomGreyColor7
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            AnimatedVisibility(
-                visible = filedError,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Text(
-                    text = "값을 입력해주세요!",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        content()
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
