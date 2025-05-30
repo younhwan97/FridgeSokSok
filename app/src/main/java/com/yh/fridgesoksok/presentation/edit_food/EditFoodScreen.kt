@@ -141,7 +141,7 @@ fun EditFoodScreen(
 
                         when (editSource) {
                             EditSource.HOME -> {
-                                // 서버 업데이트 로직 필요
+                                viewModel.updateFood(food)
                             }
 
                             EditSource.UPLOAD, EditSource.CREATE -> {

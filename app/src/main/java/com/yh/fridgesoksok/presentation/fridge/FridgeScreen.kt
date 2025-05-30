@@ -47,7 +47,6 @@ fun FridgeScreen(
 
     var input by remember { mutableStateOf("") }
 
-    val scrollState = rememberScrollState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // 입력창이 비면 자동으로 검색 조건도 초기화
@@ -90,7 +89,6 @@ fun FridgeScreen(
             fridgeState = fridgeState,
             searchQuery = searchQuery,
             selectedType = selectedType,
-            scrollState = scrollState,
             onClickCard = { food ->
                 sharedViewModel.setEditFood(food, EditSource.HOME)
                 navController.navigate(Screen.EditFoodScreen.route)

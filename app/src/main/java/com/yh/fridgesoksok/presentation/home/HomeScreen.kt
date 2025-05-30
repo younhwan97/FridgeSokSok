@@ -64,15 +64,9 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel
 ) {
     val homeNavController = rememberNavController()
-    val systemUiController = rememberSystemUiController()
     var isFabMenuExpanded by remember { mutableStateOf(false) }
     val currentRoute by homeNavController.currentBackStackEntryAsState()
         .let { derivedStateOf { it.value?.destination?.route ?: Screen.FridgeTab.route } }
-
-    // 시스템 UI 설정
-    SideEffect {
-        systemUiController.setNavigationBarColor(color = Color.White)
-    }
 
     // FAB 열려있으면 FAB 닫기
     BackHandler(enabled = isFabMenuExpanded) {
@@ -174,7 +168,9 @@ fun HomeTabNavHost(
             RecipeScreen()
         }
         composable(Screen.AccountTab.route) {
-            AccountScreen()
+            AccountScreen(
+                navController = mainNavController
+            )
         }
     }
 }

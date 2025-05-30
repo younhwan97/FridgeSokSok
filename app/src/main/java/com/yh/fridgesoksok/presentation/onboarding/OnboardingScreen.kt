@@ -15,10 +15,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
-import kotlinx.coroutines.delay
 
 @Composable
 fun OnboardingScreen(
@@ -26,13 +24,9 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val onboardingState by viewModel.state.collectAsState()
-    val systemUiController = rememberSystemUiController()
-    val primaryColor = MaterialTheme.colorScheme.primary
 
+    // 네비게이션
     LaunchedEffect(onboardingState) {
-        // 시스템 UI 설정
-        systemUiController.setNavigationBarColor(primaryColor)
-        // 네비게이션
         when (onboardingState) {
             is OnboardingState.Success -> {
                 navController.navigate(Screen.HomeScreen.route) {
@@ -46,7 +40,7 @@ fun OnboardingScreen(
                 }
             }
 
-            else -> { /* Loading 상태일 때는 화면 전환 X */ }
+            else -> Unit
         }
     }
 
@@ -54,7 +48,7 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = primaryColor),
+            .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
         Image(

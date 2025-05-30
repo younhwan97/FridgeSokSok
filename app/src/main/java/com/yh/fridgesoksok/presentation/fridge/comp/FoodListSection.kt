@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -62,7 +65,6 @@ fun FoodListSection(
     fridgeState: FridgeState,
     searchQuery: String,
     selectedType: Type,
-    scrollState: ScrollState,
     onClickCard: (FoodModel) -> Unit,
     onClickMinus: (FoodModel) -> Unit,
     onClickPlus: (FoodModel) -> Unit
@@ -89,63 +91,66 @@ fun FoodListSection(
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .background(color = MaterialTheme.colorScheme.surfaceVariant)
             ) {
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter),
+                    painter = painterResource(id = R.drawable.lighting),
+                    contentScale = ContentScale.None,
+                    contentDescription = null,
+                )
+
                 Crossfade(
                     modifier = Modifier.fillMaxSize(),
                     targetState = fridgeState
                 ) { state ->
                     if (state is FridgeState.Success) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(scrollState)
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp),
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                contentPadding = PaddingValues(bottom = 16.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                                items(
+                                    foods
+                                        .filter { it.itemName.contains(searchQuery, ignoreCase = true) }
+                                        .filter { selectedType == Type.All || it.categoryId == selectedType.id }
+                                        .chunked(2)
+                                ) { rowItems ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        rowItems.forEach { food ->
+                                            FoodContent(
+                                                modifier = Modifier.weight(1f),
+                                                food = food,
+                                                period = Period.between(
+                                                    LocalDate.now(),
+                                                    LocalDate.parse(
+                                                        food.expiryDate,
+                                                        DateTimeFormatter.ofPattern("yyyyMMdd")
+                                                    )
+                                                ),
+                                                onClick = { onClickCard(food) },
+                                                onClickMinus = onClickMinus,
+                                                onClickPlus = onClickPlus,
+                                            )
+                                        }
 
-                                foods
-                                    .filter { it.itemName.contains(searchQuery, ignoreCase = true) }
-                                    .filter { selectedType == Type.All || it.categoryId == selectedType.id }
-                                    .chunked(2)
-                                    .forEach { rowItems ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                        ) {
-                                            rowItems.forEach { food ->
-                                                FoodContent(
-                                                    modifier = Modifier.weight(1f),
-                                                    food = food,
-                                                    period = Period.between(
-                                                        LocalDate.now(),
-                                                        LocalDate.parse(
-                                                            food.expiryDate,
-                                                            DateTimeFormatter.ofPattern("yyyyMMdd")
-                                                        )
-                                                    ),
-                                                    onClick = { onClickCard(food) },
-                                                    onClickMinus = onClickMinus,
-                                                    onClickPlus = onClickPlus,
-                                                )
-                                            }
-
-                                            // 짝수 개가 아닐 때 빈 칸 채우기
-                                            if (rowItems.size < 2) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
+                                        // 짝수 개가 아닐 때 빈 칸 채우기
+                                        if (rowItems.size < 2) {
+                                            Spacer(modifier = Modifier.weight(1f))
                                         }
                                     }
+                                }
                             }
-
-                            Image(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter),
-                                painter = painterResource(id = R.drawable.lighting),
-                                contentScale = ContentScale.None,
-                                contentDescription = null,
-                            )
                         }
                     } else {
                         val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))

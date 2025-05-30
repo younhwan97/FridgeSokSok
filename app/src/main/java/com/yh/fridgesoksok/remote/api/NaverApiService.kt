@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
-import com.yh.fridgesoksok.presentation.login.comp.NaverLoginActivity
+import com.yh.fridgesoksok.presentation.login.activity.NaverLoginActivity
 import com.yh.fridgesoksok.remote.model.UserResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume

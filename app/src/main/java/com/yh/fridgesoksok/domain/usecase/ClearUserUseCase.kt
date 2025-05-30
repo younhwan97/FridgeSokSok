@@ -4,8 +4,8 @@ import com.yh.fridgesoksok.domain.repository.UserRepository
 import javax.inject.Inject
 
 class ClearUserUseCase @Inject constructor(
-    val repository: UserRepository
+    val userRepository: UserRepository
 ) {
-
-
+    operator fun invoke() =
+        userRepository.clearUser()
 }

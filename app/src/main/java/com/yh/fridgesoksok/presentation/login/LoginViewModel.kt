@@ -2,7 +2,6 @@ package com.yh.fridgesoksok.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kakao.sdk.user.model.User
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
