@@ -114,4 +114,9 @@ dependencies {
 
     // systemuicontroller
     implementation(libs.system.ui.controller)
+
+    // Coil
+    implementation(libs.landscapist.coil)
+    implementation(libs.landscapist.placeholder)
+    implementation(libs.landscapist.animation)
 }

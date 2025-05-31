@@ -24,6 +24,7 @@ import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import com.yh.fridgesoksok.presentation.upload.UploadScreen
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 val systemUiController = rememberSystemUiController()
                 val barColor = when (route) {
                     Screen.OnboardingScreen.route -> MaterialTheme.colorScheme.primary
-                    else -> CustomGreyColor7
+                    else -> CustomGreyColor1
                 }
                 // 하단 바 색상 설정
                 LaunchedEffect(route) {

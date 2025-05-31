@@ -31,6 +31,7 @@ import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.SearchBar
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
+import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
 import com.yh.fridgesoksok.presentation.model.Type
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -56,7 +57,7 @@ fun FridgeScreen(
         }
     }
 
-    // 새로고침 (화면 돌아올 때마다 loadFoods)
+    // 새로고침 콘텐츠 리로드
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) viewModel.loadFoods()
@@ -74,7 +75,7 @@ fun FridgeScreen(
             value = input,
             onValueChange = { input = it },
             onSearchConfirmed = {
-                viewModel.updateSearchQuery(input)
+                viewModel.updateSearchQuery(input) // searchQuery = input
             }
         )
 
@@ -102,27 +103,4 @@ fun FridgeScreen(
             }
         )
     }
-}
-
-@Composable
-private fun FridgeSearchSection(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSearchConfirmed: () -> Unit
-) {
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    SearchBar(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        value = value,
-        onValueChange = {
-            if (it.length <= 30) onValueChange(it)
-        },
-        onDone = {
-            onSearchConfirmed()
-            focusManager.clearFocus()
-            keyboardController?.hide()
-        }
-    )
 }

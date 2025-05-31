@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -105,7 +106,9 @@ fun FoodListSection(
                 ) { state ->
                     if (state is FridgeState.Success) {
                         Column(
-                            modifier = Modifier.fillMaxSize().padding(8.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Spacer(modifier = Modifier.height(4.dp))
@@ -153,16 +156,9 @@ fun FoodListSection(
                             }
                         }
                     } else {
-                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
-                        val progress by animateLottieCompositionAsState(
-                            composition = composition,
-                            iterations = LottieConstants.IterateForever
-                        )
                         Box(modifier = Modifier.fillMaxSize()) {
-                            LottieAnimation(
-                                modifier = Modifier.align(Alignment.Center),
-                                composition = composition,
-                                progress = { progress },
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center)
                             )
                         }
                     }

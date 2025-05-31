@@ -21,7 +21,8 @@ gson = "2.10.1"                 # Netwrok
 lottie = "6.6.2"                # Lottie
 kakao = "2.21.3"                # Kakao
 naver = "5.10.0"                # Naver
-systemUiController = "0.32.0"   # systemUiController
+systemUiController = "0.32.0"   # Accompanist SystemUiController
+landscapistCoil = "2.4.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -69,6 +70,10 @@ kakao-all = { group = "com.kakao.sdk", name = "v2-all", version.ref = "kakao" }
 naver = { group = "com.navercorp.nid", name = "oauth", version.ref = "naver" }
 # systemUiController
 system-ui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "systemUiController" }
+# Coil
+landscapist-coil = { group = "com.github.skydoves", name = "landscapist-coil", version.ref = "landscapistCoil" }
+landscapist-placeholder = { group = "com.github.skydoves", name = "landscapist-placeholder", version.ref = "landscapistCoil" }
+landscapist-animation = { group = "com.github.skydoves", name = "landscapist-animation", version.ref = "landscapistCoil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
