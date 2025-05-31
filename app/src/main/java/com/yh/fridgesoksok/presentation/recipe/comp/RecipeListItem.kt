@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.recipe.comp
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,13 +37,15 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
 fun RecipeListItem(
-    item: RecipeModel
+    item: RecipeModel,
+    onclick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .padding(vertical = 5.dp),
+            .padding(vertical = 5.dp)
+            .clickable { onclick() },
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Box(

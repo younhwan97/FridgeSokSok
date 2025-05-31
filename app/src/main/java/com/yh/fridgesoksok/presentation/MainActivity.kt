@@ -24,6 +24,8 @@ import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
+import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
+import com.yh.fridgesoksok.presentation.recipe_detail.RecipeDetailScreen
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
@@ -68,6 +70,10 @@ class MainActivity : ComponentActivity() {
 
                     composable(Screen.HomeScreen.route) {
                         HomeScreen(navController, activityViewModel)
+                    }
+
+                    composable(Screen.RecipeDetailScreen.route) {
+                        RecipeDetailScreen(navController)
                     }
 
                     composable(Screen.UploadScreen.route) {

@@ -101,9 +101,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.interceptor)
 
-    // Lottie
-    implementation(libs.lottie)
-
     // Kakao
     implementation(libs.kakao.auth)
     implementation(libs.kakao.user)

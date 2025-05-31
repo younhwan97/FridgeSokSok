@@ -1,6 +1,8 @@
 package com.yh.fridgesoksok.presentation.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -133,7 +135,7 @@ fun HomeTopAppBar(
             )
         },
         actions = {
-            if (currentRoute == Screen.FridgeTab.route){
+            if (currentRoute == Screen.FridgeTab.route) {
                 Image(
                     modifier = Modifier.padding(end = 12.dp),
                     painter = painterResource(R.drawable.ai),
@@ -158,16 +160,33 @@ fun HomeTabNavHost(
         navController = homeNavController,
         startDestination = Screen.FridgeTab.route
     ) {
-        composable(Screen.FridgeTab.route) {
+        composable(
+            Screen.FridgeTab.route,
+            exitTransition = {
+                fadeOut(animationSpec = tween(100))
+            }
+        ) {
             FridgeScreen(
                 navController = mainNavController,
                 sharedViewModel = sharedViewModel
             )
         }
-        composable(Screen.RecipeTab.route) {
-            RecipeScreen()
+        composable(
+            Screen.RecipeTab.route,
+            exitTransition = {
+                fadeOut(animationSpec = tween(100))
+            }
+        ) {
+            RecipeScreen(
+                navController = mainNavController
+            )
         }
-        composable(Screen.AccountTab.route) {
+        composable(
+            Screen.AccountTab.route,
+            exitTransition = {
+                fadeOut(animationSpec = tween(100))
+            }
+        ) {
             AccountScreen(
                 navController = mainNavController
             )

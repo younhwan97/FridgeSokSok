@@ -16,6 +16,9 @@ sealed class Screen(
     // 홈 화면
     data object HomeScreen : Screen("Home")
 
+    // 레시피 세부 화면
+    data object RecipeDetailScreen: Screen("RecipeDetail")
+
     // 홈 내부 탭
     data object FridgeTab : Screen("Fridge", R.drawable.home_selected, R.drawable.home, "냉장고")
     data object RecipeTab : Screen("Recipe", R.drawable.recipe_selected, R.drawable.recipe, "레시피")

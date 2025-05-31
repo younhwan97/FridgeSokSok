@@ -40,7 +40,7 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
                         createdAt = "2025-05-01"
                     ),
                     RecipeResponse(
-                        id = "123",
+                        id = "1234",
                         recipeImageUrl = "http://119.196.106.135:5000/delayed-image",
                         recipeName = "test2",
                         recipeContent = "레시피에 대한 간략한 설명이 들어가는 공간. ",

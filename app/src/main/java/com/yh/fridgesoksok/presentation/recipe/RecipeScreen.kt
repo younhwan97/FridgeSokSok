@@ -13,11 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeListSection
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeSearchSection
 
 @Composable
 fun RecipeScreen(
+    navController: NavController,
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
     val recipes by viewModel.recipes.collectAsState()
@@ -48,6 +50,10 @@ fun RecipeScreen(
             recipes = recipes.filter {
                 it.recipeName.contains(searchQuery, ignoreCase = true) ||
                         it.recipeContent.contains(searchQuery, ignoreCase = true)
+            },
+            onClickItem = { recipe ->
+                navController.currentBackStackEntry?.savedStateHandle?.set("recipe", recipe)
+                navController.navigate("recipeDetail")
             }
         )
     }
