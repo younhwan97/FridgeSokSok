@@ -9,9 +9,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -23,6 +25,7 @@ import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
+import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
 import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
 import com.yh.fridgesoksok.presentation.recipe_detail.RecipeDetailScreen
@@ -73,7 +76,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Screen.RecipeDetailScreen.route) {
-                        RecipeDetailScreen(navController)
+                        val recipe = remember {
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.get<RecipeModel>("recipe")
+                        }
+
+                        RecipeDetailScreen(navController, recipe)
                     }
 
                     composable(Screen.UploadScreen.route) {

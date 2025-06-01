@@ -25,7 +25,7 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
                         id = "123",
                         recipeImageUrl = "https://www.adobe.com/kr/creativecloud/photography/hub/features/media_19243bf806dc1c5a3532f3e32f4c14d44f81cae9f.jpeg?width=750&format=jpeg&optimize=medium",
                         recipeName = "test1",
-                        recipeContent = "레시피에 대한 간략한 설명이 들어가는 공간. ",
+                        recipeContent = "레시피에 대한 간략한 설명이 들어가는 공간. 레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.레시피에 대한 간략한 설명이 들어가는 공간.",
                         ingredients = listOf(
                             FoodResponse(
                                 id = "",
@@ -34,6 +34,87 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
                                 itemName = "test 재료",
                                 expiryDate = "2025-12-31",
                                 categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 10,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 4,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 1,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 2,
+                                fridgeId = ""
+                            ),
+                            FoodResponse(
+                                id = "",
+                                createdAt = "",
+                                count = 1,
+                                itemName = "test 재료",
+                                expiryDate = "2025-12-31",
+                                categoryId = 3,
                                 fridgeId = ""
                             )
                         ),
