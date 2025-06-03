@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -28,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
@@ -48,7 +49,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
@@ -126,28 +126,46 @@ fun HomeScreen(
 fun HomeTopAppBar(
     currentRoute: String
 ) {
-    TopAppBar(
-        title = {
-            Image(
-                painter = painterResource(R.drawable.logo02),
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-        },
-        actions = {
-            if (currentRoute == Screen.FridgeTab.route) {
-                Image(
-                    modifier = Modifier.padding(end = 12.dp),
-                    painter = painterResource(R.drawable.ai),
-                    contentDescription = null,
-                    contentScale = ContentScale.None
+    when (currentRoute){
+        Screen.AccountTab.route -> {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "계정",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = CustomGreyColor7
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
                 )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )
-    )
+            )
+        }
+        else -> {
+            TopAppBar(
+                title = {
+                    Image(
+                        painter = painterResource(R.drawable.logo02),
+                        contentDescription = null,
+                        contentScale = ContentScale.None
+                    )
+                },
+                actions = {
+                    if (currentRoute == Screen.FridgeTab.route) {
+                        Image(
+                            modifier = Modifier.padding(end = 12.dp),
+                            painter = painterResource(R.drawable.ai),
+                            contentDescription = null,
+                            contentScale = ContentScale.None
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        }
+    }
 }
 
 @Composable

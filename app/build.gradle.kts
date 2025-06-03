@@ -102,8 +102,6 @@ dependencies {
     implementation(libs.interceptor)
 
     // Kakao
-    implementation(libs.kakao.auth)
-    implementation(libs.kakao.user)
     implementation(libs.kakao.all)
 
     // Naver
