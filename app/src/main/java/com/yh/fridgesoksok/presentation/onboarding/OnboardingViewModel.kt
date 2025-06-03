@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Logger

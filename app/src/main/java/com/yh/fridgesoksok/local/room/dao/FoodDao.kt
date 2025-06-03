@@ -14,4 +14,11 @@ interface FoodDao {
 
     @Query("SELECT * FROM FOOD WHERE itemName LIKE '%' || :query || '%' LIMIT 10")
     suspend fun search(query: String): List<FoodLocal>
+
+    @Query("SELECT count(*) FROM FOOD")
+    suspend fun getCount(): Int
+
+    @Query("DELETE FROM FOOD")
+    suspend fun deleteFoods(): Int
+
 }

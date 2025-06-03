@@ -20,4 +20,12 @@ class LocalFoodDataSourceImpl @Inject constructor(
         foodDao.search(query)
         return emptyList<FoodEntity>()
     }
+
+    override suspend fun getCount(): Int {
+        return foodDao.getCount()
+    }
+
+    override suspend fun deleteFoods(): Int {
+        return foodDao.deleteFoods()
+    }
 }

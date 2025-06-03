@@ -9,4 +9,8 @@ interface LocalFoodDataSource {
 
     suspend fun searchFoods(query: String): List<FoodEntity>
 
+    suspend fun getCount(): Int
+
+    suspend fun deleteFoods(): Int
+
 }

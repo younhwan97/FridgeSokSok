@@ -21,12 +21,16 @@ import com.yh.fridgesoksok.presentation.Screen
 @Composable
 fun OnboardingScreen(
     navController: NavController,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    onboardingViewModel: OnboardingViewModel = hiltViewModel(),
+    appInitializerViewModel: AppInitializerViewModel = hiltViewModel(),
 ) {
-    val onboardingState by viewModel.state.collectAsState()
+    val onboardingState by onboardingViewModel.state.collectAsState()
+    val isInitDone by appInitializerViewModel.isInitializationCompleted.collectAsState()
 
     // 네비게이션
-    LaunchedEffect(onboardingState) {
+    LaunchedEffect(onboardingState, isInitDone) {
+        if (!isInitDone) return@LaunchedEffect
+
         when (onboardingState) {
             is OnboardingState.Success -> {
                 navController.navigate(Screen.HomeScreen.route) {

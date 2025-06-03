@@ -10,6 +10,14 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+//configurations.all {
+//    resolutionStrategy.eachDependency {
+//        if (requested.group == "com.intellij" && requested.name == "annotations") {
+//            useTarget("org.jetbrains:annotations:23.0.0")
+//        }
+//    }
+//}
+
 // local.properties 사용을 위함
 val properties = Properties()
 properties.load(project.rootProject.file("local.properties").inputStream())
@@ -117,6 +125,6 @@ dependencies {
 
     // Room
     implementation(libs.room.ktx)
-    implementation(libs.room.compiler.ksp)
+    ksp(libs.room.compiler.ksp)
     implementation(libs.room.runtime)
 }
