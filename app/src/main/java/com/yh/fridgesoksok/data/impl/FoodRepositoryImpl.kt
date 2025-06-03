@@ -7,7 +7,7 @@ import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteFoodDataSource
 import com.yh.fridgesoksok.domain.model.Food
-import com.yh.fridgesoksok.domain.model.ParsedExcelFood
+import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +44,7 @@ class FoodRepositoryImpl @Inject constructor(
             remoteFoodDataSource.uploadReceiptImage(img = img).map { it.toDomain() }
         }
 
-    override fun initializeLocalFoods(foods: List<ParsedExcelFood>): Flow<Resource<Boolean>> =
+    override fun initializeLocalFoods(foods: List<LocalFood>): Flow<Resource<Boolean>> =
         flowWithResource {
             localFoodDataSource.insertFoods(foods.map { it.toEntity() })
         }
@@ -57,6 +57,11 @@ class FoodRepositoryImpl @Inject constructor(
     override fun deleteLocalFoods(): Flow<Resource<Int>> =
         flowWithResource {
             localFoodDataSource.deleteFoods()
+        }
+
+    override fun searchLocalFoods(keyword: String): Flow<Resource<List<LocalFood>>> =
+        flowWithResource {
+            localFoodDataSource.searchFoods(keyword).map { it.toDomain() }
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =

@@ -13,7 +13,7 @@ interface FoodDao {
     suspend fun insertAll(foods: List<FoodLocal>): List<Long>
 
     @Query("SELECT * FROM FOOD WHERE itemName LIKE '%' || :query || '%' LIMIT 10")
-    suspend fun search(query: String): List<FoodLocal>
+    suspend fun searchFoodByKeyword(query: String): List<FoodLocal>
 
     @Query("SELECT count(*) FROM FOOD")
     suspend fun getCount(): Int

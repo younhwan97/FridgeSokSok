@@ -2,7 +2,7 @@ package com.yh.fridgesoksok.local.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.yh.fridgesoksok.data.model.ParsedExcelFoodEntity
+import com.yh.fridgesoksok.data.model.LocalFoodEntity
 
 @Entity(tableName = "FOOD")
 data class FoodLocal(
@@ -12,9 +12,16 @@ data class FoodLocal(
     val hours: Int
 )
 
-fun ParsedExcelFoodEntity.toLocal(): FoodLocal =
+fun LocalFoodEntity.toLocal(): FoodLocal =
     FoodLocal(
         id = 0,
+        itemName = itemName,
+        categoryId = categoryId,
+        hours = hours
+    )
+
+fun FoodLocal.toEntity(): LocalFoodEntity =
+    LocalFoodEntity(
         itemName = itemName,
         categoryId = categoryId,
         hours = hours

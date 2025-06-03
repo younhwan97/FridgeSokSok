@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -51,6 +53,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,6 +63,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -69,6 +76,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.R
@@ -115,6 +123,12 @@ fun EditFoodScreen(
         )
     }
 
+    val suggestions by viewModel.suggestions.collectAsState()
+    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
     // Content
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -153,36 +167,92 @@ fun EditFoodScreen(
                 })
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            EditFoodImage(Type.fromId(food.categoryId).iconLarge)
-
-            EditFoodLabeledField("유형") {
-                EditFoodTypeDropDown(Type.fromId(food.categoryId)) {
-                    food = food.copy(categoryId = it.id)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .zIndex(1f),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                EditFoodLabeledField("식품명", fieldError = nameError) {
+                    EditFoodName(
+                        foodName = food.itemName,
+                        onNameChanged = { food = food.copy(itemName = it) },
+                        onDone = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        },
+                        viewModel = viewModel,
+                        onPositioned = { coordinates ->
+                            suggestionOffsetY.value = coordinates.positionInRoot().y + coordinates.size.height
+                        }
+                    )
                 }
-            }
 
-            EditFoodLabeledField("식품명", fieldError = nameError) {
-                EditFoodName(food.itemName) {
-                    food = food.copy(itemName = it)
+                EditFoodLabeledField("유형") {
+                    EditFoodTypeDropDown(Type.fromId(food.categoryId)) {
+                        food = food.copy(categoryId = it.id)
+                    }
                 }
-            }
 
-            EditFoodLabeledField("수량") {
-                EditFoodCount(food.count) {
-                    food = food.copy(count = it)
+                EditFoodLabeledField("소비기한") {
+                    EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
+                        showDateSelectorDialog = true
+                    }
                 }
-            }
 
-            EditFoodLabeledField("소비기한") {
-                EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
-                    showDateSelectorDialog = true
+                EditFoodLabeledField("수량") {
+                    EditFoodCount(food.count) {
+                        food = food.copy(count = it)
+                    }
+                }
+
+                EditFoodImage(Type.fromId(food.categoryId).iconLarge)
+            }
+        }
+
+        if (suggestions.isNotEmpty()) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = with(LocalDensity.current) { suggestionOffsetY.value.toDp() })
+                    .padding(horizontal = 16.dp)
+                    .zIndex(999f)
+                    .heightIn(max = 180.dp),
+                shape = RoundedCornerShape(4.dp),
+                shadowElevation = 8.dp,
+                tonalElevation = 0.dp,
+                color = MaterialTheme.colorScheme.background
+            ) {
+                LazyColumn {
+                    items(suggestions) { suggestion ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clickable {
+                                    food = food.copy(itemName = suggestion)
+                                    viewModel.clearSuggestions()
+                                    focusManager.clearFocus()
+                                }
+                                .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Text(
+                                text = suggestion,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Black
+                            )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                            thickness = 0.5.dp,
+                            color = Color(0xFFE0E0E0)
+                        )
+                    }
                 }
             }
         }
@@ -226,7 +296,6 @@ fun EditFoodTopAppBar(
         )
     )
 }
-
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -300,24 +369,31 @@ fun EditFoodTypeDropDown(
 @Composable
 fun EditFoodName(
     foodName: String,
-    onNameChanged: (String) -> Unit
+    onNameChanged: (String) -> Unit,
+    onDone: () -> Unit,
+    viewModel: EditFoodViewModel,
+    onPositioned: (LayoutCoordinates) -> Unit
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
     BasicTextField(
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceVariant),
+            .background(color = MaterialTheme.colorScheme.surfaceVariant)
+            .onGloballyPositioned { onPositioned(it) },
         value = foodName,
-        onValueChange = { onNameChanged(it) },
+        onValueChange = {
+            onNameChanged(it)
+            if (it.isNotBlank()) {
+                viewModel.onNameInputChanged(it)
+            } else {
+                viewModel.clearSuggestions() // 빈값일 땐 명시적으로도 비우기
+            }
+        },
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = {
-            keyboardController?.hide()
-            focusManager.clearFocus()
+            onDone()
         }),
         decorationBox = { inner ->
             Box(

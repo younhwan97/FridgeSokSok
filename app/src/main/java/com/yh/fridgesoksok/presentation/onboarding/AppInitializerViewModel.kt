@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
-import com.yh.fridgesoksok.domain.model.ParsedExcelFood
+import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.domain.usecase.DeleteLocalFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.GetCountLocalFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.InitializeLocalFoodsFromCsvUseCase
@@ -39,8 +39,7 @@ class AppInitializerViewModel @Inject constructor(
                     if (result.data == 0) {
                         initializeFoodsFromCsv()
                     } else {
-                        deleteLocalFoods()
-                        //_isInitializationCompleted.value = true
+                        _isInitializationCompleted.value = true
                     }
                 }
 
@@ -90,7 +89,7 @@ class AppInitializerViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun parseCsvFromAssets(context: Context): List<ParsedExcelFood> {
+    private fun parseCsvFromAssets(context: Context): List<LocalFood> {
         val inputStream = context.assets.open("initial.csv")
         return inputStream.bufferedReader().readLines()
             .mapNotNull { line ->
@@ -99,7 +98,7 @@ class AppInitializerViewModel @Inject constructor(
                     val itemName = tokens[0].trim()
                     val hours = tokens[1].trim().toIntOrNull() ?: return@mapNotNull null
                     val categoryId = tokens[2].trim().toIntOrNull() ?: return@mapNotNull null
-                    ParsedExcelFood(itemName, categoryId, hours)
+                    LocalFood(itemName, categoryId, hours)
                 } else null
             }
     }

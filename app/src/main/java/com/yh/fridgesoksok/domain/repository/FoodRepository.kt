@@ -3,7 +3,7 @@ package com.yh.fridgesoksok.domain.repository
 import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.Food
-import com.yh.fridgesoksok.domain.model.ParsedExcelFood
+import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.domain.model.Receipt
 import kotlinx.coroutines.flow.Flow
 
@@ -19,10 +19,12 @@ interface FoodRepository {
 
     fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>>
 
-    fun initializeLocalFoods(foods: List<ParsedExcelFood>): Flow<Resource<Boolean>>
+    fun initializeLocalFoods(foods: List<LocalFood>): Flow<Resource<Boolean>>
 
     fun getCountLocalFoods(): Flow<Resource<Int>>
 
     fun deleteLocalFoods(): Flow<Resource<Int>>
+
+    fun searchLocalFoods(keyword: String): Flow<Resource<List<LocalFood>>>
 
 }
