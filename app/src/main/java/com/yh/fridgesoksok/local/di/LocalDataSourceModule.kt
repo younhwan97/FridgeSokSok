@@ -1,6 +1,8 @@
 package com.yh.fridgesoksok.local.di
 
+import com.yh.fridgesoksok.data.local.LocalFoodDataSource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
+import com.yh.fridgesoksok.local.impl.LocalFoodDataSourceImpl
 import com.yh.fridgesoksok.local.impl.LocalUserDataSourceImpl
 import dagger.Binds
 import dagger.Module
@@ -14,5 +16,9 @@ abstract class LocalDataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindLocalUserDataSource(source: LocalUserDataSourceImpl) : LocalUserDataSource
+    abstract fun bindLocalUserDataSource(source: LocalUserDataSourceImpl): LocalUserDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindLocalFoodDataSource(source: LocalFoodDataSourceImpl): LocalFoodDataSource
 }

@@ -114,4 +114,9 @@ dependencies {
     implementation(libs.landscapist.coil)
     implementation(libs.landscapist.placeholder)
     implementation(libs.landscapist.animation)
+
+    // Room
+    implementation(libs.room.ktx)
+    implementation(libs.room.compiler.ksp)
+    implementation(libs.room.runtime)
 }
