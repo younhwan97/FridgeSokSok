@@ -25,14 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.yh.fridgesoksok.presentation.model.LocalFoodModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun EditFoodNameSuggestion(
     suggestions: List<LocalFoodModel>,
     suggestionOffsetY: Float,
     onSuggestionSelected: (LocalFoodModel) -> Unit,
-    formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
 ) {
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
@@ -47,7 +45,7 @@ fun EditFoodNameSuggestion(
                 )
             }
             .padding(horizontal = 16.dp)
-            .zIndex(999f)
+            .zIndex(10f)
             .heightIn(max = 180.dp),
         shape = RoundedCornerShape(4.dp),
         shadowElevation = 8.dp,

@@ -12,7 +12,7 @@ interface FoodDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(foods: List<FoodLocal>): List<Long>
 
-    @Query("SELECT DISTINCT * FROM FOOD WHERE REPLACE(itemName, ' ', '') LIKE '%' || REPLACE(:query, ' ', '') || '%' LIMIT 10")
+    @Query("SELECT DISTINCT * FROM FOOD WHERE REPLACE(itemName, ' ', '') LIKE REPLACE(:query, ' ', '') || '%' LIMIT 20")
     suspend fun searchFoodByKeyword(query: String): List<FoodLocal>
 
     @Query("SELECT count(*) FROM FOOD")
