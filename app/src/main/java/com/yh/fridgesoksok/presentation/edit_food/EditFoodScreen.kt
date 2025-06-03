@@ -1,100 +1,35 @@
 package com.yh.fridgesoksok.presentation.edit_food
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodImage
-import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodLabeledField
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodContent
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodNameSuggestion
+import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodTopAppBar
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
-import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.YearMonth
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
-import kotlin.math.ceil
 
 @Composable
 fun EditFoodScreen(
@@ -103,31 +38,27 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-
-    var showDateSelectorDialog by remember { mutableStateOf(false) }
-    var isClicking by remember { mutableStateOf(false) }
-    var nameError by remember { mutableStateOf(false) }
-
     val editSource by sharedViewModel.editSource.collectAsState()
+    val suggestions by viewModel.suggestions.collectAsState()
+
     var food by remember {
         mutableStateOf(
             sharedViewModel.editFood.value ?: FoodModel(
-                id = "NEW",
-                fridgeId = "NEW",
-                itemName = "",
+                id = "NEW", fridgeId = "NEW", itemName = "",
                 expiryDate = LocalDate.now().plusWeeks(2).format(formatter),
-                categoryId = Type.Ingredients.id,
-                count = 1,
-                createdAt = ""
+                categoryId = Type.Ingredients.id, count = 1, createdAt = ""
             )
         )
     }
 
-    val suggestions by viewModel.suggestions.collectAsState()
+    var showDateSelectorDialog by remember { mutableStateOf(false) }
+    var isClicking by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
     val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
 
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
+    BackHandler(enabled = suggestions.isNotEmpty()) {
+        viewModel.clearSuggestions()
+    }
 
     // Content
     Scaffold(
@@ -135,126 +66,66 @@ fun EditFoodScreen(
         topBar = {
             EditFoodTopAppBar(
                 title = if (editSource == EditSource.HOME) "변경하기" else "식품 추가하기",
-                onNavigationClick = { navController.popBackStack() })
+                onNavigationClick = { navController.popBackStack() }
+            )
         },
         bottomBar = {
             EditFoodBottomButton(
                 text = if (editSource == EditSource.HOME) "변경하기" else "추가하기",
                 onClick = {
+                    // 유효성 검사
                     if (food.itemName.isBlank()) {
                         nameError = true
                         return@EditFoodBottomButton
                     }
-
+                    // 중복처리 방지
                     if (!isClicking) {
                         isClicking = true
-
                         when (editSource) {
-                            EditSource.HOME -> {
-                                viewModel.updateFood(food)
-                            }
-
-                            EditSource.UPLOAD,
-                            EditSource.CREATE -> {
-                                sharedViewModel.setNewFood(food.copy(fridgeId = "tmp"))
-                            }
-
+                            EditSource.HOME -> viewModel.updateFood(food)
+                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setNewFood(food.copy(fridgeId = "tmp"))
                             else -> Unit
                         }
-
                         navController.popBackStack()
                     }
-                })
+                }
+            )
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 16.dp)
-                    .zIndex(1f),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                EditFoodLabeledField("식품명", fieldError = nameError) {
-                    EditFoodName(
-                        foodName = food.itemName,
-                        onNameChanged = { food = food.copy(itemName = it) },
-                        onDone = {
-                            keyboardController?.hide()
-                            focusManager.clearFocus()
-                        },
-                        viewModel = viewModel,
-                        onPositioned = { coordinates ->
-                            suggestionOffsetY.value = coordinates.positionInRoot().y + coordinates.size.height
-                        }
-                    )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+            EditFoodContent(
+                food = food,
+                nameError = nameError,
+                onFoodChange = { food = it },
+                onDateEditRequest = { showDateSelectorDialog = true },
+                onSuggestionUpdate = viewModel::onNameInputChanged,
+                onSuggestionClear = viewModel::clearSuggestions,
+                onSuggestionAnchorPositioned = { coordinates ->
+                    suggestionOffsetY.floatValue = coordinates.positionInRoot().y + coordinates.size.height
                 }
-
-                EditFoodLabeledField("유형") {
-                    EditFoodTypeDropDown(Type.fromId(food.categoryId)) {
-                        food = food.copy(categoryId = it.id)
-                    }
-                }
-
-                EditFoodLabeledField("소비기한") {
-                    EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
-                        showDateSelectorDialog = true
-                    }
-                }
-
-                EditFoodLabeledField("수량") {
-                    EditFoodCount(food.count) {
-                        food = food.copy(count = it)
-                    }
-                }
-
-                EditFoodImage(Type.fromId(food.categoryId).iconLarge)
-            }
+            )
         }
 
         if (suggestions.isNotEmpty()) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = with(LocalDensity.current) { suggestionOffsetY.value.toDp() })
-                    .padding(horizontal = 16.dp)
-                    .zIndex(999f)
-                    .heightIn(max = 180.dp),
-                shape = RoundedCornerShape(4.dp),
-                shadowElevation = 8.dp,
-                tonalElevation = 0.dp,
-                color = MaterialTheme.colorScheme.background
-            ) {
-                LazyColumn {
-                    items(suggestions) { suggestion ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable {
-                                    food = food.copy(itemName = suggestion)
-                                    viewModel.clearSuggestions()
-                                    focusManager.clearFocus()
-                                }
-                                .padding(horizontal = 16.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Text(
-                                text = suggestion,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Black
-                            )
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            thickness = 0.5.dp,
-                            color = Color(0xFFE0E0E0)
-                        )
-                    }
+            EditFoodNameSuggestion(
+                suggestions = suggestions,
+                suggestionOffsetY = suggestionOffsetY.floatValue,
+                onSuggestionSelected = { suggestion ->
+                    food = food.copy(
+                        itemName = suggestion.itemName,
+                        categoryId = suggestion.categoryId,
+                        expiryDate = LocalDateTime.now()
+                            .plusHours(suggestion.hours.toLong())
+                            .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                    )
+                    viewModel.clearSuggestions()
                 }
-            }
+            )
         }
 
         if (showDateSelectorDialog) {
@@ -262,424 +133,6 @@ fun EditFoodScreen(
                 selectedDate = LocalDate.parse(food.expiryDate, formatter),
                 onDismissRequest = { showDateSelectorDialog = false },
                 onConfirm = { food = food.copy(expiryDate = it.format(formatter)) }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditFoodTopAppBar(
-    title: String,
-    onNavigationClick: () -> Unit
-) {
-    TopAppBar(
-        navigationIcon = {
-            Image(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clickable { onNavigationClick() },
-                painter = painterResource(R.drawable.back),
-                contentDescription = null,
-                contentScale = ContentScale.None
-            )
-        },
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = CustomGreyColor7
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
-        )
-    )
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditFoodTypeDropDown(
-    selectedType: Type,
-    onTypeSelected: (Type) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        TextField(
-            value = selectedType.label,
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            singleLine = true,
-        )
-        ExposedDropdownMenu(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .heightIn(max = 240.dp),
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            val visibleTypes = Type.entries.drop(1)
-
-            visibleTypes.forEachIndexed() { index, type ->
-                DropdownMenuItem(
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                    text = {
-                        Text(
-                            text = type.label,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    onClick = {
-                        onTypeSelected(type)
-                        expanded = false
-                    }
-                )
-
-                if (index < visibleTypes.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        thickness = 0.5.dp,
-                        color = Color(0xFFE0E0E0)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun EditFoodName(
-    foodName: String,
-    onNameChanged: (String) -> Unit,
-    onDone: () -> Unit,
-    viewModel: EditFoodViewModel,
-    onPositioned: (LayoutCoordinates) -> Unit
-) {
-    BasicTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(color = MaterialTheme.colorScheme.surfaceVariant)
-            .onGloballyPositioned { onPositioned(it) },
-        value = foodName,
-        onValueChange = {
-            onNameChanged(it)
-            if (it.isNotBlank()) {
-                viewModel.onNameInputChanged(it)
-            } else {
-                viewModel.clearSuggestions() // 빈값일 땐 명시적으로도 비우기
-            }
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            onDone()
-        }),
-        decorationBox = { inner ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                if (foodName.isEmpty()) {
-                    Text(
-                        text = "식품 이름을 적어주세요!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Normal,
-                        color = CustomGreyColor4,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                inner()
-            }
-        }
-    )
-}
-
-@Composable
-fun EditFoodCount(
-    count: Int,
-    onCountChange: (Int) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            modifier = Modifier
-                .size(24.dp)
-                .clickable { if (count > 1) onCountChange(count - 1) },
-            painter = painterResource(R.drawable.minus_primary),
-            contentDescription = null,
-            contentScale = ContentScale.None
-        )
-        Text(
-            text = count.toString(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = CustomGreyColor7
-        )
-        Image(
-            modifier = Modifier
-                .size(24.dp)
-                .clickable { onCountChange(count + 1) },
-            painter = painterResource(R.drawable.plus_primary),
-            contentDescription = null,
-            contentScale = ContentScale.None
-        )
-    }
-}
-
-@Composable
-fun EditFoodDateInput(formatted: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF7F7F9))
-            .border(1.dp, Color(0xFFE5E5EA), RoundedCornerShape(12.dp))
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp),
-    ) {
-        Text(
-            modifier = Modifier.align(Alignment.CenterStart),
-            text = formatted,
-            color = Color.Black,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Icon(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            imageVector = Icons.Default.CalendarMonth,
-            contentDescription = null
-        )
-    }
-}
-
-
-@Composable
-fun EditFoodDateSelector(
-    selectedDate: LocalDate?,
-    onDismissRequest: () -> Unit,
-    onConfirm: (LocalDate) -> Unit
-) {
-    val today = remember { LocalDate.now() }
-    val maxDate = remember { today.plusYears(2) }
-    val minMonth = remember { YearMonth.from(today) }
-    val maxMonth = remember { YearMonth.from(maxDate) }
-
-    val totalMonths = remember { minMonth.until(maxMonth, ChronoUnit.MONTHS).toInt() + 1 }
-    val initialPage = remember {
-        val selectedMonth = YearMonth.from(selectedDate ?: today.plusWeeks(2))
-        val offset = minMonth.until(selectedMonth, ChronoUnit.MONTHS).toInt()
-        offset.coerceIn(0, totalMonths - 1)
-    }
-    val pagerState = rememberPagerState(
-        pageCount = { totalMonths },
-        initialPage = initialPage
-    )
-    val coroutineScope = rememberCoroutineScope()
-    var tempSelectedDate by remember { mutableStateOf(selectedDate ?: today.plusWeeks(2)) }
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            tonalElevation = 4.dp,
-            modifier = Modifier
-                .width(320.dp)
-                .wrapContentHeight()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                val currentMonth = remember(pagerState.currentPage) {
-                    minMonth.plusMonths(pagerState.currentPage.toLong())
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = {
-                            if (pagerState.currentPage > 0) {
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                                }
-                            }
-                        },
-                        enabled = pagerState.currentPage > 0
-                    ) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "이전 달")
-                    }
-                    Text(
-                        text = currentMonth.format(DateTimeFormatter.ofPattern("yyyy M월")),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    IconButton(
-                        onClick = {
-                            if (pagerState.currentPage < totalMonths - 1) {
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                                }
-                            }
-                        },
-                        enabled = pagerState.currentPage < totalMonths - 1
-                    ) {
-                        Icon(Icons.Default.ChevronRight, contentDescription = "다음 달")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    listOf("일", "월", "화", "수", "목", "금", "토").forEach {
-                        Text(
-                            text = it,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.height(240.dp)
-                ) { page ->
-                    val month = minMonth.plusMonths(page.toLong())
-                    val firstDay = month.atDay(1)
-                    val daysInMonth = month.lengthOfMonth()
-                    val firstDayOfWeek = firstDay.dayOfWeek.value % 7
-                    val totalGrid = ceil((firstDayOfWeek + daysInMonth) / 7f).toInt() * 7
-
-                    Column {
-                        for (row in 0 until totalGrid / 7) {
-                            Row(Modifier.fillMaxWidth()) {
-                                for (col in 0..6) {
-                                    val index = row * 7 + col
-                                    val dayNum = index - firstDayOfWeek + 1
-                                    val date = if (index >= firstDayOfWeek && dayNum <= daysInMonth) {
-                                        month.atDay(dayNum)
-                                    } else null
-
-                                    val isDisabled = date == null || date.isBefore(today) || date.isAfter(maxDate)
-
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .aspectRatio(1f)
-                                            .padding(2.dp)
-                                            .clip(CircleShape)
-                                            .background(
-                                                when (date) {
-                                                    tempSelectedDate -> Color(0xFF0066FF)
-                                                    today -> Color(0xFFE0E0E0)
-                                                    else -> Color.Transparent
-                                                }
-                                            )
-                                            .clickable(enabled = !isDisabled && date != null) {
-                                                date?.let { tempSelectedDate = it }
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = date?.dayOfMonth?.toString() ?: "",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = when {
-                                                isDisabled -> Color.LightGray
-                                                date == tempSelectedDate -> Color.White
-                                                else -> Color.Black
-                                            },
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismissRequest) {
-                        Text(
-                            text = "취소",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    TextButton(onClick = {
-                        onConfirm(tempSelectedDate)
-                        onDismissRequest()
-                    }) {
-                        Text(
-                            text = "확인",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun EditFoodBottomButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .fillMaxWidth()
-            .height(54.dp)
-            .padding(horizontal = 16.dp)
-            .offset(y = (-12).dp),
-        tonalElevation = 4.dp,
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Button(
-            onClick = { onClick() },
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = CustomGreyColor1
             )
         }
     }
