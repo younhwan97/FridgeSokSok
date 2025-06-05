@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
@@ -20,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.DateFormatter
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodContent
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector
@@ -29,7 +33,6 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun EditFoodScreen(
@@ -37,53 +40,77 @@ fun EditFoodScreen(
     sharedViewModel: SharedViewModel,
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
-    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-    val editSource by sharedViewModel.editSource.collectAsState()
-    val suggestions by viewModel.suggestions.collectAsState()
-
-    var food by remember {
+    // 편집할 식품 초기화
+    val editFoodSource by sharedViewModel.editSource.collectAsState()
+    var editFood by remember {
         mutableStateOf(
             sharedViewModel.editFood.value ?: FoodModel(
-                id = "NEW", fridgeId = "NEW", itemName = "",
-                expiryDate = LocalDate.now().plusWeeks(2).format(formatter),
-                categoryId = Type.Ingredients.id, count = 1, createdAt = ""
+                id = "NEW",
+                fridgeId = "NEW",
+                itemName = "",
+                expiryDate = LocalDate.now().plusWeeks(2).format(DateFormatter.yyyyMMdd),
+                categoryId = Type.Ingredients.id,
+                count = 1,
+                createdAt = ""
             )
         )
     }
 
-    var showDateSelectorDialog by remember { mutableStateOf(false) }
-    var isClicking by remember { mutableStateOf(false) }
-    var nameError by remember { mutableStateOf(false) }
-    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
+    val suggestions by viewModel.suggestions.collectAsState()
+    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }     // 제안 컴포저블 위치
 
+    var showDateSelectorDialog by remember { mutableStateOf(false) } // 달력 열림 여부
+    var nameError by remember { mutableStateOf(false) }              // 이름 오류 표시 여부
+    var canInteract by remember { mutableStateOf(false) }            // 컴포지션 완료 여부
+    var isNavigating by remember { mutableStateOf(false) }           // 중복 네비게이션 방지
+
+    // 컴포지션 완료 후 인터랙션 허용
+    LaunchedEffect(Unit) {
+        withFrameNanos { canInteract = true }
+    }
+
+    // 뒤로가기 시 검색어 제안 닫기
     BackHandler(enabled = suggestions.isNotEmpty()) {
         viewModel.clearSuggestions()
     }
 
-    // Content
+    // 화면 제거 시 상태 초기화
+    DisposableEffect(Unit) {
+        onDispose {
+            showDateSelectorDialog = false
+            nameError = false
+            canInteract = false
+            viewModel.clearSuggestions()
+        }
+    }
+
+    // Screen
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
-                title = if (editSource == EditSource.HOME) "변경하기" else "식품 추가하기",
-                onNavigationClick = { navController.popBackStack() }
+                title = if (editFoodSource == EditSource.HOME) "변경하기" else "식품 추가하기",
+                onNavigationClick = {
+                    if (!isNavigating){
+                        isNavigating = true
+                        navController.popBackStack()
+                    }
+                }
             )
         },
         bottomBar = {
             EditFoodBottomButton(
-                text = if (editSource == EditSource.HOME) "변경하기" else "추가하기",
+                text = if (editFoodSource == EditSource.HOME) "변경하기" else "추가하기",
                 onClick = {
-                    // 유효성 검사
-                    if (food.itemName.isBlank()) {
+                    if (editFood.itemName.isBlank()) {
                         nameError = true
                         return@EditFoodBottomButton
                     }
-                    // 중복처리 방지
-                    if (!isClicking) {
-                        isClicking = true
-                        when (editSource) {
-                            EditSource.HOME -> viewModel.updateFood(food)
-                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setNewFood(food.copy(fridgeId = "tmp"))
+                    if (!isNavigating) {
+                        isNavigating = true
+                        when (editFoodSource) {
+                            EditSource.HOME -> viewModel.updateFood(editFood)
+                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setNewFood(editFood.copy(fridgeId = "tmp"))
                             else -> Unit
                         }
                         navController.popBackStack()
@@ -99,10 +126,10 @@ fun EditFoodScreen(
                 .padding(horizontal = 16.dp)
         ) {
             EditFoodContent(
-                food = food,
+                food = editFood,
                 nameError = nameError,
-                onFoodChange = { food = it },
-                onDateEditRequest = { showDateSelectorDialog = true },
+                onFoodChange = { editFood = it },
+                onDateEditRequest = { if (canInteract) showDateSelectorDialog = true },
                 onSuggestionUpdate = viewModel::onNameInputChanged,
                 onSuggestionClear = viewModel::clearSuggestions,
                 onSuggestionAnchorPositioned = { coordinates ->
@@ -111,28 +138,28 @@ fun EditFoodScreen(
             )
         }
 
-        if (suggestions.isNotEmpty()) {
+        if (suggestions.isNotEmpty() && canInteract) {
             EditFoodNameSuggestion(
                 suggestions = suggestions,
                 suggestionOffsetY = suggestionOffsetY.floatValue,
                 onSuggestionSelected = { suggestion ->
-                    food = food.copy(
+                    editFood = editFood.copy(
                         itemName = suggestion.itemName,
                         categoryId = suggestion.categoryId,
                         expiryDate = LocalDateTime.now()
                             .plusHours(suggestion.hours.toLong())
-                            .format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                            .format(DateFormatter.yyyyMMdd)
                     )
                     viewModel.clearSuggestions()
                 }
             )
         }
 
-        if (showDateSelectorDialog) {
+        if (showDateSelectorDialog && canInteract) {
             EditFoodDateSelector(
-                selectedDate = LocalDate.parse(food.expiryDate, formatter),
+                selectedDate = LocalDate.parse(editFood.expiryDate, DateFormatter.yyyyMMdd),
                 onDismissRequest = { showDateSelectorDialog = false },
-                onConfirm = { food = food.copy(expiryDate = it.format(formatter)) }
+                onConfirm = { editFood = editFood.copy(expiryDate = it.format(DateFormatter.yyyyMMdd)) }
             )
         }
     }

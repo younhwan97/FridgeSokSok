@@ -9,10 +9,10 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import com.yh.fridgesoksok.presentation.common.DateFormatter
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun EditFoodContent(
@@ -24,7 +24,6 @@ fun EditFoodContent(
     onSuggestionClear: () -> Unit,
     onSuggestionAnchorPositioned: (LayoutCoordinates) -> Unit
 ) {
-    val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -54,7 +53,7 @@ fun EditFoodContent(
         }
 
         EditFoodLabeledField("소비기한") {
-            EditFoodDateInput(LocalDate.parse(food.expiryDate, formatter).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))) {
+            EditFoodDateInput(LocalDate.parse(food.expiryDate, DateFormatter.yyyyMMdd).format(DateFormatter.yyyyMMddDot)) {
                 onDateEditRequest()
             }
         }
