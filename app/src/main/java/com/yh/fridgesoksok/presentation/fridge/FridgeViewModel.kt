@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import java.util.Collections
 import javax.inject.Inject
 
@@ -33,8 +34,14 @@ class FridgeViewModel @Inject constructor(
     private val _foods = MutableStateFlow<List<FoodModel>>(emptyList())
     val foods = _foods.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    private val _selectedFoods = MutableStateFlow<Set<FoodModel>>(emptySet())
+    val selectedFoods = _selectedFoods.asStateFlow()
+
+    private val _filterQuery = MutableStateFlow("")
+    val filterQuery = _filterQuery.asStateFlow()
+
+    private val _typingQuery = MutableStateFlow("")
+    val typingQuery = _typingQuery.asStateFlow()
 
     private val _selectedType = MutableStateFlow(Type.All)
     val selectedType = _selectedType.asStateFlow()
@@ -103,11 +110,38 @@ class FridgeViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
+    fun updateTypingQuery(query: String) {
+        _typingQuery.value = query
+        if (query.isBlank()) _filterQuery.value = ""
+    }
+
+    fun updateFilterQuery(query: String) {
+        _filterQuery.value = query
     }
 
     fun updateSelectedType(type: Type) {
         _selectedType.value = type
+    }
+
+    fun toggleFoodSelected(food: FoodModel) {
+        _selectedFoods.update { selected ->
+            if (selected.contains(food)) selected - food else selected + food
+        }
+    }
+
+    fun selectAllFoods(foods: List<FoodModel>) {
+        _selectedFoods.value = foods.toSet()
+    }
+
+    fun deselectAllFoods() {
+        _selectedFoods.value = emptySet()
+    }
+
+    fun setSelectedFoods(foods: Set<FoodModel>) {
+        _selectedFoods.value += foods
+    }
+
+    fun clearSelectedFoods(foods: Set<FoodModel>) {
+        _selectedFoods.value -= foods
     }
 }

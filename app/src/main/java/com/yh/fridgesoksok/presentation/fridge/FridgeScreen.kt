@@ -1,82 +1,100 @@
 package com.yh.fridgesoksok.presentation.fridge
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.common.SearchBar
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
 import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
+import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.model.Type
 
-@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun FridgeScreen(
+    mode: HomeUiMode,
     navController: NavController,
     sharedViewModel: SharedViewModel,
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
-    val fridgeState by viewModel.state.collectAsState()
-    val foods by viewModel.foods.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val allFoods by viewModel.foods.collectAsState()
     val selectedType by viewModel.selectedType.collectAsState()
+    val typingQuery by viewModel.typingQuery.collectAsState()
+    val filterQuery by viewModel.filterQuery.collectAsState()
+    val selectedFoods by viewModel.selectedFoods.collectAsState()
 
-    var input by remember { mutableStateOf("") }
+    val sharedSelectedFoods by sharedViewModel.selectedFoodsForRecipe.collectAsState()
 
+    // 데이터 필터링
+    val filteredFoods by remember(allFoods, filterQuery, selectedType) {
+        derivedStateOf {
+            allFoods
+                .filter { it.itemName.contains(filterQuery, ignoreCase = true) }
+                .filter { selectedType == Type.All || it.categoryId == selectedType.id }
+        }
+    }
+
+    // 화면 재진입 시 데이터 로드
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    // 입력창이 비면 자동으로 검색 조건도 초기화
-    LaunchedEffect(input) {
-        if (input.isBlank()) {
-            viewModel.updateSearchQuery("")
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.loadFoods()
         }
     }
 
-    // 새로고침 콘텐츠 리로드
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) viewModel.loadFoods()
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    // SharedViewModel을 통한 데이터 공유
+    LaunchedEffect(selectedFoods) {
+        sharedViewModel.setSelectedFoodsForRecipe(selectedFoods.toList())
     }
 
-    // Content
+    LaunchedEffect(sharedSelectedFoods) {
+        viewModel.setSelectedFoods(sharedSelectedFoods.toSet())
+    }
+
+    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()
+    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState()
+
+    LaunchedEffect(selectAllRequested) {
+        if (selectAllRequested) {
+            viewModel.setSelectedFoods(filteredFoods.toSet())
+            sharedViewModel.setSelectedFoodsForRecipe(filteredFoods)
+            sharedViewModel.clearSelectAllFoodsRequest()
+        }
+    }
+
+    LaunchedEffect(deselectAllRequested) {
+        if (deselectAllRequested) {
+            viewModel.clearSelectedFoods(filteredFoods.toSet())
+            sharedViewModel.clearSelectedFoodsForRecipe()
+            sharedViewModel.clearDeselectAllFoodsRequest()
+        }
+    }
+
+    // 화면
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         FridgeSearchSection(
-            value = input,
-            onValueChange = { input = it },
-            onSearchConfirmed = {
-                viewModel.updateSearchQuery(input) // searchQuery = input
-            }
+            value = typingQuery,
+            onValueChange = { viewModel.updateTypingQuery(it) },
+            onSearchConfirmed = { viewModel.updateFilterQuery(typingQuery) }
         )
 
         FoodTypeFilter(
@@ -86,11 +104,14 @@ fun FridgeScreen(
         )
 
         FoodListSection(
-            foods = foods,
-            fridgeState = fridgeState,
-            searchQuery = searchQuery,
-            selectedType = selectedType,
-            onClickCard = { food ->
+            mode = mode,
+            foods = filteredFoods,
+            fridgeState = state,
+            selectedFoods = selectedFoods,
+            onFoodSelectToggle = { food ->
+                viewModel.toggleFoodSelected(food)
+            },
+            onClickFood = { food ->
                 sharedViewModel.setEditFood(food, EditSource.HOME)
                 navController.navigate(Screen.EditFoodScreen.route)
             },

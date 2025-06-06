@@ -27,9 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
@@ -222,7 +220,7 @@ fun CameraScreen(
                     onClick = {
                         if (!isExiting) {
                             isExiting = true
-                            sharedViewModel.setImage(capturedImageBitmap!!)
+                            sharedViewModel.setReceipt(capturedImageBitmap!!)
                             navController.navigate(Screen.UploadScreen.route)
                         }
                     },

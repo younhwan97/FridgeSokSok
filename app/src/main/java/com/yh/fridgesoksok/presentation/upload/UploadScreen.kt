@@ -87,7 +87,7 @@ fun UploadScreen(
     LaunchedEffect(receipt) {
         receipt?.let {
             viewModel.uploadReceiptImage(it)
-            sharedViewModel.clearImage()
+            sharedViewModel.clearReceipt()
         }
     }
 

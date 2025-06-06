@@ -1,269 +1,107 @@
 package com.yh.fridgesoksok.presentation.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.account.AccountScreen
-import com.yh.fridgesoksok.presentation.fridge.FridgeScreen
-import com.yh.fridgesoksok.presentation.home.comp.FloatingActionButton
-import com.yh.fridgesoksok.presentation.home.comp.FloatingActionMenus
-import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
+import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
+import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
+import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
+import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
+    val homeUiMode by homeViewModel.uiMode.collectAsState()
+    var isFabExpanded by remember { mutableStateOf(false) }
     val homeNavController = rememberNavController()
-    var isFabMenuExpanded by remember { mutableStateOf(false) }
-    val currentRoute by homeNavController.currentBackStackEntryAsState()
-        .let { derivedStateOf { it.value?.destination?.route ?: Screen.FridgeTab.route } }
+    val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
 
-    // FAB 열려있으면 FAB 닫기
-    BackHandler(enabled = isFabMenuExpanded) {
-        isFabMenuExpanded = false
-    }
+    // 뒤로가기 핸들링
+    BackHandler(enabled = isFabExpanded || homeUiMode == HomeUiMode.RECIPE_SELECT) {
+        when {
+            isFabExpanded -> {
+                // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기
+                isFabExpanded = false
+            }
 
-    // Content
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = { HomeTopAppBar(currentRoute) },
-        bottomBar = { HomeBottomNavigation(currentRoute, homeNavController) },
-        floatingActionButton = {
-            if (currentRoute == Screen.FridgeTab.route) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FloatingActionMenus(
-                        expanded = isFabMenuExpanded,
-                        onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
-                        onUploadClick = {},
-                        onManualClick = { navController.navigate(Screen.UploadScreen.route) }
-                    )
-
-                    FloatingActionButton(
-                        modifier = Modifier
-                            .zIndex(1f)
-                            .align(Alignment.End),
-                        expanded = isFabMenuExpanded,
-                        onClick = { isFabMenuExpanded = !isFabMenuExpanded },
-                    )
-                }
+            homeUiMode == HomeUiMode.RECIPE_SELECT -> {
+                // 레시피 모드에서 뒤로가기 시 DEFAULT 모드로 전환
+                homeViewModel.resetUiMode()
             }
         }
+    }
+
+    // 화면
+    Scaffold(
+        topBar = {
+            HomeTopAppBar(
+                mode = homeUiMode,
+                currentRoute = currentRoute,
+                onClickAiRecipeBtn = { homeViewModel.updateToRecipeUiMode() },
+                onClickNavigationBtn = { homeViewModel.updateToDefaultUiMode() },
+                onClickSelectAll = { sharedViewModel.requestSelectAllFoods() },
+                onClickDeselectAll = { sharedViewModel.requestDeselectAllFoods() }
+            )
+        },
+        bottomBar = {
+            HomeBottomBar(
+                mode = homeUiMode,
+                currentRoute = currentRoute,
+                homeNavController = homeNavController
+            )
+        },
+        floatingActionButton = {
+            HomeFabBar(
+                mode = homeUiMode,
+                currentRoute = currentRoute,
+                isFabMenuExpanded = isFabExpanded,
+                onToggleFab = { isFabExpanded = !isFabExpanded },
+                onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
+                onUploadClick = { },
+                onManualClick = { navController.navigate(Screen.UploadScreen.route) }
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(Modifier.padding(padding)) {
-            HomeTabNavHost(
+            // Home Nav (냉장고/레시피/계정)
+            HomeNavGraph(
+                mode = homeUiMode,
                 homeNavController = homeNavController,
-                mainNavController = navController,
-                sharedViewModel = sharedViewModel
+                navController = navController,
+                sharedViewModel = sharedViewModel,
             )
 
             // FAB Overlay Screen
-            if (currentRoute == Screen.FridgeTab.route && isFabMenuExpanded) {
+            if (currentRoute == Screen.FridgeTab.route && isFabExpanded) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.2f))
-                        .clickable { isFabMenuExpanded = false }
+                        .clickable { isFabExpanded = false }
                 )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HomeTopAppBar(
-    currentRoute: String
-) {
-    when (currentRoute){
-        Screen.AccountTab.route -> {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "계정",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = CustomGreyColor7
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-        else -> {
-            TopAppBar(
-                title = {
-                    Image(
-                        painter = painterResource(R.drawable.logo02),
-                        contentDescription = null,
-                        contentScale = ContentScale.None
-                    )
-                },
-                actions = {
-                    if (currentRoute == Screen.FridgeTab.route) {
-                        Image(
-                            modifier = Modifier.padding(end = 12.dp),
-                            painter = painterResource(R.drawable.ai),
-                            contentDescription = null,
-                            contentScale = ContentScale.None
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun HomeTabNavHost(
-    homeNavController: NavHostController,
-    mainNavController: NavController,
-    sharedViewModel: SharedViewModel
-) {
-    NavHost(
-        navController = homeNavController,
-        startDestination = Screen.FridgeTab.route
-    ) {
-        composable(
-            Screen.FridgeTab.route,
-            exitTransition = {
-                fadeOut(animationSpec = tween(100))
-            }
-        ) {
-            FridgeScreen(
-                navController = mainNavController,
-                sharedViewModel = sharedViewModel
-            )
-        }
-        composable(
-            Screen.RecipeTab.route,
-            exitTransition = {
-                fadeOut(animationSpec = tween(100))
-            }
-        ) {
-            RecipeScreen(
-                navController = mainNavController
-            )
-        }
-        composable(
-            Screen.AccountTab.route,
-            exitTransition = {
-                fadeOut(animationSpec = tween(100))
-            }
-        ) {
-            AccountScreen(
-                navController = mainNavController
-            )
-        }
-    }
-}
-
-@Composable
-fun HomeBottomNavigation(
-    currentRoute: String,
-    homeNavController: NavHostController
-) {
-    Surface(
-        tonalElevation = 6.dp,
-        shadowElevation = 6.dp,
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(64.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
-                .windowInsetsPadding(WindowInsets.navigationBars),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Screen.bottomNavItems.forEach { screen ->
-                val selected = currentRoute == screen.route
-                Column(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                        .clickable {
-                            if (!selected) {
-                                homeNavController.navigate(screen.route) {
-                                    popUpTo(homeNavController.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        }
-                        .padding(vertical = 8.dp, horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    screen.selectedIcon?.let {
-                        Image(
-                            painter = painterResource(if (selected) screen.selectedIcon else screen.unselectedIcon!!),
-                            contentDescription = null,
-                            contentScale = ContentScale.None
-                        )
-                    }
-                    screen.label?.let {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (selected) CustomGreyColor7 else CustomGreyColor5
-                        )
-                    }
-                }
             }
         }
     }
