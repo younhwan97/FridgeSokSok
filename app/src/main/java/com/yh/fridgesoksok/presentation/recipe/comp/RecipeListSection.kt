@@ -1,31 +1,55 @@
 package com.yh.fridgesoksok.presentation.recipe.comp
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.model.RecipeModel
+import com.yh.fridgesoksok.presentation.recipe.RecipeState
 
 @Composable
 fun RecipeListSection(
+    recipeState: RecipeState,
     recipes: List<RecipeModel>,
-    onClickItem: (RecipeModel) -> Unit
+    onClickItem: (RecipeModel) -> Unit,
+    onDeleteItem: (RecipeModel) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+    // 로딩 상태
+    AnimatedVisibility(
+        visible = recipeState != RecipeState.Success,
+        enter = fadeIn(),
+        exit = fadeOut()
     ) {
-        items(recipes, key = { it.id }) { item ->
-            RecipeListItem(
-                item = item,
-                onclick = { onClickItem(item) }
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+    }
+
+    // 리스트 표시
+    if (recipeState == RecipeState.Success) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(recipes, key = { it.id }) { item ->
+                RecipeListItem(
+                    item = item,
+                    onclick = { onClickItem(item) },
+                    onDeleteClick = {}
+                )
+            }
         }
     }
 }

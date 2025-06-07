@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,40 +21,42 @@ fun RecipeScreen(
     homeNavController: NavController,
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsState()
     val recipes by viewModel.recipes.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    var input by remember { mutableStateOf("") }
+    val typingQuery by viewModel.typingQuery.collectAsState()
+    val filterQuery by viewModel.filterQuery.collectAsState()
 
-    // 입력창이 비면 자동으로 검색 조건도 초기화
-    LaunchedEffect(input) {
-        if (input.isBlank()) {
-            viewModel.updateSearchQuery("")
+    // 데이터 필터링
+    val filteredRecipes by remember(recipes, filterQuery) {
+        derivedStateOf {
+            recipes.filter {
+                it.recipeName.contains(filterQuery, ignoreCase = true)
+                        || it.recipeContent.contains(filterQuery, ignoreCase = true)
+            }
         }
     }
 
-    // Content
+    // 화면
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         RecipeSearchSection(
-            value = input,
-            onValueChange = { input = it },
-            onSearchConfirmed = {
-                viewModel.updateSearchQuery(input) // searchQuery = input
-            }
+            value = typingQuery,
+            onValueChange = { viewModel.updateTypingQuery(it) },
+            onSearchConfirmed = { viewModel.updateFilterQuery(typingQuery) }
         )
 
         RecipeListSection(
-            recipes = recipes.filter {
-                it.recipeName.contains(searchQuery, ignoreCase = true) ||
-                        it.recipeContent.contains(searchQuery, ignoreCase = true)
-            },
+            recipeState = state,
+            recipes = filteredRecipes,
             onClickItem = { recipe ->
                 navController.currentBackStackEntry?.savedStateHandle?.set("recipe", recipe)
                 navController.navigate("recipeDetail")
+            },
+            onDeleteItem = {
+
             }
         )
     }
 }
-

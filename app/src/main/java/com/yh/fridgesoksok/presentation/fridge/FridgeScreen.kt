@@ -90,7 +90,7 @@ fun FridgeScreen(
                     saveState = true
                 }
                 launchSingleTop = true
-                restoreState = true
+                restoreState = false
             }
             viewModel.resetRecipeCreated()
         }

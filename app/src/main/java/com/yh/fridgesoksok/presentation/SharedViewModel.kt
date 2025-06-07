@@ -95,6 +95,8 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         _requestRecipeGeneration.value = false
     }
     // endregion
+
+    // region ▸ 레시피 리로드 요청 (RecipeSceen에서 감지)
 }
 
 enum class EditSource { HOME, UPLOAD, CREATE }

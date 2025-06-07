@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.recipe
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -8,7 +7,6 @@ import com.yh.fridgesoksok.domain.usecase.GetRecipesUseCase
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -20,32 +18,42 @@ class RecipeViewModel @Inject constructor(
     val getRecipesUseCase: GetRecipesUseCase
 ) : ViewModel() {
 
+    private val _state = MutableStateFlow<RecipeState>(RecipeState.Loading)
+    val state = _state.asStateFlow()
+
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
     val recipes = _recipes.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery = _searchQuery.asStateFlow()
+    private val _filterQuery = MutableStateFlow("")
+    val filterQuery = _filterQuery.asStateFlow()
+
+    private val _typingQuery = MutableStateFlow("")
+    val typingQuery = _typingQuery.asStateFlow()
 
     init {
         getRecipes()
     }
 
-    fun getRecipes() {
+    private fun getRecipes() {
         getRecipesUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-
-                    Log.d("test444", result.toString())
-                    _recipes.value = result.data!!.map { it.toPresentation() }
+                    _recipes.value = result.data!!.map { it.toPresentation() }.sortedByDescending { it.createdAt }
+                    _state.value = RecipeState.Success
                 }
 
-                is Resource.Error -> Unit
-                is Resource.Loading -> Unit
+                is Resource.Error -> _state.value = RecipeState.Error
+                is Resource.Loading -> _state.value = RecipeState.Loading
             }
         }.launchIn(viewModelScope)
     }
 
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
+    fun updateTypingQuery(query: String) {
+        _typingQuery.value = query
+        if (query.isBlank()) _filterQuery.value = ""
+    }
+
+    fun updateFilterQuery(query: String) {
+        _filterQuery.value = query
     }
 }
