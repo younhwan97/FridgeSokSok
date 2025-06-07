@@ -6,6 +6,8 @@ import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
+import com.yh.fridgesoksok.remote.model.RecipeRequest
+import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
@@ -60,7 +62,7 @@ interface FridgeApiService {
     ): CommonResponse<List<ReceiptResponse>>
 
     /* ************************************************************* */
-    /* ************************ Receipt API ************************ */
+    /* ************************ Fridge API ************************ */
     @GET("fridges")
     suspend fun getFridges(): CommonResponse<List<FridgeResponse>>
 
@@ -110,4 +112,15 @@ interface FridgeApiService {
 
     @GET("auth/validateRefreshToken")
     suspend fun validateUserToken(): CommonResponse<Boolean>
+
+    /* ************************************************************* */
+    /* ************************ Recipe API ************************* */
+    @Headers("Content-Type: application/json")
+    @POST("recipes")
+    suspend fun createRecipe(
+        @Body recipeRequest: RecipeRequest
+    ): RecipeResponse
+
+    @GET("recipes")
+    suspend fun getRecipes(): List<RecipeResponse>
 }

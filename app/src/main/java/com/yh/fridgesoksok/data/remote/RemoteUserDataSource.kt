@@ -16,4 +16,5 @@ interface RemoteUserDataSource {
     suspend fun reissueUserToken(refreshToken: String): TokenEntity
 
     suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity
+
 }

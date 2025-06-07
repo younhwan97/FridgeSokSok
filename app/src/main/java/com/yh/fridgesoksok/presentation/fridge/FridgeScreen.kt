@@ -29,6 +29,7 @@ import com.yh.fridgesoksok.presentation.model.Type
 fun FridgeScreen(
     mode: HomeUiMode,
     navController: NavController,
+    homeNavController: NavController,
     sharedViewModel: SharedViewModel,
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
@@ -38,8 +39,6 @@ fun FridgeScreen(
     val typingQuery by viewModel.typingQuery.collectAsState()
     val filterQuery by viewModel.filterQuery.collectAsState()
     val selectedFoods by viewModel.selectedFoods.collectAsState()
-
-    val sharedSelectedFoods by sharedViewModel.selectedFoodsForRecipe.collectAsState()
 
     // 데이터 필터링
     val filteredFoods by remember(allFoods, filterQuery, selectedType) {
@@ -58,31 +57,42 @@ fun FridgeScreen(
         }
     }
 
-    // SharedViewModel을 통한 데이터 공유
-    LaunchedEffect(selectedFoods) {
-        sharedViewModel.setSelectedFoodsForRecipe(selectedFoods.toList())
-    }
+    // SharedViewModel 플래그 감지
+    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()     // 전체선택 플래그 감지
+    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState() // 전체해제 플래그 감지
+    val recipeRequested by sharedViewModel.requestRecipeGeneration.collectAsState()        // 레시피생성 플래그 감지
 
-    LaunchedEffect(sharedSelectedFoods) {
-        viewModel.setSelectedFoods(sharedSelectedFoods.toSet())
-    }
+    LaunchedEffect(selectAllRequested, deselectAllRequested, recipeRequested) {
+        when {
+            selectAllRequested -> {
+                viewModel.setSelectedFoods(filteredFoods.toSet())
+                sharedViewModel.clearSelectAllFoodsRequest()
+            }
 
-    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()
-    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState()
+            deselectAllRequested -> {
+                viewModel.setDeselectedFoods(filteredFoods.toSet())
+                sharedViewModel.clearDeselectAllFoodsRequest()
+            }
 
-    LaunchedEffect(selectAllRequested) {
-        if (selectAllRequested) {
-            viewModel.setSelectedFoods(filteredFoods.toSet())
-            sharedViewModel.setSelectedFoodsForRecipe(filteredFoods)
-            sharedViewModel.clearSelectAllFoodsRequest()
+            recipeRequested -> {
+                viewModel.createRecipe(selectedFoods)
+                sharedViewModel.clearRecipeGenerationRequest()
+            }
         }
     }
 
-    LaunchedEffect(deselectAllRequested) {
-        if (deselectAllRequested) {
-            viewModel.clearSelectedFoods(filteredFoods.toSet())
-            sharedViewModel.clearSelectedFoodsForRecipe()
-            sharedViewModel.clearDeselectAllFoodsRequest()
+    val isRecipeCreated by viewModel.isRecipeCreated.collectAsState()
+
+    LaunchedEffect(isRecipeCreated) {
+        if (isRecipeCreated) {
+            homeNavController.navigate(Screen.RecipeTab.route) {
+                popUpTo(homeNavController.graph.startDestinationId) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+            viewModel.resetRecipeCreated()
         }
     }
 

@@ -7,7 +7,7 @@ data class RecipeEntity(
     val recipeImageUrl: String,
     val recipeName: String,
     val recipeContent: String,
-    val ingredients: List<FoodEntity>,
+    val ingredients: List<String>,
     val createdAt: String
 )
 
@@ -17,7 +17,7 @@ fun Recipe.toEntity(): RecipeEntity {
         recipeImageUrl = recipeImageUrl,
         recipeName = recipeName,
         recipeContent = recipeContent,
-        ingredients = ingredients.map { it.toEntity() },
+        ingredients = ingredients,
         createdAt = createdAt
     )
 }
@@ -28,7 +28,7 @@ fun RecipeEntity.toDomain(): Recipe {
         recipeImageUrl = recipeImageUrl,
         recipeName = recipeName,
         recipeContent = recipeContent,
-        ingredients = ingredients.map { it.toDomain() },
+        ingredients = ingredients,
         createdAt = createdAt
     )
 }

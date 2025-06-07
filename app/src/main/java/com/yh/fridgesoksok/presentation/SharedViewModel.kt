@@ -59,19 +59,6 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     }
     // endregion
 
-    // region ▸ 레시피 생성을 위한 재료 선택 공유 (Fridge ↔ Home)
-    private val _selectedFoodsForRecipe = MutableStateFlow<List<FoodModel>>(emptyList())
-    val selectedFoodsForRecipe = _selectedFoodsForRecipe.asStateFlow()
-
-    fun setSelectedFoodsForRecipe(foods: List<FoodModel>) {
-        _selectedFoodsForRecipe.value = foods
-    }
-
-    fun clearSelectedFoodsForRecipe() {
-        _selectedFoodsForRecipe.value = emptyList()
-    }
-    // endregion
-
     // region ▸ 전체 선택/해제 요청 (FridgeScreen 내 일회성 트리거 용도)
     private val _selectAllFoodsRequested = MutableStateFlow(false)
     val selectAllFoodsRequested = _selectAllFoodsRequested.asStateFlow()
@@ -93,6 +80,19 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun clearDeselectAllFoodsRequest() {
         _deselectAllFoodsRequested.value = false
+    }
+    // endregion
+
+    // region ▸ 레시피 생성 요청 (FridgeScreen에서 감지 → ViewModel 호출)
+    private val _requestRecipeGeneration = MutableStateFlow(false)
+    val requestRecipeGeneration = _requestRecipeGeneration.asStateFlow()
+
+    fun requestRecipeGeneration() {
+        _requestRecipeGeneration.value = true
+    }
+
+    fun clearRecipeGenerationRequest() {
+        _requestRecipeGeneration.value = false
     }
     // endregion
 }

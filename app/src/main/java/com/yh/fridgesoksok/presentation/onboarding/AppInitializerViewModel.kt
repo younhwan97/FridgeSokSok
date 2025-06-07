@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.domain.usecase.DeleteLocalFoodsUseCase
@@ -29,6 +30,10 @@ class AppInitializerViewModel @Inject constructor(
     val isInitializationCompleted = _isInitializationCompleted.asStateFlow()
 
     init {
+        /* Local 데이터 생성
+        * 1. 검색어 추천을 위해 앱 최초 실행 시 한번만 수행 */
+        Logger.i("Onboarding", "로컬데이터 초기화")
+        
         checkAndInitialize()
     }
 
@@ -39,6 +44,7 @@ class AppInitializerViewModel @Inject constructor(
                     if (result.data == 0) {
                         initializeFoodsFromCsv()
                     } else {
+                        Logger.d("Onboarding", "로컬데이터 초기화 스킵")
                         _isInitializationCompleted.value = true
                     }
                 }
@@ -53,17 +59,18 @@ class AppInitializerViewModel @Inject constructor(
     }
 
     private fun initializeFoodsFromCsv() {
+        // CSV에서 LocalFood 리스트 추출
         val parsedFoods = parseCsvFromAssets(context)
-
+        // 초기화
         initializeLocalFoodsFromCsvUseCase(parsedFoods).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    Logger.d("Onboarding", "로컬데이터 초기화 완료")
                     _isInitializationCompleted.value = true
-
-                    Log.d("test444444", "초기화 성공")
                 }
 
                 is Resource.Error -> {
+                    Logger.d("Onboarding", "로컬데이터 초기화 실패")
                     _isInitializationCompleted.value = true
                 }
 

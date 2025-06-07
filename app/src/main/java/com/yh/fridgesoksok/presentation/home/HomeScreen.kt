@@ -1,10 +1,7 @@
 package com.yh.fridgesoksok.presentation.home
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -15,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -24,6 +20,7 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
+import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 
@@ -69,7 +66,8 @@ fun HomeScreen(
             HomeBottomBar(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
-                homeNavController = homeNavController
+                homeNavController = homeNavController,
+                onClickGenerateRecipe = { sharedViewModel.requestRecipeGeneration() }
             )
         },
         floatingActionButton = {
@@ -95,14 +93,11 @@ fun HomeScreen(
             )
 
             // FAB Overlay Screen
-            if (currentRoute == Screen.FridgeTab.route && isFabExpanded) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.2f))
-                        .clickable { isFabExpanded = false }
-                )
-            }
+            HomeFabOverlay(
+                currentRoute = currentRoute,
+                isFabExpanded = isFabExpanded,
+                onClickFabOverlay = { isFabExpanded = false }
+            )
         }
     }
 }

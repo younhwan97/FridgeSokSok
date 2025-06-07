@@ -20,6 +20,7 @@ import com.yh.fridgesoksok.presentation.recipe.comp.RecipeSearchSection
 @Composable
 fun RecipeScreen(
     navController: NavController,
+    homeNavController: NavController,
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
     val recipes by viewModel.recipes.collectAsState()

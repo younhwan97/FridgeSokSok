@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.recipe.comp
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
+import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
@@ -72,19 +75,11 @@ fun RecipeListItem(
                     }
                 },
                 failure = {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .border(1.dp, CustomGreyColor3, RoundedCornerShape(12.dp))
-                    ) {
-                        Text(
-                            modifier = Modifier.align(Alignment.Center),
-                            text = "X",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CustomGreyColor3,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    Image(
+                        painter = painterResource(R.drawable.basic_food_image),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null
+                    )
                 },
             )
         }

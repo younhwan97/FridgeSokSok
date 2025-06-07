@@ -52,9 +52,11 @@ fun HomeBottomBar(
         shadowElevation = 6.dp,
         color = MaterialTheme.colorScheme.background
     ) {
-        when (mode) {
-            HomeUiMode.DEFAULT -> BottomNavigationBar(currentRoute, homeNavController)
-            HomeUiMode.RECIPE_SELECT -> GenerateRecipeBar(onClickGenerateRecipe)
+        when {
+            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.DEFAULT -> BottomNavigationBar(currentRoute, homeNavController)
+            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT -> GenerateRecipeBar(onClickGenerateRecipe)
+            currentRoute == Screen.RecipeTab.route -> BottomNavigationBar(currentRoute, homeNavController)
+            currentRoute == Screen.AccountTab.route -> BottomNavigationBar(currentRoute, homeNavController)
         }
     }
 }

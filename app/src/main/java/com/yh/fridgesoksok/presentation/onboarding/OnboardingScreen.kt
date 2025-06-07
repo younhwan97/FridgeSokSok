@@ -30,25 +30,14 @@ fun OnboardingScreen(
     // 네비게이션
     LaunchedEffect(onboardingState, isInitDone) {
         if (!isInitDone) return@LaunchedEffect
-
         when (onboardingState) {
-            is OnboardingState.Success -> {
-                navController.navigate(Screen.HomeScreen.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-
-            is OnboardingState.Error -> {
-                navController.navigate(Screen.LoginScreen.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-
+            is OnboardingState.Success -> navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
+            is OnboardingState.Error -> navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
             else -> Unit
         }
     }
 
-    // Content
+    // 화면
     Box(
         modifier = Modifier
             .fillMaxSize()

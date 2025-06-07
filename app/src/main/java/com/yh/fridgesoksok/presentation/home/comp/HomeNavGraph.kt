@@ -33,6 +33,7 @@ fun HomeNavGraph(
                 FridgeScreen(
                     mode = mode,
                     navController = navController,
+                    homeNavController = homeNavController,
                     sharedViewModel = sharedViewModel
                 )
             }
@@ -41,14 +42,20 @@ fun HomeNavGraph(
         homeTabComposable(
             route = Screen.RecipeTab.route,
             content = {
-                RecipeScreen(navController = navController)
+                RecipeScreen(
+                    navController = navController,
+                    homeNavController = homeNavController
+                )
             }
         )
         // 계정 TAB
         homeTabComposable(
             route = Screen.AccountTab.route,
             content = {
-                AccountScreen(navController = navController)
+                AccountScreen(
+                    navController = navController,
+                    homeNavController = homeNavController
+                )
             }
         )
     }

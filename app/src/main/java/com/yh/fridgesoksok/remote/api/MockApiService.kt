@@ -8,6 +8,8 @@ import com.yh.fridgesoksok.remote.model.FoodAddRequest
 import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
+import com.yh.fridgesoksok.remote.model.RecipeRequest
+import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.TokenResponse
@@ -45,6 +47,14 @@ class MockApiService(
                 )
             )
         )
+    }
+
+    override suspend fun getRecipes(): List<RecipeResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun createRecipe(recipeRequest: RecipeRequest): RecipeResponse {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getFoods(fridgeId: String): CommonResponse<List<FoodResponse>> {

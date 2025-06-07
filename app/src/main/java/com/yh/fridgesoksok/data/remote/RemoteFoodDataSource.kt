@@ -15,4 +15,5 @@ interface RemoteFoodDataSource {
     suspend fun updateFood(foodEntity: FoodEntity): FoodEntity
 
     suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity>
+
 }

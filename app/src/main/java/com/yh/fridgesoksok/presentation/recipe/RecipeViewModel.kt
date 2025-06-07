@@ -34,6 +34,8 @@ class RecipeViewModel @Inject constructor(
         getRecipesUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
+
+                    Log.d("test444", result.toString())
                     _recipes.value = result.data!!.map { it.toPresentation() }
                 }
 

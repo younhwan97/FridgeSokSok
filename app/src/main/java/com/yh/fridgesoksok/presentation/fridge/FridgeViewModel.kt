@@ -1,8 +1,10 @@
 package com.yh.fridgesoksok.presentation.fridge
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.CreateRecipeUseCase
 import com.yh.fridgesoksok.domain.usecase.DeleteFoodUseCase
 import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
@@ -25,7 +27,8 @@ class FridgeViewModel @Inject constructor(
     private val getFoodsUseCase: GetFoodsUseCase,
     private val updateFoodUseCase: UpdateFoodUseCase,
     private val deleteFoodUseCase: DeleteFoodUseCase,
-    private val loadUserUseCase: LoadUserUseCase
+    private val loadUserUseCase: LoadUserUseCase,
+    private val createRecipeUseCase: CreateRecipeUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<FridgeState>(FridgeState.Loading)
@@ -45,6 +48,9 @@ class FridgeViewModel @Inject constructor(
 
     private val _selectedType = MutableStateFlow(Type.All)
     val selectedType = _selectedType.asStateFlow()
+
+    private val _isRecipeCreated = MutableStateFlow(false)
+    val isRecipeCreated = _isRecipeCreated.asStateFlow()
 
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>()) // 중복처리 방지
 
@@ -101,6 +107,19 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
+    fun createRecipe(foods: Collection<FoodModel>){
+        createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _isRecipeCreated.value = true
+                }
+
+                is Resource.Error -> Unit
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
     private fun executeSingleAction(id: String, block: () -> kotlinx.coroutines.flow.Flow<Resource<*>>) {
         if (!_pendingActions.add(id)) return
         block().onEach {
@@ -129,19 +148,15 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
-    fun selectAllFoods(foods: List<FoodModel>) {
-        _selectedFoods.value = foods.toSet()
-    }
-
-    fun deselectAllFoods() {
-        _selectedFoods.value = emptySet()
-    }
-
     fun setSelectedFoods(foods: Set<FoodModel>) {
         _selectedFoods.value += foods
     }
 
-    fun clearSelectedFoods(foods: Set<FoodModel>) {
+    fun setDeselectedFoods(foods: Set<FoodModel>) {
         _selectedFoods.value -= foods
+    }
+
+    fun resetRecipeCreated() {
+        _isRecipeCreated.value = false
     }
 }

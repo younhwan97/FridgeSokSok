@@ -7,7 +7,7 @@ data class RecipeResponse(
     val recipeImageUrl: String?,
     val recipeName: String?,
     val recipeContent: String?,
-    val ingredients: List<FoodResponse>?,
+    val ingredients: List<String>?,
     val createdAt: String?
 )
 
@@ -17,7 +17,7 @@ fun RecipeResponse.toEntity(): RecipeEntity {
         recipeImageUrl = recipeImageUrl.orEmpty(),
         recipeName = recipeName.orEmpty(),
         recipeContent = recipeContent.orEmpty(),
-        ingredients = ingredients?.map { it.toEntity() } ?: emptyList(),
+        ingredients = ingredients.orEmpty(),
         createdAt = createdAt.orEmpty()
     )
 }

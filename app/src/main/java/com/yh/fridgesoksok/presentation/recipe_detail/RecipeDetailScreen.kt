@@ -114,19 +114,11 @@ fun RecipeDetailScreen(
                             }
                         },
                         failure = {
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .border(1.dp, CustomGreyColor3)
-                            ) {
-                                Text(
-                                    modifier = Modifier.align(Alignment.Center),
-                                    text = "레시피 이미지를 읽어오는데 실패했습니다 :(",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = CustomGreyColor5,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
+                            Image(
+                                painter = painterResource(R.drawable.basic_food_image),
+                                contentScale = ContentScale.Crop,
+                                contentDescription = null
+                            )
                         },
                     )
                 }
@@ -179,14 +171,15 @@ fun RecipeDetailScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Image(
-                                            painter = painterResource(Type.entries.firstOrNull { it.id == ingredient.categoryId }?.icon ?: R.drawable.ingredients),
+                                            painter = painterResource(R.drawable.ingredients),
+                                            //painter = painterResource(Type.entries.firstOrNull { it.id == ingredient.categoryId }?.icon ?: R.drawable.ingredients),
                                             contentDescription = null,
                                             contentScale = ContentScale.None
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = ingredient.itemName,
+                                        text = ingredient,
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.Normal,
                                         maxLines = 1,

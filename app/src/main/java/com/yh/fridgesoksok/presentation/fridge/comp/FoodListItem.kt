@@ -77,7 +77,7 @@ fun FoodListItem(
                 onClick = onClick
             )
             .padding(8.dp)
-            .animateContentSize(animationSpec = tween(400))
+            .animateContentSize(animationSpec = tween(300))
     ) {
         HeaderRow(
             modifier = Modifier

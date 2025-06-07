@@ -15,6 +15,7 @@ import com.yh.fridgesoksok.presentation.Screen
 @Composable
 fun AccountScreen(
     navController: NavController,
+    homeNavController: NavController,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
 
