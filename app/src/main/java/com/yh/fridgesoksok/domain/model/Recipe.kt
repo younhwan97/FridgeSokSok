@@ -6,5 +6,6 @@ data class Recipe(
     val recipeName: String,
     val recipeContent: String,
     val ingredients: List<String>,
+    val ingredientTypes: List<Int>,
     val createdAt: String
 )

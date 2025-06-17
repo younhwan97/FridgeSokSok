@@ -11,6 +11,7 @@ data class RecipeModel(
     val recipeName: String,
     val recipeContent: String,
     val ingredients: List<String>,
+    val ingredientTypes: List<Int>,
     val createdAt: String
 ) : Parcelable
 
@@ -21,6 +22,7 @@ fun Recipe.toPresentation(): RecipeModel {
         recipeName = recipeName,
         recipeContent = recipeContent,
         ingredients = ingredients,
+        ingredientTypes = ingredientTypes,
         createdAt = createdAt
     )
 }

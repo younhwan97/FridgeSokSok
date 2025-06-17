@@ -18,10 +18,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -33,11 +35,13 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 fun HomeTopAppBar(
     mode: HomeUiMode,
     currentRoute: String,
+    recipeGenerationState: RecipeGenerationState,
     onClickAiRecipeBtn: () -> Unit,
     onClickNavigationBtn: () -> Unit,
     onClickSelectAll: () -> Unit,
     onClickDeselectAll: () -> Unit
 ) {
+    // 홈 UI 모드 & 라우팅에 따라 바텀바 분기
     when {
         // 냉장고 TAB + 레시피 모드
         currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT -> {
@@ -57,11 +61,15 @@ fun HomeTopAppBar(
                         Button(
                             modifier = Modifier.width(64.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = CustomGreyColor5
-                            ),
                             contentPadding = PaddingValues(0.dp),
                             onClick = onClickDeselectAll,
+                            enabled = recipeGenerationState != RecipeGenerationState.Loading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = CustomGreyColor5,
+                                contentColor = Color.White,
+                                disabledContainerColor = CustomGreyColor5.copy(alpha = 0.66f),
+                                disabledContentColor = Color.White.copy(alpha = 0.8f)
+                            )
                         ) {
                             Text(
                                 text = "전체 해제",
@@ -73,11 +81,15 @@ fun HomeTopAppBar(
                         Button(
                             modifier = Modifier.width(64.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                            ),
                             contentPadding = PaddingValues(0.dp),
                             onClick = onClickSelectAll,
+                            enabled = recipeGenerationState != RecipeGenerationState.Loading,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White,
+                                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.66f),
+                                disabledContentColor = Color.White.copy(alpha = 0.8f)
+                            )
                         ) {
                             Text(
                                 text = "전체 선택",

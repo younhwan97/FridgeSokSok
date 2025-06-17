@@ -8,6 +8,9 @@ plugins {
 
     alias(libs.plugins.kotlin.android.ksp)
     alias(libs.plugins.hilt.android)
+
+    alias(libs.plugins.goolge.service)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 //configurations.all {
@@ -130,4 +133,13 @@ dependencies {
 
     // Coil
     implementation(libs.coil)
+
+    // Lottie
+    implementation(libs.lottie)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
 }

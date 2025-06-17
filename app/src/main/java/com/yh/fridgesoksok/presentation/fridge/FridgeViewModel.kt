@@ -49,9 +49,6 @@ class FridgeViewModel @Inject constructor(
     private val _selectedType = MutableStateFlow(Type.All)
     val selectedType = _selectedType.asStateFlow()
 
-    private val _isRecipeCreated = MutableStateFlow(false)
-    val isRecipeCreated = _isRecipeCreated.asStateFlow()
-
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>()) // 중복처리 방지
 
     fun loadFoods() {
@@ -107,14 +104,17 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
-    fun createRecipe(foods: Collection<FoodModel>){
+    fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit){
         createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _isRecipeCreated.value = true
+                    onResult(true, null)
                 }
 
-                is Resource.Error -> Unit
+                is Resource.Error -> {
+                    onResult(false, result.message ?: "레시피 생성 실패")
+                }
+
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -154,9 +154,5 @@ class FridgeViewModel @Inject constructor(
 
     fun setDeselectedFoods(foods: Set<FoodModel>) {
         _selectedFoods.value -= foods
-    }
-
-    fun resetRecipeCreated() {
-        _isRecipeCreated.value = false
     }
 }

@@ -49,11 +49,11 @@ class MockApiService(
         )
     }
 
-    override suspend fun getRecipes(): List<RecipeResponse> {
+    override suspend fun getRecipes(): CommonResponse<List<RecipeResponse>> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun createRecipe(recipeRequest: RecipeRequest): RecipeResponse {
+    override suspend fun createRecipe(recipeRequest: RecipeRequest): CommonResponse<RecipeResponse> {
         TODO("Not yet implemented")
     }
 

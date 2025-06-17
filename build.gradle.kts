@@ -7,4 +7,6 @@ plugins {
 
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.kotlin.android.ksp) apply false
+
+    alias(libs.plugins.goolge.service) apply false
 }

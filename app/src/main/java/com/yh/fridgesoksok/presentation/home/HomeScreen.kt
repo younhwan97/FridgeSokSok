@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,7 @@ import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
+import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 
 @Composable
@@ -31,22 +33,24 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val homeUiMode by homeViewModel.uiMode.collectAsState()
-    var isFabExpanded by remember { mutableStateOf(false) }
+    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
     val homeNavController = rememberNavController()
     val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
 
-    // 뒤로가기 핸들링
-    BackHandler(enabled = isFabExpanded || homeUiMode == HomeUiMode.RECIPE_SELECT) {
-        when {
-            isFabExpanded -> {
-                // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기
-                isFabExpanded = false
-            }
+    var isFabExpanded by remember { mutableStateOf(false) }
 
-            homeUiMode == HomeUiMode.RECIPE_SELECT -> {
-                // 레시피 모드에서 뒤로가기 시 DEFAULT 모드로 전환
-                homeViewModel.resetUiMode()
-            }
+    // 화면 변경 시 UI 모드 리셋
+    LaunchedEffect(currentRoute) {
+        homeViewModel.resetUiMode()
+    }
+
+    // 뒤로가기 핸들링
+    BackHandler(isFabExpanded || homeUiMode == HomeUiMode.RECIPE_SELECT) {
+        when {
+            // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기
+            isFabExpanded -> isFabExpanded = false
+            // 레시피 모드에서 뒤로가기 시 UI 모드 리셋
+            homeUiMode == HomeUiMode.RECIPE_SELECT -> homeViewModel.resetUiMode()
         }
     }
 
@@ -56,8 +60,12 @@ fun HomeScreen(
             HomeTopAppBar(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
+                recipeGenerationState = recipeState,
                 onClickAiRecipeBtn = { homeViewModel.updateToRecipeUiMode() },
-                onClickNavigationBtn = { homeViewModel.updateToDefaultUiMode() },
+                onClickNavigationBtn = {
+                    homeViewModel.updateToDefaultUiMode()
+                    sharedViewModel.resetRecipeGenerationState()
+                },
                 onClickSelectAll = { sharedViewModel.requestSelectAllFoods() },
                 onClickDeselectAll = { sharedViewModel.requestDeselectAllFoods() }
             )
@@ -67,7 +75,8 @@ fun HomeScreen(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
                 homeNavController = homeNavController,
-                onClickGenerateRecipe = { sharedViewModel.requestRecipeGeneration() }
+                recipeGenerationState = recipeState,
+                onClickGenerateRecipe = { sharedViewModel.startRecipeGeneration() }
             )
         },
         floatingActionButton = {
@@ -92,11 +101,16 @@ fun HomeScreen(
                 sharedViewModel = sharedViewModel,
             )
 
-            // FAB Overlay Screen
+            // FAB 오버레이 화면
             HomeFabOverlay(
                 currentRoute = currentRoute,
                 isFabExpanded = isFabExpanded,
                 onClickFabOverlay = { isFabExpanded = false }
+            )
+
+            // Recipe 생성 로딩 화면
+            HomeGeneratingRecipe(
+                recipeGenerateState = recipeState
             )
         }
     }

@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -41,7 +45,8 @@ fun HomeBottomBar(
     mode: HomeUiMode,
     currentRoute: String,
     homeNavController: NavHostController,
-    onClickGenerateRecipe: () -> Unit = {}
+    recipeGenerationState: RecipeGenerationState,
+    onClickGenerateRecipe: () -> Unit = {},
 ) {
     Surface(
         Modifier
@@ -52,15 +57,24 @@ fun HomeBottomBar(
         shadowElevation = 6.dp,
         color = MaterialTheme.colorScheme.background
     ) {
+        // 홈 UI 모드 & 라우팅에 따라 바텀바 분기
         when {
-            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.DEFAULT -> BottomNavigationBar(currentRoute, homeNavController)
-            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT -> GenerateRecipeBar(onClickGenerateRecipe)
-            currentRoute == Screen.RecipeTab.route -> BottomNavigationBar(currentRoute, homeNavController)
-            currentRoute == Screen.AccountTab.route -> BottomNavigationBar(currentRoute, homeNavController)
+            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.DEFAULT ->
+                BottomNavigationBar(currentRoute, homeNavController)
+
+            currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT ->
+                GenerateRecipeBar(onClickGenerateRecipe, recipeGenerationState)
+
+            currentRoute == Screen.RecipeTab.route ->
+                BottomNavigationBar(currentRoute, homeNavController)
+
+            currentRoute == Screen.AccountTab.route ->
+                BottomNavigationBar(currentRoute, homeNavController)
         }
     }
 }
 
+// 네비게이션바
 @Composable
 private fun BottomNavigationBar(
     currentRoute: String,
@@ -108,20 +122,35 @@ private fun BottomNavigationBar(
     }
 }
 
+// 레시피 생성바
 @Composable
 private fun GenerateRecipeBar(
-    onClickGenerateRecipe: () -> Unit
+    onClickGenerateRecipe: () -> Unit,
+    recipeGenerationState: RecipeGenerationState
 ) {
     Button(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        onClick = { onClickGenerateRecipe() },
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Text(
-            text = "레시피 생성하기",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = CustomGreyColor1
+        onClick = onClickGenerateRecipe,
+        shape = RoundedCornerShape(12.dp),
+        enabled = recipeGenerationState != RecipeGenerationState.Loading,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = Color.White,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.66f),
+            disabledContentColor = Color.White.copy(alpha = 0.8f)
         )
+    ) {
+        if (recipeGenerationState == RecipeGenerationState.Loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Text(
+                text = "레시피 생성하기",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }

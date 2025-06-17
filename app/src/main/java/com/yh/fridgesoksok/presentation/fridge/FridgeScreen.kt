@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
+import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
@@ -60,9 +61,8 @@ fun FridgeScreen(
     // SharedViewModel 플래그 감지
     val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()     // 전체선택 플래그 감지
     val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState() // 전체해제 플래그 감지
-    val recipeRequested by sharedViewModel.requestRecipeGeneration.collectAsState()        // 레시피생성 플래그 감지
 
-    LaunchedEffect(selectAllRequested, deselectAllRequested, recipeRequested) {
+    LaunchedEffect(selectAllRequested, deselectAllRequested) {
         when {
             selectAllRequested -> {
                 viewModel.setSelectedFoods(filteredFoods.toSet())
@@ -73,26 +73,45 @@ fun FridgeScreen(
                 viewModel.setDeselectedFoods(filteredFoods.toSet())
                 sharedViewModel.clearDeselectAllFoodsRequest()
             }
-
-            recipeRequested -> {
-                viewModel.createRecipe(selectedFoods)
-                sharedViewModel.clearRecipeGenerationRequest()
-            }
         }
     }
 
-    val isRecipeCreated by viewModel.isRecipeCreated.collectAsState()
-
-    LaunchedEffect(isRecipeCreated) {
-        if (isRecipeCreated) {
-            homeNavController.navigate(Screen.RecipeTab.route) {
-                popUpTo(homeNavController.graph.startDestinationId) {
-                    saveState = true
+    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()          // 레시피생성 플래그 감지
+    LaunchedEffect(recipeState) {
+        when (recipeState) {
+            is RecipeGenerationState.Loading -> {
+                if (selectedFoods.isNotEmpty()) {
+                    viewModel.createRecipe(selectedFoods) { success, errorMsg ->
+                        if (recipeState == RecipeGenerationState.Loading) {
+                            if (success) {
+                                sharedViewModel.completeRecipeGeneration(success = true)
+                            } else {
+                                sharedViewModel.completeRecipeGeneration(success = false, errorMessage = errorMsg)
+                            }
+                        }
+                    }
+                } else {
+                    sharedViewModel.completeRecipeGeneration(success = false, errorMessage = "재료 미선택")
                 }
-                launchSingleTop = true
-                restoreState = false
             }
-            viewModel.resetRecipeCreated()
+
+            is RecipeGenerationState.Success -> {
+                homeNavController.navigate(Screen.RecipeTab.route) {
+                    popUpTo(homeNavController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = false
+                }
+                sharedViewModel.resetRecipeGenerationState()
+                viewModel.setDeselectedFoods(filteredFoods.toSet())
+            }
+
+            is RecipeGenerationState.Error -> {
+                sharedViewModel.resetRecipeGenerationState()
+            }
+
+            RecipeGenerationState.Idle -> Unit
         }
     }
 

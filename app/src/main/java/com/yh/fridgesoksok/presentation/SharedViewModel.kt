@@ -84,19 +84,29 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     // endregion
 
     // region ▸ 레시피 생성 요청 (FridgeScreen에서 감지 → ViewModel 호출)
-    private val _requestRecipeGeneration = MutableStateFlow(false)
-    val requestRecipeGeneration = _requestRecipeGeneration.asStateFlow()
+    private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
+    val recipeGenerationState = _recipeGenerationState.asStateFlow()
 
-    fun requestRecipeGeneration() {
-        _requestRecipeGeneration.value = true
+    fun startRecipeGeneration() {
+        _recipeGenerationState.value = RecipeGenerationState.Loading
     }
 
-    fun clearRecipeGenerationRequest() {
-        _requestRecipeGeneration.value = false
+    fun completeRecipeGeneration(success: Boolean, errorMessage: String? = null) {
+        _recipeGenerationState.value =
+            if (success) RecipeGenerationState.Success else RecipeGenerationState.Error(errorMessage)
+    }
+
+    fun resetRecipeGenerationState() {
+        _recipeGenerationState.value = RecipeGenerationState.Idle
     }
     // endregion
-
-    // region ▸ 레시피 리로드 요청 (RecipeSceen에서 감지)
 }
 
 enum class EditSource { HOME, UPLOAD, CREATE }
+
+sealed class RecipeGenerationState {
+    data object Idle : RecipeGenerationState()
+    data object Loading : RecipeGenerationState()
+    data object Success : RecipeGenerationState()
+    data class Error(val message: String? = null) : RecipeGenerationState()
+}

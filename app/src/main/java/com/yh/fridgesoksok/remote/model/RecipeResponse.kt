@@ -7,7 +7,8 @@ data class RecipeResponse(
     val recipeImageUrl: String?,
     val recipeName: String?,
     val recipeContent: String?,
-    val ingredients: List<String>?,
+    val ingredientNames: List<String>?,
+    val ingredientTypes: List<Int>?,
     val createdAt: String?
 )
 
@@ -17,7 +18,8 @@ fun RecipeResponse.toEntity(): RecipeEntity {
         recipeImageUrl = recipeImageUrl.orEmpty(),
         recipeName = recipeName.orEmpty(),
         recipeContent = recipeContent.orEmpty(),
-        ingredients = ingredients.orEmpty(),
+        ingredients = ingredientNames.orEmpty(),
+        ingredientTypes = ingredientTypes.orEmpty(),
         createdAt = createdAt.orEmpty()
     )
 }

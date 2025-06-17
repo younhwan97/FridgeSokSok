@@ -119,8 +119,8 @@ interface FridgeApiService {
     @POST("recipes")
     suspend fun createRecipe(
         @Body recipeRequest: RecipeRequest
-    ): RecipeResponse
+    ): CommonResponse<RecipeResponse>
 
     @GET("recipes")
-    suspend fun getRecipes(): List<RecipeResponse>
+    suspend fun getRecipes(): CommonResponse<List<RecipeResponse>>
 }

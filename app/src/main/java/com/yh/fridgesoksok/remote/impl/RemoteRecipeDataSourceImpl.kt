@@ -20,7 +20,7 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
         return try {
             Logger.d("RemoteRecipeData", "createRecipe INPUT ${foods.toRecipeRequest()}")
             val response = fridgeApiService.createRecipe(foods.toRecipeRequest())
-            val data = response ?: throw IllegalStateException("createRecipe data(=null)")
+            val data = response.data ?: throw IllegalStateException("createRecipe data(=null)")
             data.toEntity()
         } catch (e: Exception) {
             Logger.e("RemoteRecipeData", "createRecipe 실패", e)
@@ -32,7 +32,7 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
         return try {
             Logger.d("RemoteRecipeData", "getRecipes")
             val response = fridgeApiService.getRecipes()
-            val data = response ?: throw IllegalStateException("getRecipes data(=null)")
+            val data = response.data ?: throw IllegalStateException("getRecipes data(=null)")
             data.map { it.toEntity() }
         } catch (e: Exception) {
             Logger.e("RemoteRecipeData", "getRecipes 실패", e)
