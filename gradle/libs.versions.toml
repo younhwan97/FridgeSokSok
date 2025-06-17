@@ -81,7 +81,7 @@ room-compiler-ksp = { group = "androidx.room", name = "room-compiler", version.r
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 # Lottile
 lottie = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie"}
-# Firebase
+# Firebase Bom
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
@@ -96,6 +96,6 @@ kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref =
 kotlin-android-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 # DI
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
-# Firebase Bom
+# Firebase
 goolge-service = { id = "com.google.gms.google-services", version.ref = "goolgeService" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
