@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok
 
 import android.app.Application
+import com.google.firebase.FirebaseApp
 import com.kakao.sdk.common.KakaoSdk
 import com.navercorp.nid.NaverIdLoginSDK
 import dagger.hilt.android.HiltAndroidApp
@@ -25,5 +26,8 @@ class FridgeApplication : Application() {
         )
 
         NaverIdLoginSDK.showDevelopersLog(true)
+
+        // 파이어베이스 초기화
+        FirebaseApp.initializeApp(this)
     }
 }

@@ -1,5 +1,10 @@
 package com.yh.fridgesoksok.presentation.home
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -13,6 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,6 +47,9 @@ fun HomeScreen(
 
     var isFabExpanded by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+
     // 화면 변경 시 UI 모드 리셋
     LaunchedEffect(currentRoute) {
         homeViewModel.resetUiMode()
@@ -51,6 +62,25 @@ fun HomeScreen(
             isFabExpanded -> isFabExpanded = false
             // 레시피 모드에서 뒤로가기 시 UI 모드 리셋
             homeUiMode == HomeUiMode.RECIPE_SELECT -> homeViewModel.resetUiMode()
+        }
+    }
+
+    // 알림권한 확인 및 알림채널 생성
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permission = android.Manifest.permission.POST_NOTIFICATIONS
+            val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+            if (!granted && activity != null) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(permission),
+                    1001
+                )
+            } else {
+                createNotificationChannelIfNeeded(context)
+            }
+        } else {
+            createNotificationChannelIfNeeded(context)
         }
     }
 
@@ -114,4 +144,17 @@ fun HomeScreen(
             )
         }
     }
+}
+
+fun createNotificationChannelIfNeeded(context: Context) {
+    val channel = NotificationChannel(
+        "default",
+        "기본 알림",
+        NotificationManager.IMPORTANCE_HIGH
+    ).apply {
+        description = "푸시 알림을 위한 기본 채널입니다"
+    }
+
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.createNotificationChannel(channel)
 }
