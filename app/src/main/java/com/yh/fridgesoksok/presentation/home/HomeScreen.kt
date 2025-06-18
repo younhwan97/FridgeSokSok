@@ -76,11 +76,7 @@ fun HomeScreen(
                     arrayOf(permission),
                     1001
                 )
-            } else {
-                createNotificationChannelIfNeeded(context)
             }
-        } else {
-            createNotificationChannelIfNeeded(context)
         }
     }
 
@@ -144,17 +140,4 @@ fun HomeScreen(
             )
         }
     }
-}
-
-fun createNotificationChannelIfNeeded(context: Context) {
-    val channel = NotificationChannel(
-        "default",
-        "기본 알림",
-        NotificationManager.IMPORTANCE_HIGH
-    ).apply {
-        description = "푸시 알림을 위한 기본 채널입니다"
-    }
-
-    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    manager.createNotificationChannel(channel)
 }
