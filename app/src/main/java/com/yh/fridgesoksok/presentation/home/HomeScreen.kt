@@ -1,8 +1,5 @@
 package com.yh.fridgesoksok.presentation.home
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -30,8 +27,8 @@ import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
-import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
+import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 
 @Composable
