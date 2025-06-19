@@ -11,4 +11,5 @@ interface RecipeRepository {
 
     fun getRecipes(): Flow<Resource<List<Recipe>>>
 
+    fun deleteRecipe(recipeId: String): Flow<Resource<Boolean>>
 }

@@ -9,4 +9,6 @@ interface RemoteRecipeDataSource {
 
     suspend fun getRecipes(): List<RecipeEntity>
 
+    suspend fun deleteRecipe(recipeId: String): Boolean
+
 }

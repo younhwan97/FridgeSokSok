@@ -47,7 +47,7 @@ fun RecipeListSection(
                 RecipeListItem(
                     item = item,
                     onclick = { onClickItem(item) },
-                    onDeleteClick = {}
+                    onDeleteClick = { onDeleteItem(item) }
                 )
             }
         }

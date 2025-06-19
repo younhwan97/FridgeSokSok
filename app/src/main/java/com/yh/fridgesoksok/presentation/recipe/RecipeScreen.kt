@@ -54,8 +54,8 @@ fun RecipeScreen(
                 navController.currentBackStackEntry?.savedStateHandle?.set("recipe", recipe)
                 navController.navigate("recipeDetail")
             },
-            onDeleteItem = {
-
+            onDeleteItem = { recipe ->
+                viewModel.deleteRecipe(recipe.id)
             }
         )
     }

@@ -1,8 +1,10 @@
 package com.yh.fridgesoksok.presentation.recipe
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.DeleteRecipeUseCase
 import com.yh.fridgesoksok.domain.usecase.GetRecipesUseCase
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
@@ -15,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
-    val getRecipesUseCase: GetRecipesUseCase
+    val getRecipesUseCase: GetRecipesUseCase,
+    val deleteRecipeUseCase: DeleteRecipeUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<RecipeState>(RecipeState.Loading)
@@ -40,6 +43,19 @@ class RecipeViewModel @Inject constructor(
                 is Resource.Success -> {
                     _recipes.value = result.data!!.map { it.toPresentation() }.sortedByDescending { it.createdAt }
                     _state.value = RecipeState.Success
+                }
+
+                is Resource.Error -> _state.value = RecipeState.Error
+                is Resource.Loading -> _state.value = RecipeState.Loading
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun deleteRecipe(recipeId: String) {
+        deleteRecipeUseCase(recipeId).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    Log.d("test4444", result.toString())
                 }
 
                 is Resource.Error -> _state.value = RecipeState.Error

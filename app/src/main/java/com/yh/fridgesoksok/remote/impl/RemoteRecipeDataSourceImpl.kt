@@ -39,4 +39,16 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
             throw e
         }
     }
+
+    override suspend fun deleteRecipe(recipeId: String): Boolean {
+        return try {
+            Logger.d("RemoteRecipeData", "deleteRecipe ${recipeId}")
+            val response = fridgeApiService.deleteRecipe(recipeId)
+            val data = response.data ?: throw IllegalStateException("getRecipes data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteRecipeData", "deleteRecipe 실패", e)
+            throw e
+        }
+    }
 }

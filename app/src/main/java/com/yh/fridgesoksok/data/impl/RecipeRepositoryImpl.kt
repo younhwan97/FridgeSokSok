@@ -25,6 +25,11 @@ class RecipeRepositoryImpl @Inject constructor(
             remoteRecipeDataSource.getRecipes().map { it.toDomain() }
         }
 
+    override fun deleteRecipe(recipeId: String): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteRecipeDataSource.deleteRecipe(recipeId)
+        }
+
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
         flow {
             emit(Resource.Loading())

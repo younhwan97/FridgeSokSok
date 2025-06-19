@@ -49,6 +49,10 @@ class MockApiService(
         )
     }
 
+    override suspend fun deleteRecipe(recipeId: String): CommonResponse<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getRecipes(): CommonResponse<List<RecipeResponse>> {
         TODO("Not yet implemented")
     }

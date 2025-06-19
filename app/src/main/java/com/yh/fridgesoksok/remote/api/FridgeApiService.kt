@@ -123,4 +123,9 @@ interface FridgeApiService {
 
     @GET("recipes")
     suspend fun getRecipes(): CommonResponse<List<RecipeResponse>>
+
+    @DELETE("recipes/{recipeId}")
+    suspend fun deleteRecipe(
+        @Path("recipeId") recipeId: String
+    ): CommonResponse<Boolean>
 }
