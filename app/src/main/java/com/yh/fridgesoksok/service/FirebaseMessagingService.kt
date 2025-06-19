@@ -10,8 +10,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class FirebaseMessagingService : FirebaseMessagingService() {
 
-    @Inject
-    lateinit var saveFcmTokenUseCase: SaveFcmTokenUseCase
+    //@Inject
+    //lateinit var saveFcmTokenUseCase: SaveFcmTokenUseCase
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
