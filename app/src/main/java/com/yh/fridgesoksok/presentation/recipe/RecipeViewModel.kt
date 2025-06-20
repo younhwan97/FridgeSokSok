@@ -55,7 +55,8 @@ class RecipeViewModel @Inject constructor(
         deleteRecipeUseCase(recipeId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    Log.d("test4444", result.toString())
+                    val isDeleted = result.data ?: false
+                    if (isDeleted) getRecipes()
                 }
 
                 is Resource.Error -> _state.value = RecipeState.Error
