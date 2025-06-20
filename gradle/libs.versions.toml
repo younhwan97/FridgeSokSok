@@ -7,7 +7,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
-composeBom = "2025.06.00"           # Compose 관련 라이브러리들을 동일한 버전 그룹으로 맞춰주는 시스템
+composeBom = "2025.06.01"           # Compose 관련 라이브러리들을 동일한 버전 그룹으로 맞춰주는 시스템
 androidx-navigation = "2.9.0"       # AndroidX
 camerax = "1.4.2"                   # CameraX
 ksp = "2.1.0-1.0.29"                # KSP
@@ -45,6 +45,8 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
 # AndroidX
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 androidx-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt" }

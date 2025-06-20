@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +32,10 @@ fun RecipeScreen(
     val recipes by viewModel.recipes.collectAsState()
     val typingQuery by viewModel.typingQuery.collectAsState()
     val filterQuery by viewModel.filterQuery.collectAsState()
+
+    // 삭제 요청된 레시피 & 애니메이션 대상 ID 목록
     var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
+    val deletedRecipeIds = remember { mutableStateListOf<String>() }
 
     // 데이터 필터링
     val filteredRecipes by remember(recipes, filterQuery) {
@@ -58,17 +62,26 @@ fun RecipeScreen(
             recipeState = state,
             recipes = filteredRecipes,
             onClickItem = { recipe ->
-                navController.currentBackStackEntry?.savedStateHandle?.set("recipe", recipe)
+                navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("recipe", recipe)
                 navController.navigate("recipeDetail")
             },
-            onDeleteItem = { recipe ->
+            onDeleteClick = { recipe ->
                 selectedRecipeForDelete = recipe
+            },
+            isBeingDeleted = { recipe ->
+                deletedRecipeIds.contains(recipe.id)
+            },
+            onDeleteAnimationEnd = { recipe ->
+                viewModel.deleteRecipe(recipe.id)
+                deletedRecipeIds.remove(recipe.id)
             }
         )
     }
 
     // 삭제 확인 다이얼로그
-    if (selectedRecipeForDelete != null) {
+    selectedRecipeForDelete?.let { recipe ->
         ConfirmDialog(
             title = "레시피 삭제",
             message = "정말 이 레시피를 삭제하시겠습니까?",
@@ -76,10 +89,12 @@ fun RecipeScreen(
             confirmTextColor = CustomErrorColor,
             confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
             onConfirm = {
-                viewModel.deleteRecipe(selectedRecipeForDelete!!.id)
+                deletedRecipeIds.add(recipe.id)
                 selectedRecipeForDelete = null
             },
-            onDismiss = { selectedRecipeForDelete = null }
+            onDismiss = {
+                selectedRecipeForDelete = null
+            }
         )
     }
 }

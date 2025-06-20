@@ -22,9 +22,11 @@ fun RecipeListSection(
     recipeState: RecipeState,
     recipes: List<RecipeModel>,
     onClickItem: (RecipeModel) -> Unit,
-    onDeleteItem: (RecipeModel) -> Unit
+    onDeleteClick: (RecipeModel) -> Unit,
+    isBeingDeleted: (RecipeModel) -> Boolean,
+    onDeleteAnimationEnd: (RecipeModel) -> Unit
 ) {
-    // 로딩 상태
+    // 로딩 상태 표시
     AnimatedVisibility(
         visible = recipeState != RecipeState.Success,
         enter = fadeIn(),
@@ -35,7 +37,7 @@ fun RecipeListSection(
         }
     }
 
-    // 리스트 표시
+    // 성공 시 리스트 표시
     if (recipeState == RecipeState.Success) {
         LazyColumn(
             modifier = Modifier
@@ -43,11 +45,16 @@ fun RecipeListSection(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(recipes, key = { it.id }) { item ->
+            items(
+                items = recipes,
+                key = { it.id }
+            ) { item ->
                 RecipeListItem(
                     item = item,
-                    onclick = { onClickItem(item) },
-                    onDeleteClick = { onDeleteItem(item) }
+                    isBeingDeleted = isBeingDeleted(item),
+                    onClick = { onClickItem(item) },
+                    onDeleteClick = { onDeleteClick(item) },
+                    onDeleteAnimationEnd = { onDeleteAnimationEnd(item) }
                 )
             }
         }

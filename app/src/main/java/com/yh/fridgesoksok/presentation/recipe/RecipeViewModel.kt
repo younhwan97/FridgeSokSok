@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.recipe
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,11 +56,13 @@ class RecipeViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val isDeleted = result.data ?: false
-                    if (isDeleted) getRecipes()
+                    if (isDeleted) {
+                        _recipes.update { current -> current.filterNot { it.id == recipeId } }
+                    }
                 }
 
-                is Resource.Error -> _state.value = RecipeState.Error
-                is Resource.Loading -> _state.value = RecipeState.Loading
+                is Resource.Error -> Unit
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }

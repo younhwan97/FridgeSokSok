@@ -1,5 +1,9 @@
 package com.yh.fridgesoksok.presentation.recipe.comp
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +26,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,14 +54,18 @@ import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor6
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.text.Typography.nbsp
 
 @Composable
 fun RecipeListItem(
     item: RecipeModel,
-    onclick: () -> Unit,
-    onDeleteClick: () -> Unit
+    isBeingDeleted: Boolean,
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onDeleteAnimationEnd: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -72,96 +85,121 @@ fun RecipeListItem(
         item.createdAt.toFormattedDate(DateFormatter.yyyyMMddDot)
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .padding(vertical = 4.dp)
-            .background(Color.White)
-            .clickable { onclick() },
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    var visible by remember { mutableStateOf(true) }
+
+    // 삭제 트리거 → 애니메이션 시작
+    LaunchedEffect(isBeingDeleted) {
+        if (isBeingDeleted) {
+            visible = false
+        }
+    }
+
+    // 애니메이션 끝났으면 삭제 콜백 실행
+    LaunchedEffect(visible) {
+        if (!visible && isBeingDeleted) {
+            delay(300)
+            onDeleteAnimationEnd()
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        exit = shrinkVertically(tween(300)) + fadeOut(),
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(width = 100.dp, height = 120.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .fillMaxWidth()
+                .height(120.dp)
+                .padding(vertical = 4.dp)
+                .background(Color.White)
+                .clickable { onClick() },
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            when (state) {
-                is AsyncImagePainter.State.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
+            Box(
+                modifier = Modifier
+                    .size(width = 100.dp, height = 120.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            ) {
+                when (state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Image(
+                            modifier = Modifier.fillMaxSize(),
+                            painter = painterResource(R.drawable.basic_food_image),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    else -> {
+                        Image(
+                            modifier = Modifier.fillMaxSize(),
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.weight(0.7f),
+                        text = item.recipeName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = CustomGreyColor7,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    IconButton(
+                        modifier = Modifier.size(24.dp),
+                        onClick = {
+                            onDeleteClick()
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = null,
                         )
                     }
                 }
 
-                is AsyncImagePainter.State.Error -> {
-                    Image(
-                        modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(R.drawable.basic_food_image),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                else -> {
-                    Image(
-                        modifier = Modifier.fillMaxSize(),
-                        painter = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = 4.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
                 Text(
-                    modifier = Modifier.weight(0.7f),
-                    text = item.recipeName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = CustomGreyColor7,
-                    maxLines = 1,
+                    text = item.recipeContent,
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
+                    fontWeight = FontWeight.Normal,
+                    color = CustomGreyColor6,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                IconButton(
-                    modifier = Modifier.size(24.dp),
-                    onClick = onDeleteClick
-                ) {
-                    Icon(
-                        modifier = Modifier.size(18.dp),
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = null,
-                    )
-                }
+
+                Text(
+                    text = "생성날짜$nbsp$nbsp$formattedDate",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CustomGreyColor5,
+                    maxLines = 1
+                )
             }
-
-            Text(
-                text = item.recipeContent,
-                style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
-                fontWeight = FontWeight.Normal,
-                color = CustomGreyColor6,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = "생성날짜$nbsp$nbsp$formattedDate",
-                style = MaterialTheme.typography.bodySmall,
-                color = CustomGreyColor5,
-                maxLines = 1
-            )
         }
+
     }
 }
