@@ -62,6 +62,21 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.getUserDefaultFridge(accessToken).toDomain()
         }
 
+    override fun updateExpirationAlarmEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteUserDataSource.updateExpirationAlarmEnabled(enabled)
+        }
+
+    override fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteUserDataSource.updateAutoDeleteExpiredFoodEnabled(enabled)
+        }
+
+    override fun updateUseAllIngredientsEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteUserDataSource.updateUseAllIngredientsEnabled(enabled)
+        }
+
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
         flow {
             emit(Resource.Loading())

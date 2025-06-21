@@ -32,7 +32,7 @@ class KakaoApiService(
                                 id = user.id.toString(),
                                 accessToken = token.accessToken,
                                 refreshToken = token.refreshToken,
-                                username = "",
+                                username = user.kakaoAccount?.name ?: "",
                                 accountType = "KAKAO",
                                 defaultFridgeId = null
                             )
@@ -70,7 +70,7 @@ class KakaoApiService(
                                     id = user.id.toString(),
                                     accessToken = token.accessToken,
                                     refreshToken = token.refreshToken,
-                                    username = "",
+                                    username = user.kakaoAccount?.name ?: "",
                                     accountType = "KAKAO",
                                     defaultFridgeId = null
                                 )

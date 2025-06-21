@@ -11,6 +11,8 @@ import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserResponse
+import com.yh.fridgesoksok.remote.model.UserSettingRequest
+import com.yh.fridgesoksok.remote.model.UserSettingRespond
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -20,6 +22,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -97,6 +100,11 @@ interface FridgeApiService {
     suspend fun getUserDefaultFridge(
         @Header("Authorization") token: String
     ): CommonResponse<FridgeResponse>
+
+    @PUT("users/settings")
+    suspend fun updateUserSettings(
+        @Body userSettingRequest: UserSettingRequest
+    ): CommonResponse<UserSettingRespond>
 
     /* ************************************************************* */
     /* ************************ Oauth API ************************** */

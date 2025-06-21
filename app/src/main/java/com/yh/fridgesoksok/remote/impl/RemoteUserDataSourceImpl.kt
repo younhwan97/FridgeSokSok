@@ -10,6 +10,7 @@ import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
+import com.yh.fridgesoksok.remote.model.UserSettingRequest
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.toEntity
 import javax.inject.Inject
@@ -42,12 +43,12 @@ class RemoteUserDataSourceImpl @Inject constructor(
             val response = when (user.accountType) {
                 Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(
                     provider = "kakao",
-                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.id)
+                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.username)
                 )
 
                 Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(
                     provider = "naver",
-                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.id)
+                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.username)
                 )
 
                 else -> null
@@ -92,6 +93,42 @@ class RemoteUserDataSourceImpl @Inject constructor(
             data.toEntity()
         } catch (e: Exception) {
             Logger.e("RemoteUserData", "getUserDefaultFridge 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun updateExpirationAlarmEnabled(enabled: Boolean): Boolean {
+        return try {
+            Logger.d("RemoteUserData", "updateExpirationAlarmEnabled INPUT $enabled")
+            val response = fridgeApiService.updateUserSettings(UserSettingRequest(isNotification = enabled, null))
+            val data = response.data?.isNotification ?: throw IllegalStateException("updateExpirationAlarmEnabled data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "updateExpirationAlarmEnabled 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Boolean {
+        return try {
+            Logger.d("RemoteUserData", "updateAutoDeleteExpiredFoodEnabled INPUT $enabled")
+            //val response = fridgeApiService.updateUserSettings("Bearer $accessToken")
+            //val data = response.data ?: throw IllegalStateException("getUserDefaultFridge data(=null)")
+            false
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "updateAutoDeleteExpiredFoodEnabled 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun updateUseAllIngredientsEnabled(enabled: Boolean): Boolean {
+        return try {
+            Logger.d("RemoteUserData", "updateUseAllIngredientsEnabled INPUT $enabled")
+            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled))
+            val data = response.data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)
             throw e
         }
     }
