@@ -14,6 +14,8 @@ import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserResponse
+import com.yh.fridgesoksok.remote.model.UserSettingRequest
+import com.yh.fridgesoksok.remote.model.UserSettingRespond
 import okhttp3.MultipartBody
 
 // TEST
@@ -47,6 +49,10 @@ class MockApiService(
                 )
             )
         )
+    }
+
+    override suspend fun updateUserSettings(userSettingRequest: UserSettingRequest): CommonResponse<UserSettingRespond> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun deleteRecipe(recipeId: String): CommonResponse<Boolean> {

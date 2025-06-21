@@ -12,6 +12,6 @@ fun SettingSectionTitle(title: String) {
         text = title,
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.SemiBold,
-        color = CustomGreyColor7
+        color = MaterialTheme.colorScheme.primary
     )
 }

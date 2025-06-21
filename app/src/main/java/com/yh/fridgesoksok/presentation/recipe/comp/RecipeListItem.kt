@@ -30,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,20 +42,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.common.DateFormatter
+import com.yh.fridgesoksok.presentation.common.ResizeTransformation
 import com.yh.fridgesoksok.presentation.common.toFormattedDate
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor6
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.time.LocalDate
 import kotlin.text.Typography.nbsp
 
 @Composable
@@ -75,6 +72,8 @@ fun RecipeListItem(
             .data(item.recipeImageUrl)
             .crossfade(false)
             .size(100, 120)
+            .allowHardware(false)
+            .transformations(ResizeTransformation(100, 120))
             .build()
     }
     val painter = rememberAsyncImagePainter(model = imageRequest)
@@ -109,8 +108,9 @@ fun RecipeListItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
-                .padding(vertical = 4.dp)
+                .height(130.dp)
+                .padding(vertical = 4.dp, horizontal = 16.dp)
+                .padding(bottom = 10.dp)
                 .background(Color.White)
                 .clickable { onClick() },
             horizontalArrangement = Arrangement.spacedBy(10.dp)

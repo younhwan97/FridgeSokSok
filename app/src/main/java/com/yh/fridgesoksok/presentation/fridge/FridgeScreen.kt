@@ -35,20 +35,10 @@ fun FridgeScreen(
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val allFoods by viewModel.foods.collectAsState()
     val selectedType by viewModel.selectedType.collectAsState()
     val typingQuery by viewModel.typingQuery.collectAsState()
-    val filterQuery by viewModel.filterQuery.collectAsState()
     val selectedFoods by viewModel.selectedFoods.collectAsState()
-
-    // 데이터 필터링
-    val filteredFoods by remember(allFoods, filterQuery, selectedType) {
-        derivedStateOf {
-            allFoods
-                .filter { it.itemName.contains(filterQuery, ignoreCase = true) }
-                .filter { selectedType == Type.All || it.categoryId == selectedType.id }
-        }
-    }
+    val filteredFoods by viewModel.filteredFoods.collectAsState()
 
     // 화면 재진입 시 데이터 로드
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -137,19 +127,22 @@ fun FridgeScreen(
             foods = filteredFoods,
             fridgeState = state,
             selectedFoods = selectedFoods,
-            onFoodSelectToggle = { food ->
-                viewModel.toggleFoodSelected(food)
+            onFoodSelectToggle = {
+                viewModel.toggleFoodSelected(it)
             },
-            onClickFood = { food ->
-                sharedViewModel.setEditFood(food, EditSource.HOME)
+            onClickFood = {
+                sharedViewModel.setEditFood(it, EditSource.HOME)
                 navController.navigate(Screen.EditFoodScreen.route)
             },
-            onClickMinus = { food ->
-                if (food.count == 1) viewModel.deleteFood(food)
-                else viewModel.updateFood(food.copy(count = food.count - 1))
+            onClickMinus = {
+                if (it.count == 1) viewModel.deleteFood(it)
+                else viewModel.updateFood(it.copy(count = it.count - 1))
             },
-            onClickPlus = { food ->
-                viewModel.updateFood(food.copy(count = food.count + 1))
+            onClickPlus = {
+                viewModel.updateFood(it.copy(count = it.count + 1))
+            },
+            onRefreshClick = {
+                viewModel.loadFoods()
             }
         )
     }

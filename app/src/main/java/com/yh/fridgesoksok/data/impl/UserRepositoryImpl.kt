@@ -77,6 +77,10 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.updateUseAllIngredientsEnabled(enabled)
         }
 
+    override fun getUserSetting(): Flow<Resource<Boolean>> {
+        TODO("Not yet implemented")
+    }
+
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
         flow {
             emit(Resource.Loading())

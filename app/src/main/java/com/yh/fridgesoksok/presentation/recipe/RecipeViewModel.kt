@@ -9,9 +9,12 @@ import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -25,19 +28,28 @@ class RecipeViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
-    val recipes = _recipes.asStateFlow()
 
     private val _filterQuery = MutableStateFlow("")
-    val filterQuery = _filterQuery.asStateFlow()
 
     private val _typingQuery = MutableStateFlow("")
     val typingQuery = _typingQuery.asStateFlow()
 
-    init {
-        getRecipes()
-    }
+    val filteredRecipes = combine(_recipes, _filterQuery) { recipes, query ->
+        if (query.isBlank()) {
+            recipes
+        } else {
+            recipes.filter {
+                it.recipeName.contains(query, ignoreCase = true) ||
+                        it.recipeContent.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
 
-    private fun getRecipes() {
+    fun getRecipes() {
         getRecipesUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -45,8 +57,17 @@ class RecipeViewModel @Inject constructor(
                     _state.value = RecipeState.Success
                 }
 
-                is Resource.Error -> _state.value = RecipeState.Error
-                is Resource.Loading -> _state.value = RecipeState.Loading
+                is Resource.Loading -> {
+                    // First Loading
+                    if (_recipes.value.isEmpty()) {
+                        _state.value = RecipeState.Loading
+                    }
+                }
+
+                is Resource.Error -> {
+                    _recipes.value = emptyList()
+                    _state.value = RecipeState.Error
+                }
             }
         }.launchIn(viewModelScope)
     }

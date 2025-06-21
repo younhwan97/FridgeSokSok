@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.common.BlockingLoadingOverlay
+import com.yh.fridgesoksok.presentation.common.ErrorScreen
 import com.yh.fridgesoksok.presentation.fridge.FridgeState
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
@@ -37,7 +38,8 @@ fun FoodListSection(
     onFoodSelectToggle: (FoodModel) -> Unit = {},
     onClickFood: (FoodModel) -> Unit,
     onClickMinus: (FoodModel) -> Unit,
-    onClickPlus: (FoodModel) -> Unit
+    onClickPlus: (FoodModel) -> Unit,
+    onRefreshClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -62,28 +64,21 @@ fun FoodListSection(
                 contentDescription = null,
             )
 
-            if (fridgeState == FridgeState.Error) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "냉장고를 가져오는데 실패했어요 :(",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = CustomGreyColor5
-                )
-            } else {
-                FoodListContent(
-                    mode = mode,
-                    foods = foods,
-                    selectedFoods = selectedFoods,
-                    onFoodSelectToggle = onFoodSelectToggle,
-                    onClickFood = onClickFood,
-                    onClickMinus = onClickMinus,
-                    onClickPlus = onClickPlus
-                )
-            }
+            when (fridgeState) {
+                FridgeState.Success -> {
+                    FoodListContent(
+                        mode = mode,
+                        foods = foods,
+                        selectedFoods = selectedFoods,
+                        onFoodSelectToggle = onFoodSelectToggle,
+                        onClickFood = onClickFood,
+                        onClickMinus = onClickMinus,
+                        onClickPlus = onClickPlus
+                    )
+                }
 
-            // 로딩 인디케이터
-            if (fridgeState == FridgeState.Loading) {
-                BlockingLoadingOverlay()
+                FridgeState.Loading -> BlockingLoadingOverlay()
+                FridgeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
             }
         }
     }

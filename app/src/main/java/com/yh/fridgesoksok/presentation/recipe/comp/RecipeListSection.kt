@@ -1,19 +1,18 @@
 package com.yh.fridgesoksok.presentation.recipe.comp
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.yh.fridgesoksok.presentation.common.BlockingLoadingOverlay
+import com.yh.fridgesoksok.presentation.common.ErrorScreen
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe.RecipeState
 
@@ -24,39 +23,43 @@ fun RecipeListSection(
     onClickItem: (RecipeModel) -> Unit,
     onDeleteClick: (RecipeModel) -> Unit,
     isBeingDeleted: (RecipeModel) -> Boolean,
-    onDeleteAnimationEnd: (RecipeModel) -> Unit
+    onDeleteAnimationEnd: (RecipeModel) -> Unit,
+    onRefreshClick: () -> Unit
 ) {
-    // 로딩 상태 표시
-    AnimatedVisibility(
-        visible = recipeState != RecipeState.Success,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+    val listState = rememberLazyListState()
+    var lastTopId by remember { mutableStateOf<String?>(null) }
+
+    // 항목추가 감지
+    LaunchedEffect(recipes.firstOrNull()?.id) {
+        val newTopId = recipes.firstOrNull()?.id
+        if (newTopId != null && newTopId != lastTopId) {
+            lastTopId = newTopId
+            listState.animateScrollToItem(0)
         }
     }
 
-    // 성공 시 리스트 표시
-    if (recipeState == RecipeState.Success) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(
-                items = recipes,
-                key = { it.id }
-            ) { item ->
-                RecipeListItem(
-                    item = item,
-                    isBeingDeleted = isBeingDeleted(item),
-                    onClick = { onClickItem(item) },
-                    onDeleteClick = { onDeleteClick(item) },
-                    onDeleteAnimationEnd = { onDeleteAnimationEnd(item) }
-                )
+    when (recipeState) {
+        RecipeState.Success -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState
+            ) {
+                items(
+                    items = recipes,
+                    key = { it.id }
+                ) {
+                    RecipeListItem(
+                        item = it,
+                        isBeingDeleted = isBeingDeleted(it),
+                        onClick = { onClickItem(it) },
+                        onDeleteClick = { onDeleteClick(it) },
+                        onDeleteAnimationEnd = { onDeleteAnimationEnd(it) }
+                    )
+                }
             }
         }
+
+        RecipeState.Loading -> BlockingLoadingOverlay()
+        RecipeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
     }
 }

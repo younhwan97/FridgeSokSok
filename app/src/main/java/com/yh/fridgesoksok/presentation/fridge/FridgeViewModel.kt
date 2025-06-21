@@ -14,9 +14,12 @@ import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.util.Collections
 import javax.inject.Inject
@@ -47,6 +50,16 @@ class FridgeViewModel @Inject constructor(
 
     private val _selectedType = MutableStateFlow(Type.All)
     val selectedType = _selectedType.asStateFlow()
+
+    val filteredFoods = combine(_foods, _filterQuery, _selectedType) { foods, query, type ->
+        foods
+            .filter { it.itemName.contains(query, ignoreCase = true) }
+            .filter { type == Type.All || it.categoryId == type.id }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        emptyList()
+    )
 
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>()) // 중복처리 방지
 

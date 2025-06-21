@@ -5,16 +5,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.common.ConfirmDialog
 import com.yh.fridgesoksok.presentation.model.RecipeModel
@@ -29,21 +31,16 @@ fun RecipeScreen(
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val recipes by viewModel.recipes.collectAsState()
     val typingQuery by viewModel.typingQuery.collectAsState()
-    val filterQuery by viewModel.filterQuery.collectAsState()
-
-    // 삭제 요청된 레시피 & 애니메이션 대상 ID 목록
+    val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
     var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
-    val deletedRecipeIds = remember { mutableStateListOf<String>() }
+    val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }
 
-    // 데이터 필터링
-    val filteredRecipes by remember(recipes, filterQuery) {
-        derivedStateOf {
-            recipes.filter {
-                it.recipeName.contains(filterQuery, ignoreCase = true)
-                        || it.recipeContent.contains(filterQuery, ignoreCase = true)
-            }
+    // 데이터 리로드
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.getRecipes()
         }
     }
 
@@ -61,26 +58,29 @@ fun RecipeScreen(
         RecipeListSection(
             recipeState = state,
             recipes = filteredRecipes,
-            onClickItem = { recipe ->
+            onClickItem = {
                 navController.currentBackStackEntry
                     ?.savedStateHandle
-                    ?.set("recipe", recipe)
+                    ?.set("recipe", it)
                 navController.navigate("recipeDetail")
             },
-            onDeleteClick = { recipe ->
-                selectedRecipeForDelete = recipe
+            onDeleteClick = {
+                selectedRecipeForDelete = it
             },
-            isBeingDeleted = { recipe ->
-                deletedRecipeIds.contains(recipe.id)
+            isBeingDeleted = {
+                deletedRecipeIds.value.contains(it.id)
             },
-            onDeleteAnimationEnd = { recipe ->
-                viewModel.deleteRecipe(recipe.id)
-                deletedRecipeIds.remove(recipe.id)
+            onDeleteAnimationEnd = {
+                viewModel.deleteRecipe(it.id)
+                deletedRecipeIds.value -= it.id
+            },
+            onRefreshClick = {
+                viewModel.getRecipes()
             }
         )
     }
 
-    // 삭제 확인 다이얼로그
+    // 삭제확인
     selectedRecipeForDelete?.let { recipe ->
         ConfirmDialog(
             title = "레시피 삭제",
@@ -89,7 +89,7 @@ fun RecipeScreen(
             confirmTextColor = CustomErrorColor,
             confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
             onConfirm = {
-                deletedRecipeIds.add(recipe.id)
+                deletedRecipeIds.value += recipe.id
                 selectedRecipeForDelete = null
             },
             onDismiss = {
