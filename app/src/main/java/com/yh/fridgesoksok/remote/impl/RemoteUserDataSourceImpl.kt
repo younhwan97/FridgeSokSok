@@ -5,6 +5,7 @@ import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
+import com.yh.fridgesoksok.data.model.UserSettingEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
@@ -98,38 +99,50 @@ class RemoteUserDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateExpirationAlarmEnabled(enabled: Boolean): Boolean {
+    override suspend fun updateReceiveNotification(enabled: Boolean): Boolean {
         return try {
-            Logger.d("RemoteUserData", "updateExpirationAlarmEnabled INPUT $enabled")
-            val response = fridgeApiService.updateUserSettings(UserSettingRequest(isNotification = enabled, null))
-            val data = response.data?.isNotification ?: throw IllegalStateException("updateExpirationAlarmEnabled data(=null)")
+            Logger.d("RemoteUserData", "updateReceiveNotification INPUT $enabled")
+            val response = fridgeApiService.updateUserSettings(UserSettingRequest(isNotification = enabled, null, null))
+            val data = response.data?.isNotification ?: throw IllegalStateException("updateReceiveNotification data(=null)")
             data
         } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateExpirationAlarmEnabled 실패", e)
+            Logger.e("RemoteUserData", "updateReceiveNotification 실패", e)
             throw e
         }
     }
 
-    override suspend fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Boolean {
+    override suspend fun updateAutoDeleteExpired(enabled: Boolean): Boolean {
         return try {
-            Logger.d("RemoteUserData", "updateAutoDeleteExpiredFoodEnabled INPUT $enabled")
-            //val response = fridgeApiService.updateUserSettings("Bearer $accessToken")
-            //val data = response.data ?: throw IllegalStateException("getUserDefaultFridge data(=null)")
-            false
+            Logger.d("RemoteUserData", "updateAutoDeleteExpired INPUT $enabled")
+            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, null, autoDeleteFoods = enabled))
+            val data = response.data?.autoDeleteFoods ?: throw IllegalStateException("updateAutoDeleteExpired data(=null)")
+            data
         } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateAutoDeleteExpiredFoodEnabled 실패", e)
+            Logger.e("RemoteUserData", "updateAutoDeleteExpired 실패", e)
             throw e
         }
     }
 
-    override suspend fun updateUseAllIngredientsEnabled(enabled: Boolean): Boolean {
+    override suspend fun updateUseAllIngredients(enabled: Boolean): Boolean {
         return try {
-            Logger.d("RemoteUserData", "updateUseAllIngredientsEnabled INPUT $enabled")
-            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled))
-            val data = response.data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
+            Logger.d("RemoteUserData", "updateUseAllIngredients INPUT $enabled")
+            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled, null))
+            val data = response.data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredients data(=null)")
             data
         } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)
+            Logger.e("RemoteUserData", "updateUseAllIngredients 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun getUserSettings(): UserSettingEntity {
+        return try {
+            Logger.d("RemoteUserData", "getUserSettings")
+            val response = fridgeApiService.getUserSettings()
+            val data = response.data?.toEntity() ?: throw IllegalStateException("getUserSettings data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "getUserSettings 실패", e)
             throw e
         }
     }
@@ -142,6 +155,18 @@ class RemoteUserDataSourceImpl @Inject constructor(
             data
         } catch (e: Exception) {
             Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun sendMessage(message: String): String {
+        return try {
+            Logger.d("RemoteUserData", "sendMessage INPUT $message")
+            val response = fridgeApiService.sendFcmTest(message)
+            val data = response.data ?: throw IllegalStateException("sendMessage data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "sendMessage 실패", e)
             throw e
         }
     }

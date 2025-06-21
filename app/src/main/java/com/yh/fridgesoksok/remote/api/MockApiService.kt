@@ -53,6 +53,12 @@ class MockApiService(
         )
     }
 
+    override suspend fun sendFcmTest(message: String): CommonResponse<String> {
+        TODO("Not yet implemented")
+    }
+
+
+
     override suspend fun getUserSettings(): CommonResponse<UserSettingRespond> {
         TODO("Not yet implemented")
     }

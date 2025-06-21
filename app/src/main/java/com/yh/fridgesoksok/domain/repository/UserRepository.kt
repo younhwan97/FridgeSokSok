@@ -5,9 +5,7 @@ import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
-import com.yh.fridgesoksok.domain.usecase.UpdateAutoDeleteExpiredFoodEnabledUseCase
-import com.yh.fridgesoksok.domain.usecase.UpdateExpirationAlarmEnabledUseCase
-import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsEnabledUseCase
+import com.yh.fridgesoksok.domain.model.UserSetting
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
@@ -30,17 +28,19 @@ interface UserRepository {
 
     fun getUserDefaultFridge(accessToken: String): Flow<Resource<Fridge>>
 
-    fun getUserSetting(): Flow<Resource<Boolean>>
+    fun getUserSetting(): Flow<Resource<UserSetting>>
 
-    fun updateExpirationAlarmEnabled(enabled: Boolean): Flow<Resource<Boolean>>
+    fun updateReceiveNotification(enabled: Boolean): Flow<Resource<Boolean>>
 
-    fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Flow<Resource<Boolean>>
+    fun updateAutoDeleteExpired(enabled: Boolean): Flow<Resource<Boolean>>
 
-    fun updateUseAllIngredientsEnabled(enabled: Boolean): Flow<Resource<Boolean>>
+    fun updateUseAllIngredients(enabled: Boolean): Flow<Resource<Boolean>>
 
     fun updateUserFcmToken(fcmToken: String): Flow<Resource<String>>
 
     fun updateLocalUserFcmToken(fcmToken: String): Flow<Resource<Boolean>>
 
     fun getLocalUserFcmToken(): String
+
+    fun sendMessage(message: String): Flow<Resource<String>>
 }

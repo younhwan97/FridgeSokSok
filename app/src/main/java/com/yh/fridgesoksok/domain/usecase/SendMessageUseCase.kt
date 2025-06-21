@@ -3,10 +3,10 @@ package com.yh.fridgesoksok.domain.usecase
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import javax.inject.Inject
 
-class GetUserSettingUseCase @Inject constructor(
+class SendMessageUseCase @Inject constructor(
     private val userRepository: UserRepository
-){
+) {
 
-    operator fun invoke() =
-        userRepository.getUserSetting()
+    operator fun invoke(message: String) =
+        userRepository.sendMessage(message)
 }

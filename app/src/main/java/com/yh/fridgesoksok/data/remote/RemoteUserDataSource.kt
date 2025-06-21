@@ -1,11 +1,10 @@
 package com.yh.fridgesoksok.data.remote
 
 import com.yh.fridgesoksok.common.Channel
-import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
-import kotlinx.coroutines.flow.Flow
+import com.yh.fridgesoksok.data.model.UserSettingEntity
 
 interface RemoteUserDataSource {
 
@@ -19,11 +18,15 @@ interface RemoteUserDataSource {
 
     suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity
 
-    suspend fun updateExpirationAlarmEnabled(enabled: Boolean): Boolean
+    suspend fun updateReceiveNotification(enabled: Boolean): Boolean
 
-    suspend fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Boolean
+    suspend fun updateAutoDeleteExpired(enabled: Boolean): Boolean
 
-    suspend fun updateUseAllIngredientsEnabled(enabled: Boolean): Boolean
+    suspend fun updateUseAllIngredients(enabled: Boolean): Boolean
+
+    suspend fun getUserSettings(): UserSettingEntity
 
     suspend fun updateUserFcmToken(fcmToken: String): String
+
+    suspend fun sendMessage(message: String): String
 }

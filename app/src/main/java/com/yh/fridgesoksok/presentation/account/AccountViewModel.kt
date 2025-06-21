@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.ClearUserUseCase
-import com.yh.fridgesoksok.domain.usecase.UpdateAutoDeleteExpiredFoodEnabledUseCase
-import com.yh.fridgesoksok.domain.usecase.UpdateExpirationAlarmEnabledUseCase
-import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsEnabledUseCase
+import com.yh.fridgesoksok.domain.usecase.GetUserSettingUseCase
+import com.yh.fridgesoksok.domain.usecase.SendMessageUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateAutoDeleteExpiredUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateReceiveNotificationUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsUseCase
+import com.yh.fridgesoksok.presentation.model.UserSettingModel
+import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,25 +21,28 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     val clearUserUseCase: ClearUserUseCase,
-    private val updateExpirationAlarmEnabledUseCase: UpdateExpirationAlarmEnabledUseCase,
-    private val updateAutoDeleteExpiredFoodEnabledUseCase: UpdateAutoDeleteExpiredFoodEnabledUseCase,
-    private val updateUseAllIngredientsEnabledUseCase: UpdateUseAllIngredientsEnabledUseCase
+    private val getUserSettingUseCase: GetUserSettingUseCase,
+    private val updateReceiveNotificationUseCase: UpdateReceiveNotificationUseCase,
+    private val updateAutoDeleteExpiredUseCase: UpdateAutoDeleteExpiredUseCase,
+    private val updateUseAllIngredientsUseCase: UpdateUseAllIngredientsUseCase,
+    private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
-    private val _isExpirationAlarmEnabled = MutableStateFlow(false)
-    val isExpirationAlarmEnabled = _isExpirationAlarmEnabled.asStateFlow()
+    private val _userSetting = MutableStateFlow<UserSettingModel?>(null)
+    val userSetting = _userSetting.asStateFlow()
 
-    private val _isAutoDeleteExpiredFoodEnabled = MutableStateFlow(false)
-    val isAutoDeleteExpiredFoodEnabled = _isAutoDeleteExpiredFoodEnabled.asStateFlow()
+    init {
+        getUserSetting()
+    }
 
-    private val _isUseAllIngredientsEnabled = MutableStateFlow(false)
-    val isUseAllIngredientsEnabled = _isUseAllIngredientsEnabled.asStateFlow()
-
-    fun updateExpirationAlarmEnabled(enabled: Boolean) {
-        updateExpirationAlarmEnabledUseCase(enabled).onEach { result ->
+    fun getUserSetting() {
+        getUserSettingUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-
+                    val userSetting = result.data?.toPresentation()
+                    if (userSetting != null) {
+                        _userSetting.value = userSetting
+                    }
                 }
 
                 is Resource.Error -> Unit
@@ -44,30 +51,58 @@ class AccountViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean) {
-        updateAutoDeleteExpiredFoodEnabledUseCase(enabled).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
+    fun updateReceiveNotification(enabled: Boolean?) {
+        if (enabled != null) {
+            updateReceiveNotificationUseCase(!enabled).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val data = result.data
+                        if (data != null){
+                            _userSetting.value = _userSetting.value?.copy(receiveNotification = data)
+                        }
+                    }
 
+                    is Resource.Error -> Unit
+                    is Resource.Loading -> Unit
                 }
-
-                is Resource.Error -> Unit
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
+            }.launchIn(viewModelScope)
+        }
     }
 
-    fun updateUseAllIngredientsEnabled(enabled: Boolean) {
-        updateUseAllIngredientsEnabledUseCase(enabled).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
+    fun updateAutoDeleteExpired(enabled: Boolean?) {
+        if (enabled != null) {
+            updateAutoDeleteExpiredUseCase(!enabled).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val data = result.data
+                        if (data != null){
+                            _userSetting.value = _userSetting.value?.copy(autoDeleteExpiredFoods = data)
+                        }
+                    }
 
+                    is Resource.Error -> Unit
+                    is Resource.Loading -> Unit
                 }
+            }.launchIn(viewModelScope)
+        }
+    }
 
-                is Resource.Error -> Unit
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
+    fun updateUseAllIngredients(enabled: Boolean?) {
+        if (enabled != null) {
+            updateUseAllIngredientsUseCase(!enabled).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val data = result.data
+                        if (data != null){
+                            _userSetting.value = _userSetting.value?.copy(useAllIngredients = data)
+                        }
+                    }
+
+                    is Resource.Error -> Unit
+                    is Resource.Loading -> Unit
+                }
+            }.launchIn(viewModelScope)
+        }
     }
 
     fun clearUser() {
@@ -83,3 +118,14 @@ class AccountViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 }
+
+//        sendMessageUseCase("test").onEach { result ->
+//            when (result) {
+//                is Resource.Success -> {
+//                    Log.d("test444", result.toString())
+//                }
+//
+//                is Resource.Error -> Unit
+//                is Resource.Loading -> Unit
+//            }
+//        }.launchIn(viewModelScope)

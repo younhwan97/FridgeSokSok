@@ -28,10 +28,7 @@ fun AccountScreen(
     homeNavController: NavController,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
-    val isExpirationAlarmEnabled by viewModel.isExpirationAlarmEnabled.collectAsState()
-    val isAutoDeleteExpiredFoodEnabled by viewModel.isAutoDeleteExpiredFoodEnabled.collectAsState()
-    val isUseAllIngredientsEnabled by viewModel.isUseAllIngredientsEnabled.collectAsState()
-
+    val userSetting by viewModel.userSetting.collectAsState()
     val scrollState = rememberScrollState()
 
     // 화면
@@ -43,17 +40,22 @@ fun AccountScreen(
     ) {
         SettingSectionTitle("냉장고")
         Divider(thickness = 2.dp)
-        SettingSwitchRow("소비기한 알림", isExpirationAlarmEnabled) { viewModel.updateExpirationAlarmEnabled(!isExpirationAlarmEnabled) }
+        SettingSwitchRow("소비기한 알림", userSetting?.receiveNotification) {
+            viewModel.updateReceiveNotification(userSetting?.receiveNotification)
+        }
         SettingSwitchRow(
             "소비기한 지난식품 자동삭제",
-            isAutoDeleteExpiredFoodEnabled
-        ) { viewModel.updateAutoDeleteExpiredFoodEnabled(!isAutoDeleteExpiredFoodEnabled) }
+            userSetting?.autoDeleteExpiredFoods
+        ) { viewModel.updateAutoDeleteExpired(userSetting?.autoDeleteExpiredFoods) }
 
         Spacer(modifier = Modifier.height(10.dp))
 
         SettingSectionTitle("레시피")
         Divider(thickness = 2.dp)
-        SettingSwitchRow("레시피 생성시 재료모두 사용", isUseAllIngredientsEnabled) { viewModel.updateUseAllIngredientsEnabled(!isUseAllIngredientsEnabled) }
+        SettingSwitchRow(
+            "레시피 생성시 재료모두 사용",
+            userSetting?.useAllIngredients
+        ) { viewModel.updateUseAllIngredients(userSetting?.useAllIngredients) }
 
         Spacer(modifier = Modifier.height(10.dp))
 

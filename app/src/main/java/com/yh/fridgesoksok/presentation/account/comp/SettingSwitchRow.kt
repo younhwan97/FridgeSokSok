@@ -16,7 +16,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 @Composable
 fun SettingSwitchRow(
     label: String,
-    checked: Boolean,
+    checked: Boolean?,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -33,6 +33,6 @@ fun SettingSwitchRow(
             color = CustomGreyColor7
         )
 
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked ?: false, enabled = checked != null, onCheckedChange = onCheckedChange)
     }
 }

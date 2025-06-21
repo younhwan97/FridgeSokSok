@@ -9,6 +9,7 @@ import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
+import com.yh.fridgesoksok.domain.model.UserSetting
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -62,24 +63,25 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.getUserDefaultFridge(accessToken).toDomain()
         }
 
-    override fun updateExpirationAlarmEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+    override fun updateReceiveNotification(enabled: Boolean): Flow<Resource<Boolean>> =
         flowWithResource {
-            remoteUserDataSource.updateExpirationAlarmEnabled(enabled)
+            remoteUserDataSource.updateReceiveNotification(enabled)
         }
 
-    override fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+    override fun updateAutoDeleteExpired(enabled: Boolean): Flow<Resource<Boolean>> =
         flowWithResource {
-            remoteUserDataSource.updateAutoDeleteExpiredFoodEnabled(enabled)
+            remoteUserDataSource.updateAutoDeleteExpired(enabled)
         }
 
-    override fun updateUseAllIngredientsEnabled(enabled: Boolean): Flow<Resource<Boolean>> =
+    override fun updateUseAllIngredients(enabled: Boolean): Flow<Resource<Boolean>> =
         flowWithResource {
-            remoteUserDataSource.updateUseAllIngredientsEnabled(enabled)
+            remoteUserDataSource.updateUseAllIngredients(enabled)
         }
 
-    override fun getUserSetting(): Flow<Resource<Boolean>> {
-        TODO("Not yet implemented")
-    }
+    override fun getUserSetting(): Flow<Resource<UserSetting>> =
+        flowWithResource {
+            remoteUserDataSource.getUserSettings().toDomain()
+        }
 
     override fun updateUserFcmToken(fcmToken: String): Flow<Resource<String>> =
         flowWithResource {
@@ -93,6 +95,11 @@ class UserRepositoryImpl @Inject constructor(
 
     override fun getLocalUserFcmToken(): String =
         localUserDataSource.getUserFcmToken()
+
+    override fun sendMessage(message: String): Flow<Resource<String>> =
+        flowWithResource {
+            remoteUserDataSource.sendMessage(message)
+        }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
         flow {

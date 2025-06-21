@@ -146,4 +146,11 @@ interface FridgeApiService {
     suspend fun deleteRecipe(
         @Path("recipeId") recipeId: String
     ): CommonResponse<Boolean>
+
+    /* ************************************************************* */
+    /* ************************ FCM API(TEST) ********************** */
+    @POST("fcm/send/user")
+    suspend fun sendFcmTest(
+        @Body message: String
+    ): CommonResponse<String>
 }
