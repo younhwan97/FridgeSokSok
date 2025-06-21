@@ -35,7 +35,7 @@ class AccountViewModel @Inject constructor(
         getUserSetting()
     }
 
-    fun getUserSetting() {
+    private fun getUserSetting() {
         getUserSettingUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -57,7 +57,7 @@ class AccountViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         val data = result.data
-                        if (data != null){
+                        if (data != null) {
                             _userSetting.value = _userSetting.value?.copy(receiveNotification = data)
                         }
                     }
@@ -75,7 +75,7 @@ class AccountViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         val data = result.data
-                        if (data != null){
+                        if (data != null) {
                             _userSetting.value = _userSetting.value?.copy(autoDeleteExpiredFoods = data)
                         }
                     }
@@ -93,7 +93,7 @@ class AccountViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         val data = result.data
-                        if (data != null){
+                        if (data != null) {
                             _userSetting.value = _userSetting.value?.copy(useAllIngredients = data)
                         }
                     }
@@ -108,10 +108,7 @@ class AccountViewModel @Inject constructor(
     fun clearUser() {
         clearUserUseCase().onEach { result ->
             when (result) {
-                is Resource.Success -> {
-
-                }
-
+                is Resource.Success -> Unit
                 is Resource.Error -> Unit
                 is Resource.Loading -> Unit
             }
