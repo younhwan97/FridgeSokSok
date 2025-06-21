@@ -125,6 +125,7 @@ class LoginViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    // FCM 토큰 갱신
     private fun updateUserFcmToken() {
         val fcmToken = getLocalUserFcmTokenUseCase()
 
