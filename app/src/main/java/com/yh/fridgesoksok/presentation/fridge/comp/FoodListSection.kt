@@ -1,8 +1,5 @@
 package com.yh.fridgesoksok.presentation.fridge.comp
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,8 +11,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,10 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.presentation.common.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.fridge.FridgeState
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 
 @Composable
 fun FoodListSection(
@@ -62,23 +62,14 @@ fun FoodListSection(
                 contentDescription = null,
             )
 
-            // 로딩 인디케이터
-            AnimatedVisibility(
-                visible = fridgeState != FridgeState.Success,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-            }
-
-            // 음식 리스트
-            AnimatedVisibility(
-                visible = fridgeState == FridgeState.Success,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+            if (fridgeState == FridgeState.Error) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "냉장고를 가져오는데 실패했어요 :(",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CustomGreyColor5
+                )
+            } else {
                 FoodListContent(
                     mode = mode,
                     foods = foods,
@@ -88,6 +79,11 @@ fun FoodListSection(
                     onClickMinus = onClickMinus,
                     onClickPlus = onClickPlus
                 )
+            }
+
+            // 로딩 인디케이터
+            if (fridgeState == FridgeState.Loading) {
+                BlockingLoadingOverlay()
             }
         }
     }
@@ -115,7 +111,7 @@ private fun FoodListContent(
     ) {
         items(
             items = foods,
-            key = { row -> row.id + row.fridgeId }
+            key = { it.id }
         ) { food ->
             FoodListItem(
                 modifier = Modifier,

@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.remote.impl
 
 import android.graphics.Bitmap
-import android.util.Log
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.FoodEntity
 import com.yh.fridgesoksok.data.model.ReceiptEntity
@@ -12,7 +11,6 @@ import com.yh.fridgesoksok.remote.model.toRequest
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.HttpException
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate

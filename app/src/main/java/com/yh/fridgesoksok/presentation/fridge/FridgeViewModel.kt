@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.fridge
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -63,8 +62,16 @@ class FridgeViewModel @Inject constructor(
                     _state.value = FridgeState.Success
                 }
 
-                is Resource.Error -> _state.value = FridgeState.Error
-                is Resource.Loading -> _state.value = FridgeState.Loading
+                is Resource.Loading -> {
+                    // First Loading
+                    if (_foods.value.isEmpty())
+                        _state.value = FridgeState.Loading
+                }
+
+                is Resource.Error -> {
+                    _foods.value = emptyList()
+                    _state.value = FridgeState.Error
+                }
             }
         }.launchIn(viewModelScope)
     }
@@ -104,7 +111,7 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
-    fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit){
+    fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit) {
         createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
             when (result) {
                 is Resource.Success -> {

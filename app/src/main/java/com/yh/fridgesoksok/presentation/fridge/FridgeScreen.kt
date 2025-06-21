@@ -101,7 +101,7 @@ fun FridgeScreen(
                         saveState = true
                     }
                     launchSingleTop = true
-                    restoreState = false
+                    restoreState = true
                 }
                 sharedViewModel.resetRecipeGenerationState()
                 viewModel.setDeselectedFoods(filteredFoods.toSet())

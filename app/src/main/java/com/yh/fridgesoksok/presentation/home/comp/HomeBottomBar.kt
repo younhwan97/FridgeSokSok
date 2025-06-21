@@ -93,7 +93,9 @@ private fun BottomNavigationBar(
                     .clickable {
                         if (!selected) {
                             homeNavController.navigate(screen.route) {
-                                popUpTo(homeNavController.graph.startDestinationId) { saveState = true }
+                                popUpTo(homeNavController.graph.startDestinationId) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
