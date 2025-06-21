@@ -11,4 +11,8 @@ interface LocalUserDataSource {
     suspend fun updateUser(userEntity: UserEntity): Boolean
 
     suspend fun clearUser(): Boolean
+
+    suspend fun updateUserFcmToken(fcmToken: String): Boolean
+
+    fun getUserFcmToken(): String
 }

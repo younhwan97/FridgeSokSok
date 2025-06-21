@@ -81,6 +81,19 @@ class UserRepositoryImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
+    override fun updateUserFcmToken(fcmToken: String): Flow<Resource<String>> =
+        flowWithResource {
+            remoteUserDataSource.updateUserFcmToken(fcmToken)
+        }
+
+    override fun updateLocalUserFcmToken(fcmToken: String): Flow<Resource<Boolean>> =
+        flowWithResource<Boolean> {
+            localUserDataSource.updateUserFcmToken(fcmToken)
+        }
+
+    override fun getLocalUserFcmToken(): String =
+        localUserDataSource.getUserFcmToken()
+
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
         flow {
             emit(Resource.Loading())

@@ -10,6 +10,8 @@ import com.yh.fridgesoksok.remote.model.RecipeRequest
 import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
+import com.yh.fridgesoksok.remote.model.UserProfileRequest
+import com.yh.fridgesoksok.remote.model.UserProfileRespond
 import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
 import com.yh.fridgesoksok.remote.model.UserSettingRespond
@@ -105,6 +107,14 @@ interface FridgeApiService {
     suspend fun updateUserSettings(
         @Body userSettingRequest: UserSettingRequest
     ): CommonResponse<UserSettingRespond>
+
+    @GET("users/settings")
+    suspend fun getUserSettings(): CommonResponse<UserSettingRespond>
+
+    @POST("users/edit")
+    suspend fun updateUser(
+        @Body userProfileRequest: UserProfileRequest
+    ): CommonResponse<UserProfileRespond>
 
     /* ************************************************************* */
     /* ************************ Oauth API ************************** */

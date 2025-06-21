@@ -21,6 +21,8 @@ class LocalUserDataSourceImpl @Inject constructor(
         private const val KEY_USERNAME = "username"
         private const val KEY_ACCOUNT_TYPE = "accountType"
         private const val KEY_DEFAULT_FRIDGE_ID = "defaultFridgeId"
+
+        private const val KEY_FCM_TOKEN = "fcmToken"
     }
 
     private fun getPreferences(): SharedPreferences =
@@ -62,12 +64,12 @@ class LocalUserDataSourceImpl @Inject constructor(
 
     override suspend fun updateUser(userEntity: UserEntity): Boolean {
         return editAndCommit {
-            userEntity.id?.let { putString(KEY_ID, it) }
-            userEntity.accessToken?.let { putString(KEY_ACCESS_TOKEN, it) }
-            userEntity.refreshToken?.let { putString(KEY_REFRESH_TOKEN, it) }
-            userEntity.username?.let { putString(KEY_USERNAME, it) }
-            userEntity.accountType?.let { putString(KEY_ACCOUNT_TYPE, it) }
-            userEntity.defaultFridgeId?.let { putString(KEY_DEFAULT_FRIDGE_ID, it) }
+            putString(KEY_ID, userEntity.id)
+            putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
+            putString(KEY_REFRESH_TOKEN, userEntity.refreshToken)
+            putString(KEY_USERNAME, userEntity.username)
+            putString(KEY_ACCOUNT_TYPE, userEntity.accountType)
+            putString(KEY_DEFAULT_FRIDGE_ID, userEntity.defaultFridgeId)
         }
     }
 
@@ -80,4 +82,18 @@ class LocalUserDataSourceImpl @Inject constructor(
             remove(KEY_ACCOUNT_TYPE)
             remove(KEY_DEFAULT_FRIDGE_ID)
         }
+
+    override suspend fun updateUserFcmToken(fcmToken: String): Boolean {
+        return editAndCommit {
+            putString(KEY_FCM_TOKEN, fcmToken)
+        }
+    }
+
+    override fun getUserFcmToken(): String {
+        val prefs = getPreferences()
+
+        val pcmToken = prefs.getString(KEY_FCM_TOKEN, null).orEmpty()
+
+        return pcmToken
+    }
 }

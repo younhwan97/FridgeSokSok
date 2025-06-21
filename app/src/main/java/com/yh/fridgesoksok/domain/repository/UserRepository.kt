@@ -37,4 +37,10 @@ interface UserRepository {
     fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Flow<Resource<Boolean>>
 
     fun updateUseAllIngredientsEnabled(enabled: Boolean): Flow<Resource<Boolean>>
+
+    fun updateUserFcmToken(fcmToken: String): Flow<Resource<String>>
+
+    fun updateLocalUserFcmToken(fcmToken: String): Flow<Resource<Boolean>>
+
+    fun getLocalUserFcmToken(): String
 }

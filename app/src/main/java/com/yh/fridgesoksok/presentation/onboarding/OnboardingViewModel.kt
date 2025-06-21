@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.ReissueUserTokenUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserUseCase
 import com.yh.fridgesoksok.domain.usecase.ValidateUserTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
@@ -27,7 +29,9 @@ class OnboardingViewModel @Inject constructor(
     private val updateUserUseCase: UpdateUserUseCase,
     private val validateUserTokenUseCase: ValidateUserTokenUseCase,
     private val reissueUserTokenUseCase: ReissueUserTokenUseCase,
-    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase
+    private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase,
+    private val getLocalUserFcmTokenUseCase: GetLocalUserFcmTokenUseCase,
+    private val updateUserFcmTokenUseCase: UpdateUserFcmTokenUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<OnboardingState>(OnboardingState.Loading)
@@ -40,7 +44,10 @@ class OnboardingViewModel @Inject constructor(
         2. 토큰 유효성 확인
         3. 토큰 갱신
         4. 유저 기본냉장고 ID 추출
-        5. 로컬 유저정보 업데이트 */
+        5. 로컬 유저정보 업데이트
+        6. 로컬 FCM 토큰 확인
+        7. FCM 토큰 갱신
+        */
 
         startOnboarding()
     }
@@ -117,19 +124,48 @@ class OnboardingViewModel @Inject constructor(
                     val isUserUpdated = result.data ?: false
                     if (!isUserUpdated) return@onEach fail("유저 저장 실패")
 
-                    viewModelScope.launch {
-                        delayUntilMinimumTime(startTime)
-                        _state.value = OnboardingState.Success
-                    }
-
                     Logger.d("Onboarding", "유저 저장 성공 $user")
-                    Logger.i("Onboarding", "온보딩 완료")
+                    updateUserFcmToken(startTime)
                 }
 
                 is Resource.Error -> fail("유저 저장 실패 ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
+    }
+
+    // FCM 토큰 갱신
+    private fun updateUserFcmToken(startTime: Long) {
+        val fcmToken = getLocalUserFcmTokenUseCase()
+        
+        if (fcmToken.isNotBlank()) {
+            updateUserFcmTokenUseCase(fcmToken).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val isUserUpdated = result.data == fcmToken
+                        if (!isUserUpdated) return@onEach fail("FCM 토큰 갱신 실패")
+
+                        viewModelScope.launch {
+                            delayUntilMinimumTime(startTime)
+                            _state.value = OnboardingState.Success
+                        }
+
+                        Logger.d("Onboarding", "FCM 토큰 갱신 성공")
+                        Logger.i("Onboarding", "온보딩 완료")
+                    }
+
+                    is Resource.Error -> fail("FCM 토큰 갱신 실패 ${result.message}")
+                    is Resource.Loading -> Unit
+                }
+            }.launchIn(viewModelScope)
+        } else {
+            viewModelScope.launch {
+                delayUntilMinimumTime(startTime)
+                _state.value = OnboardingState.Success
+            }
+
+            Logger.i("Onboarding", "온보딩 완료")
+        }
     }
 
     private fun fail(reason: String) {

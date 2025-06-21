@@ -13,6 +13,8 @@ import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.TokenResponse
+import com.yh.fridgesoksok.remote.model.UserProfileRequest
+import com.yh.fridgesoksok.remote.model.UserProfileRespond
 import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
 import com.yh.fridgesoksok.remote.model.UserSettingRespond
@@ -51,6 +53,13 @@ class MockApiService(
         )
     }
 
+    override suspend fun getUserSettings(): CommonResponse<UserSettingRespond> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateUser(userProfileRequest: UserProfileRequest): CommonResponse<UserProfileRespond> {
+        TODO("Not yet implemented")
+    }
     override suspend fun updateUserSettings(userSettingRequest: UserSettingRequest): CommonResponse<UserSettingRespond> {
         TODO("Not yet implemented")
     }

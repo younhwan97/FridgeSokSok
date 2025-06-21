@@ -10,6 +10,7 @@ import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
+import com.yh.fridgesoksok.remote.model.UserProfileRequest
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.toEntity
@@ -126,6 +127,18 @@ class RemoteUserDataSourceImpl @Inject constructor(
             Logger.d("RemoteUserData", "updateUseAllIngredientsEnabled INPUT $enabled")
             val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled))
             val data = response.data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun updateUserFcmToken(fcmToken: String): String {
+        return try {
+            Logger.d("RemoteUserData", "updateUserFcmToken INPUT $fcmToken")
+            val response = fridgeApiService.updateUser(UserProfileRequest(null, null, null, fcmToken, null))
+            val data = response.data?.fcmToken ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
             data
         } catch (e: Exception) {
             Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)

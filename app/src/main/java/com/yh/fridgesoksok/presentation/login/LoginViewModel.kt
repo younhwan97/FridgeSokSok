@@ -7,11 +7,14 @@ import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnChannelUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnServerUseCase
+import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
+import com.yh.fridgesoksok.presentation.onboarding.OnboardingState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +31,8 @@ class LoginViewModel @Inject constructor(
     private val saveUserUseCase: SaveUserUseCase,
     private val createUserOnServerUseCase: CreateUserOnServerUseCase,
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase,
+    private val getLocalUserFcmTokenUseCase: GetLocalUserFcmTokenUseCase,
+    private val updateUserFcmTokenUseCase: UpdateUserFcmTokenUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Loading)
@@ -84,6 +89,7 @@ class LoginViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    // 유저 기본냉장고 추출
     private fun getUserDefaultFridge(user: UserModel) {
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
@@ -101,6 +107,7 @@ class LoginViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    // 유저 저장
     private fun saveUser(user: UserModel) {
         saveUserUseCase(user.toDomain()).onEach { result ->
             when (result) {
@@ -108,15 +115,40 @@ class LoginViewModel @Inject constructor(
                     val isUserSaved = result.data ?: false
                     if (!isUserSaved) return@onEach fail("유저 저장 실패")
 
-                    _state.value = LoginState.Success
                     Logger.d("Login", "유저 저장 성공 $user")
-                    Logger.i("Login", "로그인 성공")
+                    updateUserFcmToken()
                 }
 
                 is Resource.Error -> fail("유저 저장 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun updateUserFcmToken() {
+        val fcmToken = getLocalUserFcmTokenUseCase()
+
+        if (fcmToken.isNotBlank()) {
+            updateUserFcmTokenUseCase(fcmToken).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val isUserUpdated = result.data == fcmToken
+                        if (!isUserUpdated) return@onEach fail("FCM 토큰 갱신 실패")
+
+                        _state.value = LoginState.Success
+                        Logger.d("Login", "FCM 토큰 갱신 성공")
+                        Logger.i("Login", "로그인 성공")
+                    }
+
+                    is Resource.Error -> fail("FCM 토큰 갱신 실패 ${result.message}")
+                    is Resource.Loading -> Unit
+                }
+            }.launchIn(viewModelScope)
+        } else {
+            _state.value = LoginState.Success
+            Logger.d("Login", "FCM 토큰 갱신 성공")
+            Logger.i("Login", "로그인 성공")
+        }
     }
 
     private fun fail(reason: String) {

@@ -24,4 +24,6 @@ interface RemoteUserDataSource {
     suspend fun updateAutoDeleteExpiredFoodEnabled(enabled: Boolean): Boolean
 
     suspend fun updateUseAllIngredientsEnabled(enabled: Boolean): Boolean
+
+    suspend fun updateUserFcmToken(fcmToken: String): String
 }
