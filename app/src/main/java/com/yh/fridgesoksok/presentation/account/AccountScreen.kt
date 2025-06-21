@@ -10,9 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,9 +43,9 @@ fun AccountScreen(
     ) {
         SettingSectionTitle("냉장고")
         Divider(thickness = 2.dp)
-        SettingSwitchRow("유통기한 알림", isExpirationAlarmEnabled) { viewModel.updateExpirationAlarmEnabled(!isExpirationAlarmEnabled) }
+        SettingSwitchRow("소비기한 알림", isExpirationAlarmEnabled) { viewModel.updateExpirationAlarmEnabled(!isExpirationAlarmEnabled) }
         SettingSwitchRow(
-            "유통기한 지난식품 자동삭제",
+            "소비기한 지난식품 자동삭제",
             isAutoDeleteExpiredFoodEnabled
         ) { viewModel.updateAutoDeleteExpiredFoodEnabled(!isAutoDeleteExpiredFoodEnabled) }
 
