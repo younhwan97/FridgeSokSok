@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
-import com.yh.fridgesoksok.presentation.common.DateFormatter
+import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
@@ -44,7 +44,6 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor6
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import java.time.LocalDate
-import java.time.Period
 
 @Composable
 fun FoodListItem(

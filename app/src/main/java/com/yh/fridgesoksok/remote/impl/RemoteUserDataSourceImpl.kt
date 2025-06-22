@@ -10,6 +10,7 @@ import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
+import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserProfileRequest
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
@@ -162,7 +163,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
     override suspend fun sendMessage(message: String): String {
         return try {
             Logger.d("RemoteUserData", "sendMessage INPUT $message")
-            val response = fridgeApiService.sendFcmTest(message)
+            val response = fridgeApiService.sendFcmTest(FcmRequest(message = message))
             val data = response.data ?: throw IllegalStateException("sendMessage data(=null)")
             data
         } catch (e: Exception) {

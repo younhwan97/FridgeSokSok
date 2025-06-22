@@ -1,8 +1,7 @@
-package com.yh.fridgesoksok.presentation.common
+package com.yh.fridgesoksok.presentation.common.comp
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,9 +9,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor4
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable

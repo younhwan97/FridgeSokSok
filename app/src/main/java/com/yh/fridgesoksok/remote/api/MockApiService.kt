@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.yh.fridgesoksok.remote.model.CommonResponse
+import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
 import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
@@ -53,7 +54,7 @@ class MockApiService(
         )
     }
 
-    override suspend fun sendFcmTest(message: String): CommonResponse<String> {
+    override suspend fun sendFcmTest(fcmRequest: FcmRequest): CommonResponse<String> {
         TODO("Not yet implemented")
     }
 

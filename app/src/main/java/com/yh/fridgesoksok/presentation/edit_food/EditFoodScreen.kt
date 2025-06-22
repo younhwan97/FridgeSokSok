@@ -23,7 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.common.DateFormatter
+import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodContent
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector

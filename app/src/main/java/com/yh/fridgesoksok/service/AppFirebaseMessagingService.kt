@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.service
 
-import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.yh.fridgesoksok.common.Logger
@@ -60,11 +59,5 @@ class AppFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-
-        message.notification?.let {
-            Log.d("FCM", "🔔 알림 내용: ${it.title} / ${it.body}")
-        }
-
-        // 필요 시 여기서 NotificationManager로 직접 알림 생성
     }
 }

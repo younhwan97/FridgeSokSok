@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import com.yh.fridgesoksok.presentation.common.SearchBar
+import com.yh.fridgesoksok.presentation.common.comp.SearchBar
 
 @Composable
 fun FridgeSearchSection(

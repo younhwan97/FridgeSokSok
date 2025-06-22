@@ -2,7 +2,7 @@ package com.yh.fridgesoksok.presentation.model
 
 import android.os.Parcelable
 import com.yh.fridgesoksok.domain.model.Food
-import com.yh.fridgesoksok.presentation.common.DateFormatter
+import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDate
 import java.time.Period

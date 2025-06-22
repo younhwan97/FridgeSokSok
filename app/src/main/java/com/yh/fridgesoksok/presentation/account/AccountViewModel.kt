@@ -114,15 +114,16 @@ class AccountViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+
+    fun sendFcmMessageOnlyTest() {
+        sendMessageUseCase("테스트 메시지 전송").onEach { result ->
+            when (result) {
+                is Resource.Success -> Unit
+                is Resource.Error -> Unit
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
 }
 
-//        sendMessageUseCase("test").onEach { result ->
-//            when (result) {
-//                is Resource.Success -> {
-//                    Log.d("test444", result.toString())
-//                }
-//
-//                is Resource.Error -> Unit
-//                is Resource.Loading -> Unit
-//            }
-//        }.launchIn(viewModelScope)
+

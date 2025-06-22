@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -20,7 +21,9 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.account.comp.SettingActionRow
 import com.yh.fridgesoksok.presentation.account.comp.SettingSection
 import com.yh.fridgesoksok.presentation.account.comp.SettingSwitchRow
-import com.yh.fridgesoksok.presentation.common.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.extension.launchNotificationSettings
+import com.yh.fridgesoksok.presentation.common.rememberNotificationPermissionState
 import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
@@ -31,10 +34,13 @@ fun AccountScreen(
     homeNavController: NavController,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val hasSystemNotificationPermission by rememberNotificationPermissionState()
     val userSetting by viewModel.userSetting.collectAsState()
     val scrollState = rememberScrollState()
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     // 화면
     Column(
@@ -47,9 +53,13 @@ fun AccountScreen(
         SettingSection("냉장고") {
             SettingSwitchRow(
                 label = "소비기한 알림",
-                checked = userSetting?.receiveNotification ?: false
+                checked = (userSetting?.receiveNotification ?: false) && hasSystemNotificationPermission
             ) {
-                viewModel.updateReceiveNotification(userSetting?.receiveNotification)
+                if (hasSystemNotificationPermission) {
+                    viewModel.updateReceiveNotification(userSetting?.receiveNotification)
+                } else {
+                    showPermissionDialog = true
+                }
             }
 
             SettingSwitchRow(
@@ -66,7 +76,7 @@ fun AccountScreen(
                 label = "레시피 생성시 재료모두 사용",
                 checked = userSetting?.useAllIngredients ?: false
             ) {
-                viewModel.updateUseAllIngredients(!(userSetting?.useAllIngredients ?: false))
+                viewModel.updateUseAllIngredients(userSetting?.useAllIngredients)
             }
         }
 
@@ -91,6 +101,10 @@ fun AccountScreen(
             SettingActionRow("로그아웃") {
                 showLogoutDialog = true
             }
+
+//            SettingActionRow("메시지(TEST)", textColor = CustomGreyColor5) {
+//                viewModel.sendFcmMessageOnlyTest()
+//            }
         }
     }
 
@@ -126,6 +140,23 @@ fun AccountScreen(
                 showWithdrawDialog = false
             },
             onDismiss = { showWithdrawDialog = false }
+        )
+    }
+
+    // 알림권한 확인 다이얼로그
+    if (showPermissionDialog) {
+        ConfirmDialog(
+            title = "알림",
+            message = "앱 알림을 받으시려면 알림 권한을 켜야 해요.\n\n설정 화면으로 이동할까요?",
+            confirmText = "설정으로 이동",
+            onConfirm = {
+                showPermissionDialog = false
+                // 알림 설정 화면 이동
+                launchNotificationSettings(context)
+            },
+            onDismiss = {
+                showPermissionDialog = false
+            }
         )
     }
 }

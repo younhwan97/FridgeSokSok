@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.common
+package com.yh.fridgesoksok.presentation.common.comp
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

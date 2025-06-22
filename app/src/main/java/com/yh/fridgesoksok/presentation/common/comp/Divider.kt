@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.common
+package com.yh.fridgesoksok.presentation.common.comp
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider

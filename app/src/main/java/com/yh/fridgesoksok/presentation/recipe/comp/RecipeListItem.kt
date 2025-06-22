@@ -46,9 +46,9 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.yh.fridgesoksok.R
-import com.yh.fridgesoksok.presentation.common.DateFormatter
+import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.common.ResizeTransformation
-import com.yh.fridgesoksok.presentation.common.toFormattedDate
+import com.yh.fridgesoksok.presentation.common.extension.toFormattedDate
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor6

@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.common
+package com.yh.fridgesoksok.presentation.common.extension
 
 import java.time.LocalDate
 import java.time.LocalDateTime

@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.remote.api
 
 import com.yh.fridgesoksok.remote.model.CommonResponse
+import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
 import com.yh.fridgesoksok.remote.model.FoodResponse
 import com.yh.fridgesoksok.remote.model.FridgeResponse
@@ -149,8 +150,9 @@ interface FridgeApiService {
 
     /* ************************************************************* */
     /* ************************ FCM API(TEST) ********************** */
+    @Headers("Content-Type: application/json")
     @POST("fcm/send/user")
     suspend fun sendFcmTest(
-        @Body message: String
+        @Body fcmRequest: FcmRequest
     ): CommonResponse<String>
 }

@@ -18,7 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import com.yh.fridgesoksok.presentation.common.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeListSection
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeSearchSection

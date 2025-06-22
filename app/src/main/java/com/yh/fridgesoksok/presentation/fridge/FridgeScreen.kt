@@ -42,7 +42,7 @@ fun FridgeScreen(
 
     // 화면 재진입 시 데이터 로드
     val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.loadFoods()
         }
