@@ -52,57 +52,57 @@ class AccountViewModel @Inject constructor(
     }
 
     fun updateReceiveNotification(enabled: Boolean?) {
-        if (enabled != null) {
-            updateReceiveNotificationUseCase(!enabled).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val data = result.data
-                        if (data != null) {
-                            _userSetting.value = _userSetting.value?.copy(receiveNotification = data)
-                        }
-                    }
+        if (enabled == null) return
 
-                    is Resource.Loading -> Unit
-                    is Resource.Error -> Unit
+        updateReceiveNotificationUseCase(!enabled).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data != null) {
+                        _userSetting.value = _userSetting.value?.copy(receiveNotification = data)
+                    }
                 }
-            }.launchIn(viewModelScope)
-        }
+
+                is Resource.Loading -> Unit
+                is Resource.Error -> Unit
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun updateAutoDeleteExpired(enabled: Boolean?) {
-        if (enabled != null) {
-            updateAutoDeleteExpiredUseCase(!enabled).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val data = result.data
-                        if (data != null) {
-                            _userSetting.value = _userSetting.value?.copy(autoDeleteExpiredFoods = data)
-                        }
-                    }
+        if (enabled == null) return
 
-                    is Resource.Loading -> Unit
-                    is Resource.Error -> Unit
+        updateAutoDeleteExpiredUseCase(!enabled).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data != null) {
+                        _userSetting.value = _userSetting.value?.copy(autoDeleteExpiredFoods = data)
+                    }
                 }
-            }.launchIn(viewModelScope)
-        }
+
+                is Resource.Loading -> Unit
+                is Resource.Error -> Unit
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun updateUseAllIngredients(enabled: Boolean?) {
-        if (enabled != null) {
-            updateUseAllIngredientsUseCase(!enabled).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val data = result.data
-                        if (data != null) {
-                            _userSetting.value = _userSetting.value?.copy(useAllIngredients = data)
-                        }
-                    }
+        if (enabled == null) return
 
-                    is Resource.Loading -> Unit
-                    is Resource.Error -> Unit
+        updateUseAllIngredientsUseCase(!enabled).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data != null) {
+                        _userSetting.value = _userSetting.value?.copy(useAllIngredients = data)
+                    }
                 }
-            }.launchIn(viewModelScope)
-        }
+
+                is Resource.Loading -> Unit
+                is Resource.Error -> Unit
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun clearUser() {

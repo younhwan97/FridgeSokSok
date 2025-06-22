@@ -54,7 +54,7 @@ fun AccountScreen(
         SettingSection(Constants.FRIDGE) {
             SettingSwitchRow(
                 label = "소비기한 알림",
-                checked = (userSetting?.receiveNotification ?: false) && hasSystemNotificationPermission
+                checked = hasSystemNotificationPermission && (userSetting?.receiveNotification == true)
             ) {
                 if (hasSystemNotificationPermission) {
                     viewModel.updateReceiveNotification(userSetting?.receiveNotification)
@@ -65,7 +65,7 @@ fun AccountScreen(
 
             SettingSwitchRow(
                 label = "소비기한 지난식품 자동삭제",
-                checked = userSetting?.autoDeleteExpiredFoods ?: false
+                checked = userSetting?.autoDeleteExpiredFoods
             ) {
                 viewModel.updateAutoDeleteExpired(userSetting?.autoDeleteExpiredFoods)
             }
@@ -74,8 +74,8 @@ fun AccountScreen(
         // 레시피 섹션
         SettingSection(Constants.RECIPE) {
             SettingSwitchRow(
-                label = "레시피 생성시 재료모두 사용",
-                checked = userSetting?.useAllIngredients ?: false
+                label = "레시피 생성시 모든재료 사용",
+                checked = userSetting?.useAllIngredients
             ) {
                 viewModel.updateUseAllIngredients(userSetting?.useAllIngredients)
             }
