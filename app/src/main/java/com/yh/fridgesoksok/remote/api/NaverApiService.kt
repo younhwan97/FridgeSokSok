@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
-import com.yh.fridgesoksok.presentation.login.activity.NaverLoginActivity
+import com.yh.fridgesoksok.service.NaverLoginActivity
 import com.yh.fridgesoksok.remote.model.UserResponse
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -14,6 +14,11 @@ class NaverApiService(
     private val appContext: Context
 ) {
     suspend fun createUserOnNaver(): UserResponse = suspendCancellableCoroutine { continuation ->
+        if (NaverLoginActivity.pendingCallback != null) {
+            continuation.resumeWithException(IllegalStateException("이미 로그인 요청이 진행 중입니다."))
+            return@suspendCancellableCoroutine
+        }
+
         NaverLoginActivity.pendingCallback = object : OAuthLoginCallback {
             override fun onSuccess() {
                 try {
@@ -22,7 +27,7 @@ class NaverApiService(
                             id = "tmp",
                             accessToken = NaverIdLoginSDK.getAccessToken(),
                             refreshToken = NaverIdLoginSDK.getRefreshToken(),
-                            username = "",
+                            username = "naver",
                             accountType = "NAVER",
                             defaultFridgeId = null
                         )

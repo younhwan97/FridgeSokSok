@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.login.activity
+package com.yh.fridgesoksok.service
 
 import android.app.Activity
 import android.os.Bundle
@@ -19,11 +19,13 @@ class NaverLoginActivity : Activity() {
                 pendingCallback = null
                 finish()
             }
+
             override fun onFailure(httpStatus: Int, message: String) {
                 pendingCallback?.onFailure(httpStatus, message)
                 pendingCallback = null
                 finish()
             }
+
             override fun onError(errorCode: Int, message: String) {
                 pendingCallback?.onError(errorCode, message)
                 pendingCallback = null
