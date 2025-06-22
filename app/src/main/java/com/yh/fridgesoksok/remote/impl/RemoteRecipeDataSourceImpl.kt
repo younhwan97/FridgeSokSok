@@ -44,7 +44,7 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
         return try {
             Logger.d("RemoteRecipeData", "deleteRecipe ${recipeId}")
             val response = fridgeApiService.deleteRecipe(recipeId)
-            val data = response.data ?: throw IllegalStateException("getRecipes data(=null)")
+            val data = response.data ?: throw IllegalStateException("deleteRecipe data(=null)")
             data
         } catch (e: Exception) {
             Logger.e("RemoteRecipeData", "deleteRecipe 실패", e)

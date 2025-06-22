@@ -64,36 +64,13 @@ fun RecipeListItem(
     onDeleteClick: () -> Unit,
     onDeleteAnimationEnd: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    // 이미지 로딩 요청 캐싱
-    val imageRequest = remember(item.recipeImageUrl, context) {
-        ImageRequest.Builder(context)
-            .data(item.recipeImageUrl)
-            .crossfade(false)
-            .size(100, 120)
-            .allowHardware(false)
-            .transformations(ResizeTransformation(100, 120))
-            .build()
-    }
-    val painter = rememberAsyncImagePainter(model = imageRequest)
-    val state = painter.state
-
-    // 날짜 포맷 recomposition 방지
-    val formattedDate = remember(item.createdAt) {
-        item.createdAt.toFormattedDate(DateFormatter.yyyyMMddDot)
-    }
-
     var visible by remember { mutableStateOf(true) }
+    val formattedDate = remember(item.createdAt) { item.createdAt.toFormattedDate(DateFormatter.yyyyMMddDot) }
 
-    // 삭제 트리거 → 애니메이션 시작
     LaunchedEffect(isBeingDeleted) {
-        if (isBeingDeleted) {
-            visible = false
-        }
+        if (isBeingDeleted) visible = false
     }
 
-    // 애니메이션 끝났으면 삭제 콜백 실행
     LaunchedEffect(visible) {
         if (!visible && isBeingDeleted) {
             delay(300)
@@ -115,40 +92,8 @@ fun RecipeListItem(
                 .clickable { onClick() },
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(width = 100.dp, height = 120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-                when (state) {
-                    is AsyncImagePainter.State.Loading -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    }
+            RecipeListItemImage(item.recipeImageUrl)
 
-                    is AsyncImagePainter.State.Error -> {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            painter = painterResource(R.drawable.basic_food_image),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    else -> {
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            painter = painter,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -193,13 +138,12 @@ fun RecipeListItem(
                 )
 
                 Text(
-                    text = "생성날짜$nbsp$nbsp$formattedDate",
+                    text = "생성날짜$nbsp$nbsp${formattedDate}",
                     style = MaterialTheme.typography.bodySmall,
                     color = CustomGreyColor5,
                     maxLines = 1
                 )
             }
         }
-
     }
 }
