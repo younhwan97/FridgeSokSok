@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.yh.fridgesoksok.common.Constants
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.account.comp.SettingActionRow
 import com.yh.fridgesoksok.presentation.account.comp.SettingSection
@@ -50,7 +51,7 @@ fun AccountScreen(
             .padding(horizontal = 16.dp)
     ) {
         // 냉장고 섹션
-        SettingSection("냉장고") {
+        SettingSection(Constants.FRIDGE) {
             SettingSwitchRow(
                 label = "소비기한 알림",
                 checked = (userSetting?.receiveNotification ?: false) && hasSystemNotificationPermission
@@ -71,7 +72,7 @@ fun AccountScreen(
         }
 
         // 레시피 섹션
-        SettingSection("레시피") {
+        SettingSection(Constants.RECIPE) {
             SettingSwitchRow(
                 label = "레시피 생성시 재료모두 사용",
                 checked = userSetting?.useAllIngredients ?: false
@@ -81,7 +82,7 @@ fun AccountScreen(
         }
 
         // 서비스 섹션
-        SettingSection("서비스") {
+        SettingSection(Constants.SERVICE) {
             SettingActionRow(
                 label = "구독 관리(업데이트 예정)",
                 enabled = false,
@@ -93,7 +94,7 @@ fun AccountScreen(
         }
 
         // 기타 섹션
-        SettingSection("기타") {
+        SettingSection(Constants.ETC) {
             SettingActionRow("회원탈퇴", textColor = CustomGreyColor5) {
                 showWithdrawDialog = true
             }
@@ -111,7 +112,6 @@ fun AccountScreen(
     // 로그아웃 확인 다이얼로그
     if (showLogoutDialog) {
         ConfirmDialog(
-            title = "알림",
             message = "정말 로그아웃 하시겠습니까?",
             onConfirm = {
                 viewModel.clearUser()
@@ -127,7 +127,6 @@ fun AccountScreen(
     // 회원탈퇴 확인 다이얼로그
     if (showWithdrawDialog) {
         ConfirmDialog(
-            title = "알림",
             message = "정말로 탈퇴 하시겠습니까?\n\n모든 데이터가 삭제됩니다.",
             confirmText = "탈퇴하기",
             confirmTextColor = CustomErrorColor,
@@ -146,7 +145,6 @@ fun AccountScreen(
     // 알림권한 확인 다이얼로그
     if (showPermissionDialog) {
         ConfirmDialog(
-            title = "알림",
             message = "앱 알림을 받으시려면 알림 권한을 켜야 해요.\n\n설정 화면으로 이동할까요?",
             confirmText = "설정으로 이동",
             onConfirm = {

@@ -45,8 +45,8 @@ class AccountViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Error -> Unit
                 is Resource.Loading -> Unit
+                is Resource.Error -> Unit
             }
         }.launchIn(viewModelScope)
     }
@@ -62,8 +62,8 @@ class AccountViewModel @Inject constructor(
                         }
                     }
 
-                    is Resource.Error -> Unit
                     is Resource.Loading -> Unit
+                    is Resource.Error -> Unit
                 }
             }.launchIn(viewModelScope)
         }
@@ -80,8 +80,8 @@ class AccountViewModel @Inject constructor(
                         }
                     }
 
-                    is Resource.Error -> Unit
                     is Resource.Loading -> Unit
+                    is Resource.Error -> Unit
                 }
             }.launchIn(viewModelScope)
         }
@@ -98,8 +98,8 @@ class AccountViewModel @Inject constructor(
                         }
                     }
 
-                    is Resource.Error -> Unit
                     is Resource.Loading -> Unit
+                    is Resource.Error -> Unit
                 }
             }.launchIn(viewModelScope)
         }
@@ -109,8 +109,8 @@ class AccountViewModel @Inject constructor(
         clearUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> Unit
-                is Resource.Error -> Unit
                 is Resource.Loading -> Unit
+                is Resource.Error -> Unit
             }
         }.launchIn(viewModelScope)
     }

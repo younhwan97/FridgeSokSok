@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
+import com.yh.fridgesoksok.common.Constants
 import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
@@ -162,7 +163,7 @@ fun HomeTopAppBar(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "계정",
+                        text = Constants.ACCOUNT,
                         style = MaterialTheme.typography.headlineMedium,
                         color = CustomGreyColor7
                     )

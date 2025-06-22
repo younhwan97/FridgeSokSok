@@ -14,7 +14,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
 fun ConfirmDialog(
-    title: String,
+    title: String = "알림",
     message: String,
     onConfirm: () -> Unit,
     confirmText: String = "확인",
