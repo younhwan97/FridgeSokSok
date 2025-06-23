@@ -55,6 +55,7 @@ import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -77,6 +78,8 @@ fun UploadScreen(
 
     val listState = rememberLazyListState()
     var isExiting by remember { mutableStateOf(false) }
+
+    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
 
     LaunchedEffect(Unit) {
         viewModel.addFoodsSuccess.collectLatest {

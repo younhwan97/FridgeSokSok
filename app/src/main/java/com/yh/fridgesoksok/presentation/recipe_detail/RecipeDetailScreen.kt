@@ -20,39 +20,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeContent
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeHeader
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeImage
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeIngredientSection
-import kotlinx.coroutines.delay
 
 @Composable
 fun RecipeDetailScreen(
     navController: NavController,
     recipe: RecipeModel?
 ) {
-    var isClickable by remember { mutableStateOf(true) }
-    var backClicked by remember { mutableStateOf(false) }
-
-    if (backClicked) {
-        LaunchedEffect(Unit) {
-            delay(500)
-            isClickable = true
-            backClicked = false
-        }
-    }
+    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
 
     if (recipe == null) {
         Box(
@@ -103,9 +89,8 @@ fun RecipeDetailScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(4.dp)
-                        .clickable(enabled = isClickable) {
-                            isClickable = false
-                            backClicked = true
+                        .clickable(enabled = isBackEnabled) {
+                            triggerBackCooldown()
                             navController.popBackStack()
                         },
                     imageVector = Icons.Default.ArrowBackIosNew,
