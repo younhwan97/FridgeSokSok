@@ -8,30 +8,37 @@ import androidx.activity.compose.BackHandler
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
-import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
-import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.camera.comp.CameraControlBar
+import com.yh.fridgesoksok.presentation.camera.comp.CameraPreviewView
+import com.yh.fridgesoksok.presentation.camera.comp.CapturedImageView
+import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
+import com.yh.fridgesoksok.presentation.common.util.rememberCameraController
 
 @Composable
 fun CameraScreen(
@@ -41,198 +48,109 @@ fun CameraScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val systemUiController = rememberSystemUiController()
-
-    val cameraController = remember {
-        LifecycleCameraController(context).apply {
-            setEnabledUseCases(CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE)
-        }
-    }
-
     var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var isExiting by remember { mutableStateOf(false) }
-    var isScreenActive by remember { mutableStateOf(true) }
+    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
+    val cameraController = rememberCameraController(context)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(true) {
         systemUiController.setNavigationBarColor(Color.Black)
     }
 
-    fun exitCameraScreen() {
-        if (!isExiting) {
-            isExiting = true
-            isScreenActive = false
-            navController.popBackStack()
-            cameraController.unbind()
-        }
-    }
-
-    BackHandler(enabled = true) {
+    BackHandler(enabled = isBackEnabled) {
         if (capturedImageBitmap != null) {
             capturedImageBitmap = null
         } else {
-            exitCameraScreen()
+            triggerBackCooldown()
+            exitCamera(navController, cameraController)
         }
     }
-
-    if (!isScreenActive) return
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        if (capturedImageBitmap == null) {
-            Spacer(modifier = Modifier.height(72.dp))
+        Spacer(modifier = Modifier.height(72.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(3f / 4f)
-                    .weight(1f)
-            ) {
-                AndroidView(
-                    factory = {
-                        PreviewView(it).apply {
-                            this.controller = cameraController
-                            cameraController.bindToLifecycle(lifecycleOwner)
-                            scaleType = PreviewView.ScaleType.FILL_CENTER
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer(alpha = if (isScreenActive) 1f else 0f)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .background(color = Color.Black)
-                    .height(144.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "사진",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Yellow,
-                    )
-
-                    IconButton(
-                        onClick = {
-                            MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
-
-                            cameraController.takePicture(
-                                ContextCompat.getMainExecutor(context),
-                                object : OnImageCapturedCallback() {
-                                    override fun onCaptureSuccess(image: ImageProxy) {
-                                        super.onCaptureSuccess(image)
-
-                                        val matrix = Matrix().apply {
-                                            postRotate(image.imageInfo.rotationDegrees.toFloat())
-                                        }
-
-                                        val bitmap = Bitmap.createBitmap(
-                                            image.toBitmap(),
-                                            0, 0,
-                                            image.width, image.height,
-                                            matrix, true
-                                        )
-
-                                        capturedImageBitmap = bitmap
-                                    }
-
-                                    override fun onError(exception: ImageCaptureException) {
-                                        Log.e("Camera", "Capture failed: ${exception.message}")
-                                    }
-                                }
-                            )
-                        },
-                        modifier = Modifier.size(120.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Camera,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(64.dp)
-                        )
-                    }
-                }
-
-                TextButton(
-                    onClick = { exitCameraScreen() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "나가기",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        } else {
-            Spacer(modifier = Modifier.height(72.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .aspectRatio(3f / 4f)
-                    .weight(1f)
-            ) {
-                Image(
-                    bitmap = capturedImageBitmap!!.asImageBitmap(),
-                    contentDescription = null,
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(3f / 4f)
+                .weight(1f)
+        ) {
+            capturedImageBitmap?.let { bitmap ->
+                CapturedImageView(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.Center)
+                        .align(Alignment.Center),
+                    bitmap = bitmap
+                )
+            } ?: CameraPreviewView(
+                cameraController = cameraController,
+                lifecycleOwner = lifecycleOwner
+            )
+        }
+
+        CameraControlBar(
+            capturedImage = capturedImageBitmap,
+            onCapture = {
+                MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+                captureImage(
+                    controller = cameraController,
+                    context = context,
+                    onSuccess = { capturedImageBitmap = it },
+                    onError = { Log.e("Camera", "Capture failed: ${it.message}") }
+                )
+            },
+            onRetake = { capturedImageBitmap = null },
+            onUseImage = {
+                capturedImageBitmap?.let {
+                    triggerBackCooldown()
+                    sharedViewModel.setReceipt(it)
+                    navController.navigate(Screen.UploadScreen.route)
+                }
+            },
+            onExit = {
+                triggerBackCooldown()
+                exitCamera(navController, cameraController)
+            },
+            isExitEnabled = isBackEnabled
+        )
+    }
+}
+
+private fun exitCamera(navController: NavController, cameraController: LifecycleCameraController) {
+    cameraController.unbind()
+    navController.popBackStack()
+}
+
+private fun captureImage(
+    controller: LifecycleCameraController,
+    context: android.content.Context,
+    onSuccess: (Bitmap) -> Unit,
+    onError: (ImageCaptureException) -> Unit
+) {
+    controller.takePicture(
+        ContextCompat.getMainExecutor(context),
+        object : OnImageCapturedCallback() {
+            override fun onCaptureSuccess(image: ImageProxy) {
+                super.onCaptureSuccess(image)
+                val matrix = Matrix().apply {
+                    postRotate(image.imageInfo.rotationDegrees.toFloat())
+                }
+                onSuccess(
+                    Bitmap.createBitmap(
+                        image.toBitmap(),
+                        0, 0,
+                        image.width, image.height,
+                        matrix, true
+                    )
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .background(color = Color.Black)
-                    .height(144.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = { capturedImageBitmap = null },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "다시찍기",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                TextButton(
-                    onClick = {
-                        if (!isExiting) {
-                            isExiting = true
-                            sharedViewModel.setReceipt(capturedImageBitmap!!)
-                            navController.navigate(Screen.UploadScreen.route)
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "사용하기",
-                        color = Color.Yellow,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+            override fun onError(exception: ImageCaptureException) {
+                onError(exception)
             }
         }
-    }
+    )
 }

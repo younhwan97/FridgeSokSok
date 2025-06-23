@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,7 +55,7 @@ class UploadViewModel @Inject constructor(
                                 .toLocalDate()
 
                             FoodModel(
-                                id = generateNextId(),
+                                id = UUID.randomUUID().toString(),
                                 fridgeId = "",
                                 itemName = it.itemName,
                                 count = it.count,
@@ -111,18 +112,11 @@ class UploadViewModel @Inject constructor(
     }
 
     fun addFood(newFood: FoodModel) {
-        val newIdFood = newFood.copy(id = generateNextId())
+        val newIdFood = newFood.copy(id = UUID.randomUUID().toString())
         _newFoods.update { (it + newIdFood).sortedByDescending { food -> food.id } }
     }
 
     fun updateFood(index: Int, updated: FoodModel) = updateList(index) { updated }
-
-    // --- Private Helpers ---
-    private fun generateNextId(): String {
-        val usedIds = _newFoods.value.mapNotNull { it.id.toIntOrNull() }.toSet()
-        val nextId = (0..Int.MAX_VALUE).first { it !in usedIds }
-        return nextId.toString()
-    }
 
     private fun updateList(index: Int, transform: (FoodModel) -> FoodModel) {
         _newFoods.update { current ->
