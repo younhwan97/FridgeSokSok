@@ -41,17 +41,17 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     // 편집할 식품 초기화
-    val editFoodSource by sharedViewModel.editSource.collectAsState()
+    val editFoodState by sharedViewModel.editFoodState.collectAsState()
     var editFood by remember {
         mutableStateOf(
-            sharedViewModel.editFood.value ?: FoodModel(
-                id = "NEW",
-                fridgeId = "NEW",
-                itemName = "",
-                expiryDate = LocalDate.now().plusWeeks(2).format(DateFormatter.yyyyMMdd),
-                categoryId = Type.Ingredients.id,
+            editFoodState.food ?: FoodModel(
+                id = "",
                 count = 1,
-                createdAt = ""
+                fridgeId = "",
+                itemName = "",
+                categoryId = Type.Ingredients.id,
+                createdAt = LocalDate.now().format(DateFormatter.yyyyMMdd),
+                expiryDate = LocalDate.now().plusWeeks(2).format(DateFormatter.yyyyMMdd)
             )
         )
     }
@@ -89,9 +89,9 @@ fun EditFoodScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
-                title = if (editFoodSource == EditSource.HOME) "변경하기" else "식품 추가하기",
+                title = if (editFoodState.source == EditSource.HOME) "변경하기" else "식품 추가하기",
                 onNavigationClick = {
-                    if (!isNavigating){
+                    if (!isNavigating) {
                         isNavigating = true
                         navController.popBackStack()
                     }
@@ -100,7 +100,7 @@ fun EditFoodScreen(
         },
         bottomBar = {
             EditFoodBottomButton(
-                text = if (editFoodSource == EditSource.HOME) "변경하기" else "추가하기",
+                text = if (editFoodState.source == EditSource.HOME) "변경하기" else "추가하기",
                 onClick = {
                     if (editFood.itemName.isBlank()) {
                         nameError = true
@@ -108,9 +108,9 @@ fun EditFoodScreen(
                     }
                     if (!isNavigating) {
                         isNavigating = true
-                        when (editFoodSource) {
+                        when (editFoodState.source) {
                             EditSource.HOME -> viewModel.updateFood(editFood)
-                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setNewFood(editFood.copy(fridgeId = "tmp"))
+                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
                             else -> Unit
                         }
                         navController.popBackStack()

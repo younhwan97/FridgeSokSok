@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.presentation.upload
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -31,6 +30,9 @@ class UploadViewModel @Inject constructor(
     private val addFoodsUseCase: AddFoodsUseCase,
     private val uploadReceiptImageUseCase: UploadReceiptImageUseCase,
 ) : ViewModel() {
+
+    private val _state = MutableStateFlow<UploadState>(UploadState.Success)
+    val state = _state.asStateFlow()
 
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     var newFoods = _newFoods.asStateFlow()
@@ -66,10 +68,14 @@ class UploadViewModel @Inject constructor(
                         }
 
                         _newFoods.update { it + mappedFoods }
+                        _state.value = UploadState.Success
                     }
                 }
 
-                is Resource.Loading -> Unit
+                is Resource.Loading -> {
+                    _state.value = UploadState.Loading
+                }
+
                 is Resource.Error -> Unit
             }
         }.launchIn(viewModelScope)
@@ -94,37 +100,28 @@ class UploadViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    // --- FoodModel control ---
-    fun increaseCount(index: Int) = updateList(index) {
-        it.copy(count = it.count + 1)
-    }
-
-    fun decreaseCount(index: Int) = updateList(index) {
-        if (it.count > 1) it.copy(count = it.count - 1) else it
-    }
-
-    fun deleteFood(index: Int) {
-        _newFoods.update { current ->
-            current.toMutableList().apply {
-                if (index in indices) removeAt(index)
+    fun updateCount(id: String, update: (Int) -> Int) {
+        _newFoods.update { list ->
+            list.map {
+                if (it.id == id) it.copy(count = update(it.count)) else it
             }
         }
     }
 
-    fun addFood(newFood: FoodModel) {
-        val newIdFood = newFood.copy(id = UUID.randomUUID().toString())
-        _newFoods.update { (it + newIdFood).sortedByDescending { food -> food.id } }
+    fun deleteFood(id: String) {
+        _newFoods.update { it.filterNot { food -> food.id == id } }
     }
 
-    fun updateFood(index: Int, updated: FoodModel) = updateList(index) { updated }
+    fun addFood(newFood: FoodModel) {
+        val newIdFood = newFood.copy(id = UUID.randomUUID().toString())
+        _newFoods.update { it + newIdFood }
+    }
 
-    private fun updateList(index: Int, transform: (FoodModel) -> FoodModel) {
-        _newFoods.update { current ->
-            if (index in current.indices) {
-                current.toMutableList().apply {
-                    this[index] = transform(this[index])
-                }
-            } else current
+    fun updateFood(id: String, updated: FoodModel) {
+        _newFoods.update { list ->
+            list.map { existing ->
+                if (existing.id == id) updated else existing
+            }
         }
     }
 }

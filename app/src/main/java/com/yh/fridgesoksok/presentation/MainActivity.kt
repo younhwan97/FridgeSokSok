@@ -9,12 +9,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,10 +24,8 @@ import com.yh.fridgesoksok.presentation.home.HomeScreen
 import com.yh.fridgesoksok.presentation.login.LoginScreen
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
-import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
 import com.yh.fridgesoksok.presentation.recipe_detail.RecipeDetailScreen
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import com.yh.fridgesoksok.presentation.upload.UploadScreen
 import dagger.hilt.android.AndroidEntryPoint
