@@ -41,40 +41,25 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     private val _selectAllFoodsRequested = MutableStateFlow(false)
     val selectAllFoodsRequested = _selectAllFoodsRequested.asStateFlow()
 
-    fun requestSelectAllFoods() {
-        _selectAllFoodsRequested.value = true
-    }
-
-    fun clearSelectAllFoodsRequest() {
-        _selectAllFoodsRequested.value = false
-    }
+    fun requestSelectAllFoods() { _selectAllFoodsRequested.value = true }
+    fun clearSelectAllFoodsRequest() { _selectAllFoodsRequested.value = false }
 
     private val _deselectAllFoodsRequested = MutableStateFlow(false)
     val deselectAllFoodsRequested = _deselectAllFoodsRequested.asStateFlow()
 
-    fun requestDeselectAllFoods() {
-        _deselectAllFoodsRequested.value = true
-    }
-
-    fun clearDeselectAllFoodsRequest() {
-        _deselectAllFoodsRequested.value = false
-    }
+    fun requestDeselectAllFoods() { _deselectAllFoodsRequested.value = true }
+    fun clearDeselectAllFoodsRequest() { _deselectAllFoodsRequested.value = false }
 
     // ✅ 레시피 생성 요청 (FridgeScreen에서 감지 → ViewModel 호출)
     private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
     val recipeGenerationState = _recipeGenerationState.asStateFlow()
 
-    fun startRecipeGeneration() {
-        _recipeGenerationState.value = RecipeGenerationState.Loading
-    }
+    fun startRecipeGeneration() { _recipeGenerationState.value = RecipeGenerationState.Loading }
+    fun resetRecipeGenerationState() { _recipeGenerationState.value = RecipeGenerationState.Idle }
 
     fun completeRecipeGeneration(success: Boolean, errorMessage: String? = null) {
         _recipeGenerationState.value =
             if (success) RecipeGenerationState.Success else RecipeGenerationState.Error(errorMessage)
-    }
-
-    fun resetRecipeGenerationState() {
-        _recipeGenerationState.value = RecipeGenerationState.Idle
     }
 }
 

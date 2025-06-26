@@ -48,12 +48,12 @@ fun UploadScreen(
     LaunchedEffect(Unit) {
         snapshotFlow { sharedViewModel.editedFood.value }
             .collectLatest { food ->
-                if (food != null) {
-                    val exists = viewModel.newFoods.value.any { it.id == food.id }
+                if (food != null && food.itemName.isNotBlank()) {
+                    val exists = food.id.isNotBlank() && viewModel.newFoods.value.any { it.id == food.id }
                     if (exists) {
-                        viewModel.updateFood(food.id, food)
+                        viewModel.updateFood(food.id, food) // 업데이트
                     } else {
-                        viewModel.addFood(food)
+                        viewModel.addFood(food)             // 신규
                     }
                     sharedViewModel.clearEditedFood()
                 }
