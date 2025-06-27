@@ -17,6 +17,7 @@ import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
@@ -86,7 +87,6 @@ fun UploadScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
             UploadTopAppBar(
-                uploadState = uploadState,
                 isBackEnabled = isBackEnabled,
                 onNavigationClick = {
                     triggerBackCooldown()
@@ -129,5 +129,12 @@ fun UploadScreen(
                 viewModel.updateCount(id) { if (it > 1) it - 1 else it }
             }
         )
+
+        // 로딩 or 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
+        when (uploadState) {
+            UploadState.Loading -> BlockingLoadingOverlay(showLoading = true)
+            UploadState.Uploading -> BlockingLoadingOverlay(showLoading = false)
+            else -> Unit
+        }
     }
 }

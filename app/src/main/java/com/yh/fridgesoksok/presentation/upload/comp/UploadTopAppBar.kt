@@ -22,12 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
-import com.yh.fridgesoksok.presentation.upload.UploadState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UploadTopAppBar(
-    uploadState: UploadState,
     isBackEnabled: Boolean,
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit
@@ -55,7 +53,6 @@ fun UploadTopAppBar(
             Button(
                 modifier = Modifier.padding(end = 16.dp),
                 onClick = { onActionClick() },
-                enabled = uploadState == UploadState.Success,
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
             ) {

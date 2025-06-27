@@ -48,8 +48,7 @@ class UploadViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val receiptList = result.data
-
-                    if (receiptList != null) {
+                    if (!receiptList.isNullOrEmpty()) {
                         val now = LocalDate.now()
                         val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
 
@@ -71,8 +70,10 @@ class UploadViewModel @Inject constructor(
                         }
 
                         _newFoods.update { it + mappedFoods }
-                        _state.value = UploadState.Success
+                    } else {
+                        _errorMessage.value = "영수증 업로드에 실패했습니다 :("
                     }
+                    _state.value = UploadState.Success
                 }
 
                 is Resource.Loading -> {
@@ -96,6 +97,8 @@ class UploadViewModel @Inject constructor(
                         viewModelScope.launch {
                             _addFoodsSuccess.emit(Unit)
                         }
+                    } else {
+                        _errorMessage.value = "식픔 추가에 실패했습니다."
                     }
                 }
 
@@ -112,9 +115,7 @@ class UploadViewModel @Inject constructor(
 
     fun updateCount(id: String, update: (Int) -> Int) {
         _newFoods.update { list ->
-            list.map {
-                if (it.id == id) it.copy(count = update(it.count)) else it
-            }
+            list.map { if (it.id == id) it.copy(count = update(it.count)) else it }
         }
     }
 

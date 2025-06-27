@@ -13,7 +13,8 @@ import androidx.compose.ui.zIndex
 
 @Composable
 fun BlockingLoadingOverlay(
-    bgColor: Color = Color.Transparent
+    bgColor: Color = Color.Transparent,
+    showLoading: Boolean = true
 ) {
     Box(
         modifier = Modifier
@@ -28,6 +29,8 @@ fun BlockingLoadingOverlay(
                 }
             }
     ) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        if (showLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        }
     }
 }

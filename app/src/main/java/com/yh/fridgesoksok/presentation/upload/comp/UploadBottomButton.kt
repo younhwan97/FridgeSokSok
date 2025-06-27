@@ -10,10 +10,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
@@ -36,13 +38,13 @@ fun UploadBottomButton(
     ) {
         Button(
             onClick = { onClick() },
-            enabled = uploadState == UploadState.Success,
             shape = RoundedCornerShape(12.dp)
         ) {
             if (uploadState == UploadState.Uploading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(18.dp),
                     strokeWidth = 2.dp,
+                    color = Color.White
                 )
             } else {
                 Text(
