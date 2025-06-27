@@ -63,7 +63,7 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     }
 }
 
-enum class EditSource { HOME, UPLOAD, CREATE }
+enum class EditSource { HOME, UPLOAD }
 
 sealed class RecipeGenerationState {
     data object Idle : RecipeGenerationState()

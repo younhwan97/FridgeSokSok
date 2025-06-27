@@ -46,12 +46,12 @@ class RemoteUserDataSourceImpl @Inject constructor(
             val response = when (user.accountType) {
                 Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(
                     provider = "kakao",
-                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.username)
+                    userCreateRequest = UserCreateRequest(user.accessToken)
                 )
 
                 Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(
                     provider = "naver",
-                    userCreateRequest = UserCreateRequest(token = user.accessToken, username = user.username)
+                    userCreateRequest = UserCreateRequest(user.accessToken)
                 )
 
                 else -> null

@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
-import com.yh.fridgesoksok.presentation.common.comp.ErrorScreen
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.upload.UploadState
 
@@ -28,7 +28,7 @@ fun UploadItemListSection(
     val listState = rememberLazyListState()
 
     when (uploadState) {
-        UploadState.Success -> {
+        UploadState.Success, UploadState.Uploading -> {
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)

@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -15,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
+import com.yh.fridgesoksok.presentation.upload.UploadState
 
 @Composable
 fun UploadBottomButton(
+    uploadState: UploadState,
     onClick: () -> Unit
 ) {
     Surface(
@@ -32,14 +36,22 @@ fun UploadBottomButton(
     ) {
         Button(
             onClick = { onClick() },
+            enabled = uploadState == UploadState.Success,
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text(
-                text = "추가하기",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = CustomGreyColor1
-            )
+            if (uploadState == UploadState.Uploading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Text(
+                    text = "추가하기",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = CustomGreyColor1
+                )
+            }
         }
     }
 }

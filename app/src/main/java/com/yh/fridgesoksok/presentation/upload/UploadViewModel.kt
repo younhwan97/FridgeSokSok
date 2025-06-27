@@ -37,6 +37,9 @@ class UploadViewModel @Inject constructor(
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     var newFoods = _newFoods.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
     private val _addFoodsSuccess = MutableSharedFlow<Unit>()
     val addFoodsSuccess = _addFoodsSuccess.asSharedFlow()
 
@@ -76,7 +79,9 @@ class UploadViewModel @Inject constructor(
                     _state.value = UploadState.Loading
                 }
 
-                is Resource.Error -> Unit
+                is Resource.Error -> {
+                    _errorMessage.value = "영수증 업로드에 실패했습니다 :("
+                }
             }
         }.launchIn(viewModelScope)
     }
@@ -94,8 +99,13 @@ class UploadViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Loading -> Unit
-                is Resource.Error -> Unit
+                is Resource.Loading -> {
+                    _state.value = UploadState.Uploading
+                }
+
+                is Resource.Error -> {
+                    _errorMessage.value = "식픔 추가에 실패했습니다."
+                }
             }
         }.launchIn(viewModelScope)
     }
@@ -123,5 +133,9 @@ class UploadViewModel @Inject constructor(
                 if (existing.id == id) updated else existing
             }
         }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 }

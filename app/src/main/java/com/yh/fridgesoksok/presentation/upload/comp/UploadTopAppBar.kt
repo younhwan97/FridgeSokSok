@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -17,17 +16,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
+import com.yh.fridgesoksok.presentation.upload.UploadState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UploadTopAppBar(
+    uploadState: UploadState,
     isBackEnabled: Boolean,
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit
@@ -55,13 +55,8 @@ fun UploadTopAppBar(
             Button(
                 modifier = Modifier.padding(end = 16.dp),
                 onClick = { onActionClick() },
+                enabled = uploadState == UploadState.Success,
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
-                    disabledContainerColor = Color.White,
-                    disabledContentColor = Color.White
-                ),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
             ) {
                 Image(

@@ -110,7 +110,7 @@ fun EditFoodScreen(
                         isNavigating = true
                         when (editFoodState.source) {
                             EditSource.HOME -> viewModel.updateFood(editFood)
-                            EditSource.UPLOAD, EditSource.CREATE -> sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
+                            EditSource.UPLOAD -> sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
                             else -> Unit
                         }
                         navController.popBackStack()

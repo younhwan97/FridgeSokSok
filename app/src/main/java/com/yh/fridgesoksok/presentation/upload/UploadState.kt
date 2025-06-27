@@ -4,4 +4,5 @@ sealed class UploadState {
     data object Loading : UploadState()
     data object Success : UploadState()
     data object Error : UploadState()
+    data object Uploading : UploadState()
 }
