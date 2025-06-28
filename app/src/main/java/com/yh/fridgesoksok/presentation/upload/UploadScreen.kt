@@ -17,12 +17,9 @@ import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
-import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.comp.*
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
-import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
-import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
-import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
+import com.yh.fridgesoksok.presentation.upload.comp.*
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -114,7 +111,6 @@ fun UploadScreen(
         }
     ) { innerPadding ->
         UploadItemListSection(
-            uploadState = uploadState,
             innerPadding = innerPadding,
             foods = newFoods,
             onEdit = {

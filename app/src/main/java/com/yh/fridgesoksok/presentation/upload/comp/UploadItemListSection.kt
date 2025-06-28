@@ -11,11 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.presentation.model.FoodModel
-import com.yh.fridgesoksok.presentation.upload.UploadState
 
 @Composable
 fun UploadItemListSection(
-    uploadState: UploadState,
     innerPadding: PaddingValues,
     foods: List<FoodModel>,
     onEdit: (FoodModel) -> Unit,

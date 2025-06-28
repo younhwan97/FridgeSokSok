@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,12 +28,14 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.state.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    // 스낵바 처리
-    LaunchedEffect(Unit) {
-        viewModel.snackBarMessages.collect {
-            snackBarHostState.showSnackbar(it, duration = SnackbarDuration.Short)
+    // 로그인 실패 시 스낵바 메시징
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackBarHostState.showSnackbar(it)
+            viewModel.clearErrorMessage()
         }
     }
 
@@ -47,7 +48,7 @@ fun LoginScreen(
         }
     }
 
-    // Content
+    // 화면
     Box(
         modifier = Modifier
             .fillMaxSize()

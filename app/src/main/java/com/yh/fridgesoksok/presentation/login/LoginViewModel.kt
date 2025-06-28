@@ -14,11 +14,8 @@ import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
-import com.yh.fridgesoksok.presentation.onboarding.OnboardingState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -38,8 +35,8 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow<LoginState>(LoginState.Loading)
     val state = _state.asStateFlow()
 
-    private val _snackBarMessages = MutableSharedFlow<String>()
-    val snackBarMessages = _snackBarMessages.asSharedFlow()
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
     // (네이버, 카카오 등의) 채널로 부터 유저 생성
     fun createUserOnChannel(channel: Channel) {
@@ -157,7 +154,11 @@ class LoginViewModel @Inject constructor(
         _state.value = LoginState.Error
 
         viewModelScope.launch {
-            _snackBarMessages.emit("로그인 실패")
+            _errorMessage.value = "로그인 실패"
         }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 }

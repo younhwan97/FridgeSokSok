@@ -41,6 +41,7 @@ fun EditFoodContent(
                 onDone = {
                     keyboardController?.hide()
                     focusManager.clearFocus()
+                    onSuggestionClear()
                 },
                 onPositioned = onSuggestionAnchorPositioned,
             )

@@ -63,16 +63,18 @@ class EditFoodViewModel @Inject constructor(
     }
 
     fun onNameInputChanged(query: String) {
-        searchLocalFoodsUseCase(query).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    _suggestions.value = result.data?.map { it.toPresentation() } ?: emptyList()
-                }
+        if (query.length > 1) {
+            searchLocalFoodsUseCase(query).onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _suggestions.value = result.data?.map { it.toPresentation() } ?: emptyList()
+                    }
 
-                is Resource.Error -> _suggestions.value = emptyList()
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
+                    is Resource.Error -> _suggestions.value = emptyList()
+                    is Resource.Loading -> Unit
+                }
+            }.launchIn(viewModelScope)
+        }
     }
 
     fun clearSuggestions() {

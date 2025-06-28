@@ -10,7 +10,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun CameraPreviewView(
     lifecycleOwner: androidx.lifecycle.LifecycleOwner,
-    cameraController: LifecycleCameraController
+    cameraController: LifecycleCameraController,
+    modifier: Modifier = Modifier,
+    onCameraReady: (() -> Unit)? = null
 ) {
     AndroidView(
         factory = {
@@ -18,8 +20,14 @@ fun CameraPreviewView(
                 this.controller = cameraController
                 cameraController.bindToLifecycle(lifecycleOwner)
                 scaleType = PreviewView.ScaleType.FILL_CENTER
+
+                previewStreamState.observe(lifecycleOwner) { state ->
+                    if (state == PreviewView.StreamState.STREAMING) {
+                        onCameraReady?.invoke()
+                    }
+                }
             }
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     )
 }

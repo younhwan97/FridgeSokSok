@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -16,7 +15,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
@@ -47,11 +45,10 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var showDateSelectorDialog by remember { mutableStateOf(false) }
     var nameError by remember { mutableStateOf(false) }
-    var canInteract by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage by viewModel.errorMessage.collectAsState()
+    var showDateSelectorDialog by remember { mutableStateOf(false) }
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 편집 대상
@@ -74,23 +71,13 @@ fun EditFoodScreen(
     val suggestions by viewModel.suggestions.collectAsState()
     val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
 
-    // 컴포지션 완료 후 인터랙션 허용
-    LaunchedEffect(Unit) {
-        withFrameNanos { canInteract = true }
-    }
-
-    // 뒤로가기 시 검색어 제안 닫기
-    BackHandler(enabled = suggestions.isNotEmpty()) {
-        viewModel.clearSuggestions()
-    }
-
-    // 화면 제거 시 상태 초기화
-    DisposableEffect(Unit) {
-        onDispose {
-            showDateSelectorDialog = false
-            nameError = false
-            canInteract = false
+    // 뒤로가기
+    BackHandler(enabled = canTrigger) {
+        if (suggestions.isNotEmpty()) {
             viewModel.clearSuggestions()
+        } else {
+            triggerCooldown()
+            navController.popBackStack()
         }
     }
 
@@ -165,7 +152,7 @@ fun EditFoodScreen(
                 food = editFood,
                 nameError = nameError,
                 onFoodChange = { editFood = it },
-                onDateEditRequest = { if (canInteract) showDateSelectorDialog = true },
+                onDateEditRequest = { showDateSelectorDialog = true },
                 onSuggestionUpdate = viewModel::onNameInputChanged,
                 onSuggestionClear = viewModel::clearSuggestions,
                 onSuggestionAnchorPositioned = { coordinates ->
@@ -174,7 +161,7 @@ fun EditFoodScreen(
             )
         }
 
-        if (suggestions.isNotEmpty() && canInteract) {
+        if (suggestions.isNotEmpty()) {
             EditFoodNameSuggestion(
                 suggestions = suggestions,
                 suggestionOffsetY = suggestionOffsetY.floatValue,
@@ -191,7 +178,7 @@ fun EditFoodScreen(
             )
         }
 
-        if (showDateSelectorDialog && canInteract) {
+        if (showDateSelectorDialog) {
             EditFoodDateSelector(
                 selectedDate = LocalDate.parse(editFood.expiryDate, DateFormatter.yyyyMMdd),
                 onDismissRequest = { showDateSelectorDialog = false },
@@ -200,7 +187,7 @@ fun EditFoodScreen(
         }
 
         // Uploading 상태일 때, Blocking 화면을 이용해 터치 제어
-        if (state == EditFoodState.Uploading) {
+        if (state == EditFoodState.Uploading || !canTrigger) {
             BlockingLoadingOverlay(showLoading = false)
         }
     }

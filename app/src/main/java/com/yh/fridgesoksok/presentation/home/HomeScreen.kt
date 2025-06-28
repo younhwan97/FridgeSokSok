@@ -21,7 +21,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionLauncher
@@ -60,6 +62,8 @@ fun HomeScreen(
     }
 
     val launchNotification = rememberNotificationPermissionLauncher(context)
+
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 화면 변경 시 UI 모드 리셋
     LaunchedEffect(currentRoute) {
@@ -112,9 +116,18 @@ fun HomeScreen(
                 currentRoute = currentRoute,
                 isFabMenuExpanded = isFabExpanded,
                 onToggleFab = { isFabExpanded = !isFabExpanded },
-                onCaptureClick = { launchCamera() },
-                onUploadClick = { launchGallery() },
-                onManualClick = { navController.navigate(Screen.UploadScreen.route) }
+                onCaptureClick = {
+                    triggerCooldown()
+                    launchCamera()
+                },
+                onUploadClick = {
+                    triggerCooldown()
+                    launchGallery()
+                },
+                onManualClick = {
+                    triggerCooldown()
+                    navController.navigate(Screen.UploadScreen.route)
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -154,6 +167,10 @@ fun HomeScreen(
                 },
                 onDismiss = { showConfirmDialog = false }
             )
+        }
+
+        if (!canTrigger) {
+            BlockingLoadingOverlay(showLoading = false)
         }
     }
 }

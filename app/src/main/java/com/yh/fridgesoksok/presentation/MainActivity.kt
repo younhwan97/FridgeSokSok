@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -12,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +28,7 @@ import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.onboarding.OnboardingScreen
 import com.yh.fridgesoksok.presentation.recipe_detail.RecipeDetailScreen
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 import com.yh.fridgesoksok.presentation.theme.FridgeSokSokTheme
 import com.yh.fridgesoksok.presentation.upload.UploadScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +50,7 @@ class MainActivity : ComponentActivity() {
                 val systemUiController = rememberSystemUiController()
                 val barColor = when (route) {
                     Screen.OnboardingScreen.route -> MaterialTheme.colorScheme.primary
+                    Screen.CameraScreen.route -> Color.Black
                     else -> CustomGreyColor1
                 }
                 // 하단 바 색상 설정
@@ -91,7 +95,7 @@ class MainActivity : ComponentActivity() {
                     composable(
                         Screen.CameraScreen.route,
                         enterTransition = { slideInVertically(initialOffsetY = { it }) + fadeIn() },
-                        exitTransition = { slideOutVertically(targetOffsetY = { it }) + fadeOut() },
+                        exitTransition = { fadeOut() },
                     ) {
                         CameraScreen(navController, activityViewModel)
                     }

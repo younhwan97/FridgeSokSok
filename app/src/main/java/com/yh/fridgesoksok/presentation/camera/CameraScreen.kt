@@ -17,11 +17,14 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.camera.comp.*
 import com.yh.fridgesoksok.presentation.common.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun CameraScreen(
@@ -44,27 +49,36 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val systemUiController = rememberSystemUiController()
     val cameraController = rememberCameraController(context)
     var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+    var isCameraReady by remember { mutableStateOf(false) }
+    var isPreviewVisible by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // 네비게이션 바 컬러 설정
-    LaunchedEffect(true) {
-        systemUiController.setNavigationBarColor(Color.Black)
+    // 화면 제거 시 카메라 Unbind
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraController.unbind()
+        }
     }
 
-    // 백버튼 처리
+    // 뒤로 가기
     BackHandler(enabled = canTrigger) {
         if (capturedImageBitmap != null) {
             capturedImageBitmap = null
         } else {
-            triggerCooldown()
-            cameraController.unbind()
-            navController.popBackStack()
+            exitCamera(
+                coroutineScope,
+                cameraController,
+                navController,
+                triggerCooldown,
+                onPreviewDetach = { isPreviewVisible = false }
+            )
         }
     }
 
+    // 화면
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,17 +92,40 @@ fun CameraScreen(
                 .aspectRatio(3f / 4f)
                 .weight(1f)
         ) {
-            capturedImageBitmap?.let {
-                CapturedImageView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
-                    previewImage = it
-                )
-            } ?: CameraPreviewView(
-                lifecycleOwner = lifecycleOwner,
-                cameraController = cameraController
-            )
+            when {
+                capturedImageBitmap != null -> {
+                    CapturedImageView(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center),
+                        previewImage = capturedImageBitmap!!
+                    )
+                }
+
+                else -> {
+                    if (isPreviewVisible) {
+                        CameraPreviewView(
+                            lifecycleOwner = lifecycleOwner,
+                            cameraController = cameraController,
+                            onCameraReady = { isCameraReady = true }
+                        )
+                    }
+
+                    if (!isCameraReady) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         CameraControlBar(
@@ -112,9 +149,13 @@ fun CameraScreen(
                 }
             },
             onExit = {
-                triggerCooldown()
-                cameraController.unbind()
-                navController.popBackStack()
+                exitCamera(
+                    coroutineScope,
+                    cameraController,
+                    navController,
+                    triggerCooldown,
+                    onPreviewDetach = { isPreviewVisible = false }
+                )
             }
         )
     }
@@ -149,4 +190,20 @@ private fun captureImage(
             }
         }
     )
+}
+
+private fun exitCamera(
+    scope: CoroutineScope,
+    controller: LifecycleCameraController,
+    navController: NavController,
+    triggerCooldown: () -> Unit,
+    onPreviewDetach: () -> Unit
+) {
+    onPreviewDetach()
+    triggerCooldown()
+    controller.unbind()
+    scope.launch {
+        delay(100) // 잔상 제거
+        navController.popBackStack()
+    }
 }
