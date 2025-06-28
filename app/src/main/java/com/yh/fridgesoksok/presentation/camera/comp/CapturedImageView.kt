@@ -9,11 +9,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 @Composable
 fun CapturedImageView(
     modifier: Modifier = Modifier,
-    bitmap: Bitmap
+    previewImage: Bitmap
 ) {
     Image(
         modifier = modifier,
-        bitmap = bitmap.asImageBitmap(),
+        bitmap = previewImage.asImageBitmap(),
         contentDescription = null,
     )
 }

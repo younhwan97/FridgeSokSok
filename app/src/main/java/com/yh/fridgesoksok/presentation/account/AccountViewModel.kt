@@ -125,5 +125,3 @@ class AccountViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 }
-
-

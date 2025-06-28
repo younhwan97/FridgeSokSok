@@ -19,7 +19,7 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
-import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
+import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
@@ -36,7 +36,7 @@ fun UploadScreen(
     val receipt by sharedViewModel.receipt.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // Camera -> Upload 이미지 전달 후 OCR 처리
     LaunchedEffect(receipt) {
@@ -87,9 +87,9 @@ fun UploadScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
             UploadTopAppBar(
-                isNavigationEnabled = isBackEnabled,
+                isNavigationEnabled = canTrigger,
                 onNavigationClick = {
-                    triggerBackCooldown()
+                    triggerCooldown()
                     navController.popBackStack()
                 },
                 onActionClick = {

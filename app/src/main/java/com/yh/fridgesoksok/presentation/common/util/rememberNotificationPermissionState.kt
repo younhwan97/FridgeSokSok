@@ -1,4 +1,4 @@
-package com.yh.fridgesoksok.presentation.common
+package com.yh.fridgesoksok.presentation.common.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

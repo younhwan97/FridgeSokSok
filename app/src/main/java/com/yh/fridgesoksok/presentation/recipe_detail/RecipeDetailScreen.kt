@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
+import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeContent
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeHeader
@@ -38,7 +38,7 @@ fun RecipeDetailScreen(
     navController: NavController,
     recipe: RecipeModel?
 ) {
-    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     if (recipe == null) {
         Box(
@@ -89,8 +89,8 @@ fun RecipeDetailScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(4.dp)
-                        .clickable(enabled = isBackEnabled) {
-                            triggerBackCooldown()
+                        .clickable(enabled = canTrigger) {
+                            triggerCooldown()
                             navController.popBackStack()
                         },
                     imageVector = Icons.Default.ArrowBackIosNew,

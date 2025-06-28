@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.presentation.home
 
-import android.content.pm.PackageManager
-import android.os.Build
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -16,14 +15,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
+import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
+import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionLauncher
+import com.yh.fridgesoksok.presentation.common.util.uriToBitmap
 import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
@@ -37,19 +39,36 @@ fun HomeScreen(
     sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
-    val homeUiMode by homeViewModel.uiMode.collectAsState()
-    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
+    val context = LocalContext.current
     val homeNavController = rememberNavController()
     val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
 
-    var isFabExpanded by remember { mutableStateOf(false) }
+    val homeUiMode by homeViewModel.uiMode.collectAsState()
+    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
 
-    val context = LocalContext.current
-    val activity = context as? android.app.Activity
+    var isFabExpanded by remember { mutableStateOf(false) }
+    val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
+        selectedImageUri.value = uri
+        showConfirmDialog = true
+    }
+
+    val launchCamera = rememberCameraLauncher(context) {
+        navController.navigate(Screen.CameraScreen.route)
+    }
+
+    val launchNotification = rememberNotificationPermissionLauncher(context)
 
     // 화면 변경 시 UI 모드 리셋
     LaunchedEffect(currentRoute) {
         homeViewModel.resetUiMode()
+    }
+
+    // 알림 권한 요청
+    LaunchedEffect(Unit) {
+        launchNotification()
     }
 
     // 뒤로가기 핸들링
@@ -59,21 +78,6 @@ fun HomeScreen(
             isFabExpanded -> isFabExpanded = false
             // 레시피 모드에서 뒤로가기 시 UI 모드 리셋
             homeUiMode == HomeUiMode.RECIPE_SELECT -> homeViewModel.resetUiMode()
-        }
-    }
-
-    // 알림권한 확인 및 알림채널 생성
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permission = android.Manifest.permission.POST_NOTIFICATIONS
-            val granted = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-            if (!granted && activity != null) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(permission),
-                    1001
-                )
-            }
         }
     }
 
@@ -108,8 +112,8 @@ fun HomeScreen(
                 currentRoute = currentRoute,
                 isFabMenuExpanded = isFabExpanded,
                 onToggleFab = { isFabExpanded = !isFabExpanded },
-                onCaptureClick = { navController.navigate(Screen.CameraScreen.route) },
-                onUploadClick = { },
+                onCaptureClick = { launchCamera() },
+                onUploadClick = { launchGallery() },
                 onManualClick = { navController.navigate(Screen.UploadScreen.route) }
             )
         },
@@ -134,6 +138,21 @@ fun HomeScreen(
             // Recipe 생성 로딩 화면
             HomeGeneratingRecipe(
                 recipeGenerateState = recipeState
+            )
+        }
+
+        if (showConfirmDialog) {
+            ConfirmDialog(
+                message = "이 사진을 사용 할까요?",
+                onConfirm = {
+                    val bitmap = uriToBitmap(context, selectedImageUri.value!!)
+                    if (bitmap != null) {
+                        sharedViewModel.setReceipt(bitmap)
+                        navController.navigate(Screen.UploadScreen.route)
+                    }
+                    showConfirmDialog = false
+                },
+                onDismiss = { showConfirmDialog = false }
             )
         }
     }

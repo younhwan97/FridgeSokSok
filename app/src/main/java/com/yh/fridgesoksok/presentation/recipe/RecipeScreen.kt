@@ -36,26 +36,26 @@ fun RecipeScreen(
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
     val typingQuery by viewModel.typingQuery.collectAsState()
     val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
     var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
     val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val deleteErrorMessage by viewModel.deleteError.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     // 데이터 리로드
-    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.getRecipes()
         }
     }
 
-    // 스낵바 메시지
-    LaunchedEffect(deleteErrorMessage) {
-        deleteErrorMessage?.let {
+    // 서버처리 실패 시 스낵바 메시징
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearDeleteError()
+            viewModel.clearErrorMessage()
         }
     }
 

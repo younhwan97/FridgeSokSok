@@ -9,8 +9,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun CameraPreviewView(
-    cameraController: LifecycleCameraController,
-    lifecycleOwner: androidx.lifecycle.LifecycleOwner
+    lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+    cameraController: LifecycleCameraController
 ) {
     AndroidView(
         factory = {

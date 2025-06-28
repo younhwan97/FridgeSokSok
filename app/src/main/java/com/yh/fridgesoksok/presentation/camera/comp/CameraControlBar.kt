@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun CameraControlBar(
     capturedImage: Bitmap?,
+    isExitEnabled: Boolean,
     onCapture: () -> Unit,
     onRetake: () -> Unit,
     onUseImage: () -> Unit,
     onExit: () -> Unit,
-    isExitEnabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -96,6 +96,7 @@ fun CameraControlBar(
 
             TextButton(
                 onClick = onUseImage,
+                enabled = isExitEnabled,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(

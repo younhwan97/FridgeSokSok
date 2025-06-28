@@ -9,18 +9,18 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 
 @Composable
-fun rememberBackPressCooldown(delayMillis: Long = 500): Pair<Boolean, () -> Unit> {
+fun rememberActionCooldown(delayMillis: Long = 500): Pair<Boolean, () -> Unit> {
     var isEnabled by remember { mutableStateOf(true) }
-    var cooldownTrigger by remember { mutableStateOf(false) }
+    var trigger by remember { mutableStateOf(false) }
 
-    if (cooldownTrigger) {
+    if (trigger) {
         LaunchedEffect(Unit) {
             isEnabled = false
             delay(delayMillis)
             isEnabled = true
-            cooldownTrigger = false
+            trigger = false
         }
     }
 
-    return isEnabled to { cooldownTrigger = true }
+    return isEnabled to { trigger = true }
 }

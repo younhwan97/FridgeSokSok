@@ -20,10 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.login.comp.LoginAppLogo
-import com.yh.fridgesoksok.presentation.login.comp.LoginButtons
-import com.yh.fridgesoksok.presentation.login.comp.LoginCenterContent
-import com.yh.fridgesoksok.presentation.login.comp.LoginSnackBar
+import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.login.comp.*
 
 @Composable
 fun LoginScreen(
@@ -71,7 +69,7 @@ fun LoginScreen(
             onLogin = viewModel::createUserOnChannel
         )
 
-        LoginSnackBar(
+        Snackbar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding(),

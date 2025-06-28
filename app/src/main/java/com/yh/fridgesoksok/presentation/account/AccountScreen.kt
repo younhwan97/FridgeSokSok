@@ -24,7 +24,7 @@ import com.yh.fridgesoksok.presentation.account.comp.SettingSection
 import com.yh.fridgesoksok.presentation.account.comp.SettingSwitchRow
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
 import com.yh.fridgesoksok.presentation.common.extension.launchNotificationSettings
-import com.yh.fridgesoksok.presentation.common.rememberNotificationPermissionState
+import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionState
 import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5

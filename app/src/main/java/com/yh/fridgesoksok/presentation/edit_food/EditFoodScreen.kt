@@ -28,7 +28,7 @@ import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
-import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
+import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodContent
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector
@@ -52,7 +52,7 @@ fun EditFoodScreen(
     var canInteract by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 편집 대상
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
@@ -115,9 +115,9 @@ fun EditFoodScreen(
         topBar = {
             EditFoodTopAppBar(
                 title = if (editFoodState.source == EditSource.HOME) "변경하기" else "식품 추가하기",
-                isNavigationEnabled = isBackEnabled,
+                isNavigationEnabled = canTrigger,
                 onNavigationClick = {
-                    triggerBackCooldown()
+                    triggerCooldown()
                     navController.popBackStack()
                 }
             )
@@ -132,7 +132,7 @@ fun EditFoodScreen(
             EditFoodBottomButton(
                 text = if (editFoodState.source == EditSource.HOME) "변경하기" else "추가하기",
                 editFoodState = state,
-                enabled = isBackEnabled,
+                enabled = canTrigger,
                 onClick = {
                     // 입력값 유효성 검증
                     if (editFood.itemName.isBlank()) {
@@ -141,10 +141,14 @@ fun EditFoodScreen(
                     }
                     // 소스에 따른 분기처리
                     if (editFoodState.source == EditSource.UPLOAD) {
-                        sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
-                        triggerBackCooldown()
+                        // 중복처리 방지
+                        triggerCooldown()
+                        // SharedViewModel 편집결과 셋팅
+                        sharedViewModel.setEditedFood(editFood)
                         navController.popBackStack()
                     } else if (editFoodState.source == EditSource.HOME) {
+                        // Uploading 상태일 때 Blocking 화면이 존재하기 때문에, 별도 중복처리 방지 트리거는 생략
+                        // 트리거를 통한 중복제어는 일시적 제어인 반면에 Uploding은 서버응답을 기다리는 화면 고유의 상태이기 때문에 다른 방식으로 처리
                         viewModel.updateFood(editFood)
                     }
                 }
@@ -195,7 +199,7 @@ fun EditFoodScreen(
             )
         }
 
-        // 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
+        // Uploading 상태일 때, Blocking 화면을 이용해 터치 제어
         if (state == EditFoodState.Uploading) {
             BlockingLoadingOverlay(showLoading = false)
         }

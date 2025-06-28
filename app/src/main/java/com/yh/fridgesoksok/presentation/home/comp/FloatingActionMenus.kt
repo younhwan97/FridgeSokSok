@@ -1,9 +1,5 @@
 package com.yh.fridgesoksok.presentation.home.comp
 
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,10 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.yh.fridgesoksok.R
 
 @Composable
@@ -44,18 +38,6 @@ fun FloatingActionMenus(
     onUploadClick: () -> Unit,
     onManualClick: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val cameraPermission = android.Manifest.permission.CAMERA
-    val cameraPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                // 권한 허용 → 카메라 실행
-                onCaptureClick()
-            } else {
-                // 권한 거부
-            }
-        }
-
     AnimatedVisibility(
         visible = expanded,
         enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeIn(),
@@ -73,10 +55,7 @@ fun FloatingActionMenus(
                 .clip(RoundedCornerShape(16.dp))
         ) {
             FabMenu(
-                onClick = {
-                    if (hasRequiredPermissions(context = context)) onCaptureClick()
-                    else cameraPermissionLauncher.launch(cameraPermission)
-                },
+                onClick = { onCaptureClick() },
                 iconResource = painterResource(R.drawable.camera),
                 text = "영수증 찍기"
             )
@@ -120,14 +99,9 @@ fun FabMenu(
 
         Spacer(modifier = Modifier.width(4.dp))
 
-        Text(text = text, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
-
-}
-
-private fun hasRequiredPermissions(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(
-        context,
-        android.Manifest.permission.CAMERA
-    ) == PackageManager.PERMISSION_GRANTED
 }

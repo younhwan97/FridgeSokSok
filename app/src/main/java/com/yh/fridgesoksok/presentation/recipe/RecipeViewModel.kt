@@ -34,8 +34,8 @@ class RecipeViewModel @Inject constructor(
     private val _typingQuery = MutableStateFlow("")
     val typingQuery = _typingQuery.asStateFlow()
 
-    private val _deleteError = MutableStateFlow<String?>(null)
-    val deleteError = _deleteError.asStateFlow()
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
     val filteredRecipes = combine(_recipes, _filterQuery) { recipes, query ->
         if (query.isBlank()) {
@@ -86,7 +86,7 @@ class RecipeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _deleteError.value = "레시피 삭제에 실패했어요."
+                    _errorMessage.value = "레시피 삭제에 실패했어요."
                 }
 
                 is Resource.Loading -> Unit
@@ -103,8 +103,8 @@ class RecipeViewModel @Inject constructor(
         _filterQuery.value = query
     }
 
-    fun clearDeleteError() {
-        _deleteError.value = null
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     fun removeRecipeFromList(id: String) {

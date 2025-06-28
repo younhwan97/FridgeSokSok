@@ -34,11 +34,8 @@ import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.camera.comp.CameraControlBar
-import com.yh.fridgesoksok.presentation.camera.comp.CameraPreviewView
-import com.yh.fridgesoksok.presentation.camera.comp.CapturedImageView
-import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
-import com.yh.fridgesoksok.presentation.common.util.rememberCameraController
+import com.yh.fridgesoksok.presentation.camera.comp.*
+import com.yh.fridgesoksok.presentation.common.util.*
 
 @Composable
 fun CameraScreen(
@@ -48,20 +45,23 @@ fun CameraScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val systemUiController = rememberSystemUiController()
-    var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
     val cameraController = rememberCameraController(context)
+    var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
+    // 네비게이션 바 컬러 설정
     LaunchedEffect(true) {
         systemUiController.setNavigationBarColor(Color.Black)
     }
 
-    BackHandler(enabled = isBackEnabled) {
+    // 백버튼 처리
+    BackHandler(enabled = canTrigger) {
         if (capturedImageBitmap != null) {
             capturedImageBitmap = null
         } else {
-            triggerBackCooldown()
-            exitCamera(navController, cameraController)
+            triggerCooldown()
+            cameraController.unbind()
+            navController.popBackStack()
         }
     }
 
@@ -78,26 +78,27 @@ fun CameraScreen(
                 .aspectRatio(3f / 4f)
                 .weight(1f)
         ) {
-            capturedImageBitmap?.let { bitmap ->
+            capturedImageBitmap?.let {
                 CapturedImageView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
-                    bitmap = bitmap
+                    previewImage = it
                 )
             } ?: CameraPreviewView(
-                cameraController = cameraController,
-                lifecycleOwner = lifecycleOwner
+                lifecycleOwner = lifecycleOwner,
+                cameraController = cameraController
             )
         }
 
         CameraControlBar(
             capturedImage = capturedImageBitmap,
+            isExitEnabled = canTrigger,
             onCapture = {
                 MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
                 captureImage(
-                    controller = cameraController,
                     context = context,
+                    controller = cameraController,
                     onSuccess = { capturedImageBitmap = it },
                     onError = { Log.e("Camera", "Capture failed: ${it.message}") }
                 )
@@ -105,28 +106,23 @@ fun CameraScreen(
             onRetake = { capturedImageBitmap = null },
             onUseImage = {
                 capturedImageBitmap?.let {
-                    triggerBackCooldown()
+                    triggerCooldown()
                     sharedViewModel.setReceipt(it)
                     navController.navigate(Screen.UploadScreen.route)
                 }
             },
             onExit = {
-                triggerBackCooldown()
-                exitCamera(navController, cameraController)
-            },
-            isExitEnabled = isBackEnabled
+                triggerCooldown()
+                cameraController.unbind()
+                navController.popBackStack()
+            }
         )
     }
 }
 
-private fun exitCamera(navController: NavController, cameraController: LifecycleCameraController) {
-    cameraController.unbind()
-    navController.popBackStack()
-}
-
 private fun captureImage(
-    controller: LifecycleCameraController,
     context: android.content.Context,
+    controller: LifecycleCameraController,
     onSuccess: (Bitmap) -> Unit,
     onError: (ImageCaptureException) -> Unit
 ) {
