@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    val clearUserUseCase: ClearUserUseCase,
+    private val clearUserUseCase: ClearUserUseCase,
     private val getUserSettingUseCase: GetUserSettingUseCase,
     private val updateReceiveNotificationUseCase: UpdateReceiveNotificationUseCase,
     private val updateAutoDeleteExpiredUseCase: UpdateAutoDeleteExpiredUseCase,

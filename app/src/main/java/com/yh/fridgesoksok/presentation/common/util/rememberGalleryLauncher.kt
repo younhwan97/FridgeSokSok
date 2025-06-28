@@ -20,6 +20,7 @@ fun rememberGalleryPickerLauncher(
         ActivityResultContracts.PickVisualMedia()
     ) { uri -> uri?.let(onImageSelected) }
 
+    // Only for Android 12 이하 (API 32 이하)
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -29,16 +30,17 @@ fun rememberGalleryPickerLauncher(
     }
 
     return {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+            // Android 12 이하 → 권한 필요
+            val permission = Manifest.permission.READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+                pickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            } else {
+                permissionLauncher.launch(permission)
+            }
         } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
-        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+            // Android 13 이상 → 권한 없이 바로 실행
             pickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        } else {
-            permissionLauncher.launch(permission)
         }
     }
 }

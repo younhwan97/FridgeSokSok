@@ -19,15 +19,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.common.Constants
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.account.comp.SettingActionRow
-import com.yh.fridgesoksok.presentation.account.comp.SettingSection
-import com.yh.fridgesoksok.presentation.account.comp.SettingSwitchRow
-import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
-import com.yh.fridgesoksok.presentation.common.extension.launchNotificationSettings
-import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionState
-import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
+import com.yh.fridgesoksok.presentation.common.extension.*
+import com.yh.fridgesoksok.presentation.account.comp.*
+import com.yh.fridgesoksok.presentation.common.comp.*
+import com.yh.fridgesoksok.presentation.common.util.*
+import com.yh.fridgesoksok.presentation.theme.*
 
 @Composable
 fun AccountScreen(
@@ -36,9 +32,11 @@ fun AccountScreen(
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val hasSystemNotificationPermission by rememberNotificationPermissionState()
-    val userSetting by viewModel.userSetting.collectAsState()
     val scrollState = rememberScrollState()
+    val userSetting by viewModel.userSetting.collectAsState()
+    val hasSystemNotificationPermission by rememberNotificationPermissionState()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+    // 다이얼로그 상태
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -57,6 +55,7 @@ fun AccountScreen(
                 checked = hasSystemNotificationPermission && (userSetting?.receiveNotification == true)
             ) {
                 if (hasSystemNotificationPermission) {
+                    triggerCooldown()
                     viewModel.updateReceiveNotification(userSetting?.receiveNotification)
                 } else {
                     showPermissionDialog = true
@@ -67,6 +66,7 @@ fun AccountScreen(
                 label = "소비기한 지난식품 자동삭제",
                 checked = userSetting?.autoDeleteExpiredFoods
             ) {
+                triggerCooldown()
                 viewModel.updateAutoDeleteExpired(userSetting?.autoDeleteExpiredFoods)
             }
         }
@@ -77,6 +77,7 @@ fun AccountScreen(
                 label = "레시피 생성시 모든재료 사용",
                 checked = userSetting?.useAllIngredients
             ) {
+                triggerCooldown()
                 viewModel.updateUseAllIngredients(userSetting?.useAllIngredients)
             }
         }
@@ -109,39 +110,6 @@ fun AccountScreen(
         }
     }
 
-    // 로그아웃 확인 다이얼로그
-    if (showLogoutDialog) {
-        ConfirmDialog(
-            message = "정말 로그아웃 하시겠습니까?",
-            onConfirm = {
-                viewModel.clearUser()
-                navController.navigate(Screen.LoginScreen.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-                showLogoutDialog = false
-            },
-            onDismiss = { showLogoutDialog = false }
-        )
-    }
-
-    // 회원탈퇴 확인 다이얼로그
-    if (showWithdrawDialog) {
-        ConfirmDialog(
-            message = "정말로 탈퇴 하시겠습니까?\n\n모든 데이터가 삭제됩니다.",
-            confirmText = "탈퇴하기",
-            confirmTextColor = CustomErrorColor,
-            confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
-            onConfirm = {
-                viewModel.clearUser()
-                navController.navigate(Screen.LoginScreen.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-                showWithdrawDialog = false
-            },
-            onDismiss = { showWithdrawDialog = false }
-        )
-    }
-
     // 알림권한 확인 다이얼로그
     if (showPermissionDialog) {
         ConfirmDialog(
@@ -156,5 +124,41 @@ fun AccountScreen(
                 showPermissionDialog = false
             }
         )
+    }
+
+    // 로그아웃 확인 다이얼로그
+    if (showLogoutDialog) {
+        ConfirmDialog(
+            message = "정말 로그아웃 하시겠습니까?",
+            onConfirm = {
+                triggerCooldown()
+                viewModel.clearUser()
+                showLogoutDialog = false
+                navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
+            },
+            onDismiss = { showLogoutDialog = false }
+        )
+    }
+
+    // 회원탈퇴 확인 다이얼로그
+    if (showWithdrawDialog) {
+        ConfirmDialog(
+            message = "정말로 탈퇴 하시겠습니까?\n\n모든 데이터가 삭제됩니다.",
+            confirmText = "탈퇴하기",
+            confirmTextColor = CustomErrorColor,
+            confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
+            onConfirm = {
+                triggerCooldown()
+                viewModel.clearUser()
+                showWithdrawDialog = false
+                navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
+            },
+            onDismiss = { showWithdrawDialog = false }
+        )
+    }
+
+    // Blocking 화면을 이용해 터치 제어
+    if (!canTrigger) {
+        BlockingLoadingOverlay(showLoading = false)
     }
 }

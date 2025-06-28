@@ -7,7 +7,9 @@ import androidx.compose.ui.text.font.FontWeight
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
 @Composable
-fun SettingSectionTitle(title: String) {
+fun SettingSectionTitle(
+    title: String
+) {
     Text(
         text = title,
         style = MaterialTheme.typography.bodyLarge,
