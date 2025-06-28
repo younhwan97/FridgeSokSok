@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.EditSource
+import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
+import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
+import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
+import com.yh.fridgesoksok.presentation.common.util.rememberBackPressCooldown
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodContent
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector
@@ -31,6 +36,7 @@ import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodNameSuggestion
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodTopAppBar
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
+import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -40,7 +46,15 @@ fun EditFoodScreen(
     sharedViewModel: SharedViewModel,
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
-    // 편집할 식품 초기화
+    val state by viewModel.state.collectAsState()
+    var showDateSelectorDialog by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
+    var canInteract by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val (isBackEnabled, triggerBackCooldown) = rememberBackPressCooldown()
+
+    // 편집 대상
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
     var editFood by remember {
         mutableStateOf(
@@ -56,13 +70,9 @@ fun EditFoodScreen(
         )
     }
 
+    // 추천 검색어
     val suggestions by viewModel.suggestions.collectAsState()
-    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }     // 제안 컴포저블 위치
-
-    var showDateSelectorDialog by remember { mutableStateOf(false) } // 달력 열림 여부
-    var nameError by remember { mutableStateOf(false) }              // 이름 오류 표시 여부
-    var canInteract by remember { mutableStateOf(false) }            // 컴포지션 완료 여부
-    var isNavigating by remember { mutableStateOf(false) }           // 중복 네비게이션 방지
+    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
 
     // 컴포지션 완료 후 인터랙션 허용
     LaunchedEffect(Unit) {
@@ -84,36 +94,58 @@ fun EditFoodScreen(
         }
     }
 
-    // Screen
+    // 식품 업데이트 성공 시 Home으로 이동
+    LaunchedEffect(Unit) {
+        viewModel.updateFoodSuccess.collectLatest {
+            navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+        }
+    }
+
+    // 서버처리 실패 시 스낵바 메시징
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearErrorMessage()
+        }
+    }
+
+    // 화면
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
                 title = if (editFoodState.source == EditSource.HOME) "변경하기" else "식품 추가하기",
+                isNavigationEnabled = isBackEnabled,
                 onNavigationClick = {
-                    if (!isNavigating) {
-                        isNavigating = true
-                        navController.popBackStack()
-                    }
+                    triggerBackCooldown()
+                    navController.popBackStack()
                 }
+            )
+        },
+        snackbarHost = {
+            Snackbar(
+                modifier = Modifier.padding(vertical = 16.dp),
+                snackBarHostState = snackbarHostState
             )
         },
         bottomBar = {
             EditFoodBottomButton(
                 text = if (editFoodState.source == EditSource.HOME) "변경하기" else "추가하기",
+                editFoodState = state,
+                enabled = isBackEnabled,
                 onClick = {
+                    // 입력값 유효성 검증
                     if (editFood.itemName.isBlank()) {
                         nameError = true
                         return@EditFoodBottomButton
                     }
-                    if (!isNavigating) {
-                        isNavigating = true
-                        when (editFoodState.source) {
-                            EditSource.HOME -> viewModel.updateFood(editFood)
-                            EditSource.UPLOAD -> sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
-                            else -> Unit
-                        }
+                    // 소스에 따른 분기처리
+                    if (editFoodState.source == EditSource.UPLOAD) {
+                        sharedViewModel.setEditedFood(editFood.copy(fridgeId = "tmp"))
+                        triggerBackCooldown()
                         navController.popBackStack()
+                    } else if (editFoodState.source == EditSource.HOME) {
+                        viewModel.updateFood(editFood)
                     }
                 }
             )
@@ -161,6 +193,11 @@ fun EditFoodScreen(
                 onDismissRequest = { showDateSelectorDialog = false },
                 onConfirm = { editFood = editFood.copy(expiryDate = it.format(DateFormatter.yyyyMMdd)) }
             )
+        }
+
+        // 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
+        if (state == EditFoodState.Uploading) {
+            BlockingLoadingOverlay(showLoading = false)
         }
     }
 }

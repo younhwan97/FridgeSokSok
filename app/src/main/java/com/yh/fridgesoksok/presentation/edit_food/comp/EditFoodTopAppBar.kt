@@ -20,6 +20,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 @Composable
 fun EditFoodTopAppBar(
     title: String,
+    isNavigationEnabled: Boolean,
     onNavigationClick: () -> Unit
 ) {
     TopAppBar(
@@ -27,7 +28,9 @@ fun EditFoodTopAppBar(
             Image(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .clickable { onNavigationClick() },
+                    .clickable(enabled = isNavigationEnabled) {
+                        onNavigationClick()
+                    },
                 painter = painterResource(R.drawable.back),
                 contentDescription = null,
                 contentScale = ContentScale.None

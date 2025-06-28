@@ -87,7 +87,7 @@ fun UploadScreen(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
             UploadTopAppBar(
-                isBackEnabled = isBackEnabled,
+                isNavigationEnabled = isBackEnabled,
                 onNavigationClick = {
                     triggerBackCooldown()
                     navController.popBackStack()
@@ -108,6 +108,7 @@ fun UploadScreen(
         bottomBar = {
             UploadBottomButton(
                 uploadState = uploadState,
+                enabled = newFoods.isNotEmpty(),
                 onClick = { viewModel.addFoods() }
             )
         }

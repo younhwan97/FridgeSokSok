@@ -26,7 +26,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UploadTopAppBar(
-    isBackEnabled: Boolean,
+    isNavigationEnabled: Boolean,
     onNavigationClick: () -> Unit,
     onActionClick: () -> Unit
 ) {
@@ -35,7 +35,7 @@ fun UploadTopAppBar(
             Icon(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .clickable(enabled = isBackEnabled) {
+                    .clickable(enabled = isNavigationEnabled) {
                         onNavigationClick()
                     },
                 painter = painterResource(R.drawable.back),

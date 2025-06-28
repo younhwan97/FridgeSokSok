@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import com.yh.fridgesoksok.presentation.upload.UploadState
 @Composable
 fun UploadBottomButton(
     uploadState: UploadState,
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
@@ -38,6 +38,7 @@ fun UploadBottomButton(
     ) {
         Button(
             onClick = { onClick() },
+            enabled = enabled,
             shape = RoundedCornerShape(12.dp)
         ) {
             if (uploadState == UploadState.Uploading) {
