@@ -21,7 +21,10 @@ fun HomeFabBar(
     onManualClick: () -> Unit,
 ) {
     if (currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.DEFAULT) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = Modifier.zIndex(99f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             FloatingActionMenus(
                 expanded = isFabMenuExpanded,
                 onCaptureClick = onCaptureClick,

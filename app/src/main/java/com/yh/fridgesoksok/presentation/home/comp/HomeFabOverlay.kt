@@ -7,19 +7,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.zIndex
 import com.yh.fridgesoksok.presentation.Screen
 
 @Composable
 fun HomeFabOverlay(
     currentRoute: String,
-    isFabExpanded: Boolean,
     onClickFabOverlay: () -> Unit
 ){
-    if (currentRoute == Screen.FridgeTab.route && isFabExpanded) {
+    if (currentRoute == Screen.FridgeTab.route) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.2f))
+                .zIndex(1f)
+                .background(Color.Black.copy(alpha = 0.4f))
                 .clickable { onClickFabOverlay() }
         )
     }

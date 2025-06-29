@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
@@ -51,19 +52,15 @@ fun HomeScreen(
     var isFabExpanded by remember { mutableStateOf(false) }
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
+    // 알림, 갤러리, 카메라 런처
+    val launchNotification = rememberNotificationPermissionLauncher(context) { }
+    val launchCamera = rememberCameraLauncher(context) { navController.navigate(Screen.CameraScreen.route) }
     val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
         selectedImageUri.value = uri
         showConfirmDialog = true
     }
-
-    val launchCamera = rememberCameraLauncher(context) {
-        navController.navigate(Screen.CameraScreen.route)
-    }
-
-    val launchNotification = rememberNotificationPermissionLauncher(context)
-
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 화면 변경 시 UI 모드 리셋
     LaunchedEffect(currentRoute) {
@@ -75,7 +72,7 @@ fun HomeScreen(
         launchNotification()
     }
 
-    // 뒤로가기 핸들링
+    // 뒤로가기
     BackHandler(isFabExpanded || homeUiMode == HomeUiMode.RECIPE_SELECT) {
         when {
             // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기
@@ -131,29 +128,25 @@ fun HomeScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Box(Modifier.padding(padding)) {
-            // Home Nav (냉장고/레시피/계정)
+    ) { innerPadding ->
+        Box(Modifier.padding(innerPadding)) {
             HomeNavGraph(
                 mode = homeUiMode,
                 homeNavController = homeNavController,
                 navController = navController,
                 sharedViewModel = sharedViewModel,
             )
+        }
 
-            // FAB 오버레이 화면
+        // FAB 오버레이
+        if (isFabExpanded) {
             HomeFabOverlay(
                 currentRoute = currentRoute,
-                isFabExpanded = isFabExpanded,
                 onClickFabOverlay = { isFabExpanded = false }
-            )
-
-            // Recipe 생성 로딩 화면
-            HomeGeneratingRecipe(
-                recipeGenerateState = recipeState
             )
         }
 
+        // 갤러리에서 이미지 선택 후 확인 다이얼로그
         if (showConfirmDialog) {
             ConfirmDialog(
                 message = "이 사진을 사용 할까요?",
@@ -169,8 +162,14 @@ fun HomeScreen(
             )
         }
 
+        // Blocking 화면을 이용해 터치 제어
         if (!canTrigger) {
             BlockingLoadingOverlay(showLoading = false)
+        }
+
+        // 레시피 생성 시 로딩
+        if (recipeState == RecipeGenerationState.Loading) {
+            HomeGeneratingRecipe()
         }
     }
 }

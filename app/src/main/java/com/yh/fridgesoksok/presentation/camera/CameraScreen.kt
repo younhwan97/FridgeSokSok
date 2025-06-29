@@ -63,7 +63,7 @@ fun CameraScreen(
         }
     }
 
-    // 뒤로 가기
+    // 뒤로가기
     BackHandler(enabled = canTrigger) {
         if (capturedImageBitmap != null) {
             capturedImageBitmap = null
