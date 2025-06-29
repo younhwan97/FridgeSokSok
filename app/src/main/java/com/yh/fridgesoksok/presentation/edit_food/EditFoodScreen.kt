@@ -71,7 +71,7 @@ fun EditFoodScreen(
     val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
 
     // 중복처리 제어
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
     // 뒤로가기 처리
     BackHandler(enabled = canTrigger) {
