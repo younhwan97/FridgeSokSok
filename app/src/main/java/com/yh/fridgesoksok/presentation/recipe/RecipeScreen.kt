@@ -37,12 +37,14 @@ fun RecipeScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
-    val typingQuery by viewModel.typingQuery.collectAsState()
-    val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
-    var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
-    val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val typingQuery by viewModel.typingQuery.collectAsState()
+    val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
+
+    // 삭제처리
+    var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
+    val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }
 
     // 데이터 리로드
     LaunchedEffect(lifecycleOwner) {

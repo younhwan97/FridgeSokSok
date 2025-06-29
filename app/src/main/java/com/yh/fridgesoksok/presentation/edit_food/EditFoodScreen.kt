@@ -49,7 +49,6 @@ fun EditFoodScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showDateSelectorDialog by remember { mutableStateOf(false) }
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 편집 대상
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
@@ -71,7 +70,10 @@ fun EditFoodScreen(
     val suggestions by viewModel.suggestions.collectAsState()
     val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
 
-    // 뒤로가기
+    // 중복처리 제어
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+
+    // 뒤로가기 처리
     BackHandler(enabled = canTrigger) {
         if (suggestions.isNotEmpty()) {
             viewModel.clearSuggestions()
@@ -160,7 +162,8 @@ fun EditFoodScreen(
                 }
             )
         }
-
+        
+        // 추천 검색어
         if (suggestions.isNotEmpty()) {
             EditFoodNameSuggestion(
                 suggestions = suggestions,
@@ -177,7 +180,8 @@ fun EditFoodScreen(
                 }
             )
         }
-
+        
+        // 날짜 선택 다이얼로그
         if (showDateSelectorDialog) {
             EditFoodDateSelector(
                 selectedDate = LocalDate.parse(editFood.expiryDate, DateFormatter.yyyyMMdd),
@@ -186,7 +190,7 @@ fun EditFoodScreen(
             )
         }
 
-        // Uploading 상태일 때, Blocking 화면을 이용해 터치 제어
+        // Blocking 화면을 이용해 터치 제어
         if (state == EditFoodState.Uploading || !canTrigger) {
             BlockingLoadingOverlay(showLoading = false)
         }

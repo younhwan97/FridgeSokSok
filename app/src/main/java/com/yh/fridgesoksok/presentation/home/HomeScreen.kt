@@ -48,11 +48,9 @@ fun HomeScreen(
 
     val homeUiMode by homeViewModel.uiMode.collectAsState()
     val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
-
     var isFabExpanded by remember { mutableStateOf(false) }
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 알림, 갤러리, 카메라 런처
     val launchNotification = rememberNotificationPermissionLauncher(context) { }
@@ -62,17 +60,20 @@ fun HomeScreen(
         showConfirmDialog = true
     }
 
-    // 화면 변경 시 UI 모드 리셋
-    LaunchedEffect(currentRoute) {
-        homeViewModel.resetUiMode()
-    }
+    // 중복처리 제어
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     // 알림 권한 요청
     LaunchedEffect(Unit) {
         launchNotification()
     }
 
-    // 뒤로가기
+    // 화면 변경 시 UI 모드 리셋
+    LaunchedEffect(currentRoute) {
+        homeViewModel.resetUiMode()
+    }
+
+    // 뒤로가기 처리
     BackHandler(isFabExpanded || homeUiMode == HomeUiMode.RECIPE_SELECT) {
         when {
             // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기

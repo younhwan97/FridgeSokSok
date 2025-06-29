@@ -31,7 +31,9 @@ fun OnboardingScreen(
     LaunchedEffect(onboardingState, isInitDone) {
         if (!isInitDone) return@LaunchedEffect
         when (onboardingState) {
+            // 온보딩 성공 시 모든 스택을 제거한 뒤 홈화면으로 이동
             is OnboardingState.Success -> navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
+            // 온보딩 실패 시 모든 스택을 제거한 뒤 로그인화면으로 이동
             is OnboardingState.Error -> navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
             else -> Unit
         }

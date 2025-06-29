@@ -35,11 +35,14 @@ fun AccountScreen(
     val scrollState = rememberScrollState()
     val userSetting by viewModel.userSetting.collectAsState()
     val hasSystemNotificationPermission by rememberNotificationPermissionState()
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+
     // 다이얼로그 상태
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // 중복처리 제어
+    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 800)
 
     // 화면
     Column(
@@ -58,6 +61,7 @@ fun AccountScreen(
                     triggerCooldown()
                     viewModel.updateReceiveNotification(userSetting?.receiveNotification)
                 } else {
+                    // 시스템 권한이 없을 때
                     showPermissionDialog = true
                 }
             }
@@ -87,8 +91,8 @@ fun AccountScreen(
             SettingActionRow(
                 label = "구독 관리(업데이트 예정)",
                 enabled = false,
-                textColor = CustomGreyColor3,
-                showArrow = true
+                showArrow = true,
+                textColor = CustomGreyColor3
             ) {
 
             }

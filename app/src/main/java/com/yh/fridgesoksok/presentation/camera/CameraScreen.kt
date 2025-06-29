@@ -49,30 +49,30 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
     val cameraController = rememberCameraController(context)
-    var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isCameraReady by remember { mutableStateOf(false) }
     var isPreviewVisible by remember { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
+    var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // 화면 제거 시 카메라 Unbind
+    // 카메라 해제
     DisposableEffect(Unit) {
-        onDispose {
-            cameraController.unbind()
-        }
+        onDispose { cameraController.unbind() }
     }
 
-    // 뒤로가기
+    // 뒤로가기 처리
     BackHandler(enabled = canTrigger) {
         if (capturedImageBitmap != null) {
             capturedImageBitmap = null
         } else {
             exitCamera(
-                coroutineScope,
-                cameraController,
-                navController,
-                triggerCooldown,
+                scope = coroutineScope,
+                controller = cameraController,
+                navController = navController,
+                triggerCooldown = triggerCooldown,
                 onPreviewDetach = { isPreviewVisible = false }
             )
         }
@@ -150,10 +150,10 @@ fun CameraScreen(
             },
             onExit = {
                 exitCamera(
-                    coroutineScope,
-                    cameraController,
-                    navController,
-                    triggerCooldown,
+                    scope = coroutineScope,
+                    controller = cameraController,
+                    navController = navController,
+                    triggerCooldown = triggerCooldown,
                     onPreviewDetach = { isPreviewVisible = false }
                 )
             }

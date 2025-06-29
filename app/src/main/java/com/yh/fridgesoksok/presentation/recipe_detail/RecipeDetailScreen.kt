@@ -38,6 +38,7 @@ fun RecipeDetailScreen(
     navController: NavController,
     recipe: RecipeModel?
 ) {
+    // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
     if (recipe == null) {

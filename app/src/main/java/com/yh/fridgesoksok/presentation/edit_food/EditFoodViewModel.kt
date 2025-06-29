@@ -63,7 +63,7 @@ class EditFoodViewModel @Inject constructor(
     }
 
     fun onNameInputChanged(query: String) {
-        if (query.length > 1) {
+        if (query.length > 2) {
             searchLocalFoodsUseCase(query).onEach { result ->
                 when (result) {
                     is Resource.Success -> {

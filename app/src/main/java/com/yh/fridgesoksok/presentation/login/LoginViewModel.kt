@@ -152,10 +152,7 @@ class LoginViewModel @Inject constructor(
     private fun fail(reason: String) {
         Logger.e("Login", "$reason → 로그인 실패")
         _state.value = LoginState.Error
-
-        viewModelScope.launch {
-            _errorMessage.value = "로그인 실패"
-        }
+        _errorMessage.value = "로그인 실패"
     }
 
     fun clearErrorMessage() {

@@ -42,9 +42,8 @@ fun LoginScreen(
     // 네비게이션
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            navController.navigate(Screen.HomeScreen.route) {
-                popUpTo(0) { inclusive = true }
-            }
+            // 로그인 성공 시 모든 스택을 제거한 뒤 홈화면으로 이동
+            navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
         }
     }
 
@@ -78,4 +77,3 @@ fun LoginScreen(
         )
     }
 }
-

@@ -33,9 +33,11 @@ fun UploadScreen(
     val receipt by sharedViewModel.receipt.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
-    // Camera -> Upload 이미지 전달 후 OCR 처리
+    // Camera/Gallery -> Upload 이미지 전달 후 OCR 처리
     LaunchedEffect(receipt) {
         receipt?.let {
             // SharedViewModel로 전달된 이미지(Bitmap)를 서버에 업로드하여 OCR 수행
