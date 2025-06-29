@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,23 +33,25 @@ fun FridgeScreen(
     viewModel: FridgeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val selectedType by viewModel.selectedType.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
     val typingQuery by viewModel.typingQuery.collectAsState()
+    val selectedType by viewModel.selectedType.collectAsState()
     val selectedFoods by viewModel.selectedFoods.collectAsState()
     val filteredFoods by viewModel.filteredFoods.collectAsState()
 
+    // 공유 뷰모델 상태값
+    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()
+    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState()
+    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
+
     // 화면 재진입 시 데이터 로드
-    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             viewModel.loadFoods()
         }
     }
 
-    // SharedViewModel 플래그 감지
-    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()     // 전체선택 플래그 감지
-    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState() // 전체해제 플래그 감지
-
+    // 전체 선택/해제 처리
     LaunchedEffect(selectAllRequested, deselectAllRequested) {
         when {
             selectAllRequested -> {
@@ -66,7 +66,7 @@ fun FridgeScreen(
         }
     }
 
-    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()          // 레시피생성 플래그 감지
+    // 레시피 생성 상태 감지 및 처리
     LaunchedEffect(recipeState) {
         when (recipeState) {
             is RecipeGenerationState.Loading -> {
