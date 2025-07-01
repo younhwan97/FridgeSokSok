@@ -54,6 +54,10 @@ class MockApiService(
         )
     }
 
+    override suspend fun deleteUser(): CommonResponse<Boolean> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun sendFcmTest(fcmRequest: FcmRequest): CommonResponse<String> {
         TODO("Not yet implemented")
     }

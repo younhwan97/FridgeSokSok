@@ -6,7 +6,6 @@ import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.ClearUserUseCase
 import com.yh.fridgesoksok.domain.usecase.DeleteUserUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserSettingUseCase
-import com.yh.fridgesoksok.domain.usecase.SendMessageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateAutoDeleteExpiredUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateReceiveNotificationUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsUseCase
@@ -27,11 +26,20 @@ class AccountViewModel @Inject constructor(
     private val updateReceiveNotificationUseCase: UpdateReceiveNotificationUseCase,
     private val updateAutoDeleteExpiredUseCase: UpdateAutoDeleteExpiredUseCase,
     private val updateUseAllIngredientsUseCase: UpdateUseAllIngredientsUseCase,
-    private val sendMessageUseCase: SendMessageUseCase
+    // private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     private val _userSetting = MutableStateFlow<UserSettingModel?>(null)
     val userSetting = _userSetting.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
+    private val _successClearUser = MutableStateFlow<Boolean?>(null)
+    val successClearUser = _successClearUser.asStateFlow()
+
+    private val _successDeleteUser = MutableStateFlow<Boolean?>(null)
+    val successDeleteUser = _successDeleteUser.asStateFlow()
 
     init {
         getUserSetting()
@@ -107,17 +115,27 @@ class AccountViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun clearUser(alsoDelete: Boolean = false) {
+    fun clearUser() {
         clearUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    if (alsoDelete) {
-                        deleteUser()
+                    val data = result.data
+                    if (data == true) {
+                        _successClearUser.value = true
+                    } else {
+                        _successClearUser.value = false
+                        _errorMessage.value = "로그아웃에 실패했어요 :("
                     }
                 }
 
-                is Resource.Loading -> Unit
-                is Resource.Error -> Unit
+                is Resource.Error -> {
+                    _successClearUser.value = false
+                    _errorMessage.value = "로그아웃에 실패했어요 :("
+                }
+
+                is Resource.Loading -> {
+                    _successClearUser.value = null
+                }
             }
         }.launchIn(viewModelScope)
     }
@@ -126,22 +144,26 @@ class AccountViewModel @Inject constructor(
         deleteUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-
+                    clearUserUseCase().onEach {
+                        // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
+                        _successDeleteUser.value = true
+                    }.launchIn(viewModelScope)
                 }
 
-                is Resource.Loading -> Unit
-                is Resource.Error -> Unit
+                is Resource.Error -> {
+                    _successDeleteUser.value = false
+                    _errorMessage.value = "회월탈퇴에 실패했어요 :("
+                }
+
+                is Resource.Loading -> {
+                    _successDeleteUser.value = null
+                }
+
             }
         }.launchIn(viewModelScope)
     }
 
-    fun sendFcmMessageOnlyTest() {
-        sendMessageUseCase("테스트 메시지 전송").onEach { result ->
-            when (result) {
-                is Resource.Success -> Unit
-                is Resource.Error -> Unit
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 }
