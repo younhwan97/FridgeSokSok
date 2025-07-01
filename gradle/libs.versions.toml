@@ -20,12 +20,12 @@ kakao = "2.21.3"                    # Kakao
 naver = "5.10.0"                    # Naver
 systemUiController = "0.32.0"       # Accompanist SystemUiController
 landscapistCoil = "2.4.8"           # Coil Image
-room = "2.7.1"                      # Room DB
+room = "2.7.2"                      # Room DB
 coil = "2.5.0"                      # Coil
 lottie = "6.6.2"                    # Lottie
-firebaseBom = "33.15.0"             # Firebase
-firebaseCrashlyticsPlugin = "2.9.9" # Firebase
-goolgeService = "4.4.2"             # Firebase
+firebaseBom = "33.16.0"             # Firebase
+firebaseCrashlyticsPlugin = "3.0.4" # Firebase
+goolgeService = "4.4.3"             # Firebase
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

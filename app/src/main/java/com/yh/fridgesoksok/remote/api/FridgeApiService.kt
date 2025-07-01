@@ -117,6 +117,9 @@ interface FridgeApiService {
         @Body userProfileRequest: UserProfileRequest
     ): CommonResponse<UserProfileRespond>
 
+    @DELETE("users/delete")
+    suspend fun deleteUser(): CommonResponse<Boolean>
+
     /* ************************************************************* */
     /* ************************ Oauth API ************************** */
     @Headers("Content-Type: application/json")

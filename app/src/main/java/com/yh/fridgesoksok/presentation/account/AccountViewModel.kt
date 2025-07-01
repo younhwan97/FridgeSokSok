@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.ClearUserUseCase
+import com.yh.fridgesoksok.domain.usecase.DeleteUserUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserSettingUseCase
 import com.yh.fridgesoksok.domain.usecase.SendMessageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateAutoDeleteExpiredUseCase
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val clearUserUseCase: ClearUserUseCase,
+    private val deleteUserUseCase: DeleteUserUseCase,
     private val getUserSettingUseCase: GetUserSettingUseCase,
     private val updateReceiveNotificationUseCase: UpdateReceiveNotificationUseCase,
     private val updateAutoDeleteExpiredUseCase: UpdateAutoDeleteExpiredUseCase,
@@ -105,10 +107,28 @@ class AccountViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun clearUser() {
+    fun clearUser(alsoDelete: Boolean = false) {
         clearUserUseCase().onEach { result ->
             when (result) {
-                is Resource.Success -> Unit
+                is Resource.Success -> {
+                    if (alsoDelete) {
+                        deleteUser()
+                    }
+                }
+
+                is Resource.Loading -> Unit
+                is Resource.Error -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun deleteUser() {
+        deleteUserUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+
+                }
+
                 is Resource.Loading -> Unit
                 is Resource.Error -> Unit
             }

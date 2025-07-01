@@ -64,6 +64,18 @@ class RemoteUserDataSourceImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteUser(): Boolean {
+        return try {
+            Logger.d("RemoteUserData", "deleteUser")
+            val response = fridgeApiService.deleteUser()
+            val data = response.data ?: throw IllegalStateException("createUserOnServer data(=null)")
+            data
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "deleteUser 실패", e)
+            throw e
+        }
+    }
+
     override suspend fun validateUserToken(refreshToken: String): Boolean {
         return try {
             Logger.d("RemoteUserData", "validateUserToken INPUT $refreshToken")

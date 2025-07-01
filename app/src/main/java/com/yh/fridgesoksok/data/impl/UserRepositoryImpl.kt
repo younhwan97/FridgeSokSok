@@ -38,6 +38,11 @@ class UserRepositoryImpl @Inject constructor(
             localUserDataSource.clearUser()
         }
 
+    override fun deleteUser(): Flow<Resource<Boolean>> =
+        flowWithResource {
+            remoteUserDataSource.deleteUser()
+        }
+
     override fun createUserOnChannel(channel: Channel): Flow<Resource<User>> =
         flowWithResource {
             remoteUserDataSource.createUserOnChannel(channel).toDomain()

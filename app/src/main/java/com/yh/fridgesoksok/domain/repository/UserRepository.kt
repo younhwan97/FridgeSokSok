@@ -18,6 +18,8 @@ interface UserRepository {
 
     fun clearUser(): Flow<Resource<Boolean>>
 
+    fun deleteUser(): Flow<Resource<Boolean>>
+
     fun createUserOnChannel(channel: Channel): Flow<Resource<User>>
 
     fun createUserOnServer(user: User): Flow<Resource<User>>

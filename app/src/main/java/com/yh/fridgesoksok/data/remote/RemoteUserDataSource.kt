@@ -12,6 +12,8 @@ interface RemoteUserDataSource {
 
     suspend fun createUserOnServer(user: UserEntity): UserEntity
 
+    suspend fun deleteUser(): Boolean
+
     suspend fun validateUserToken(refreshToken: String): Boolean
 
     suspend fun reissueUserToken(refreshToken: String): TokenEntity

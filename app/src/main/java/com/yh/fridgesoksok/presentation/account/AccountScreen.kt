@@ -153,7 +153,8 @@ fun AccountScreen(
             confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
             onConfirm = {
                 triggerCooldown()
-                viewModel.clearUser()
+                viewModel.clearUser(alsoDelete = true)
+                // 서버에서 삭제여부 확인후 처리필요 (수정필요!!!!!)
                 showWithdrawDialog = false
                 navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
             },
