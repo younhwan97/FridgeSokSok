@@ -31,7 +31,6 @@ fun UploadScreen(
     val uploadState by viewModel.state.collectAsState()
     val newFoods by viewModel.newFoods.collectAsState()
     val receipt by sharedViewModel.receipt.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
     // 중복처리 제어
@@ -74,10 +73,9 @@ fun UploadScreen(
     }
 
     // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearErrorMessage()
         }
     }
 

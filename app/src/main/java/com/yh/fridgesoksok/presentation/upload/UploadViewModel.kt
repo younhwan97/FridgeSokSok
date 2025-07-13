@@ -37,8 +37,8 @@ class UploadViewModel @Inject constructor(
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     var newFoods = _newFoods.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
     private val _addFoodsSuccess = MutableSharedFlow<Unit>()
     val addFoodsSuccess = _addFoodsSuccess.asSharedFlow()
@@ -71,7 +71,7 @@ class UploadViewModel @Inject constructor(
 
                         _newFoods.update { it + mappedFoods }
                     } else {
-                        _errorMessage.value = "영수증을 인식하지 못했어요 :("
+                        _errorMessage.emit("영수증을 인식하지 못했어요 :(")
                     }
                     _state.value = UploadState.Success
                 }
@@ -81,7 +81,7 @@ class UploadViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.value = "영수증을 인식하지 못했어요 :("
+                    _errorMessage.emit("영수증을 인식하지 못했어요 :(")
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기위해 Success 세팅
                     _state.value = UploadState.Success
                 }
@@ -100,7 +100,7 @@ class UploadViewModel @Inject constructor(
                             _addFoodsSuccess.emit(Unit)
                         }
                     } else {
-                        _errorMessage.value = "식픔 추가에 실패했어요. 다시 시도해주세요."
+                        _errorMessage.emit("식픔 추가에 실패했어요. 다시 시도해주세요.")
                         _state.value = UploadState.Success
                     }
                 }
@@ -110,7 +110,7 @@ class UploadViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.value = "식픔 추가에 실패했어요. 다시 시도해주세요."
+                    _errorMessage.emit("식픔 추가에 실패했어요. 다시 시도해주세요.")
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기위해 Success 세팅
                     _state.value = UploadState.Success
                 }
@@ -139,9 +139,5 @@ class UploadViewModel @Inject constructor(
                 if (existing.id == id) updated else existing
             }
         }
-    }
-
-    fun clearErrorMessage() {
-        _errorMessage.value = null
     }
 }
