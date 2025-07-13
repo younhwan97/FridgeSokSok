@@ -28,6 +28,7 @@ import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeListSection
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeSearchSection
 import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun RecipeScreen(
@@ -38,7 +39,6 @@ fun RecipeScreen(
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val typingQuery by viewModel.typingQuery.collectAsState()
     val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
 
@@ -54,10 +54,9 @@ fun RecipeScreen(
     }
 
     // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearErrorMessage()
         }
     }
 

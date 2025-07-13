@@ -8,8 +8,10 @@ import com.yh.fridgesoksok.domain.usecase.GetRecipesUseCase
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -34,8 +36,8 @@ class RecipeViewModel @Inject constructor(
     private val _typingQuery = MutableStateFlow("")
     val typingQuery = _typingQuery.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
     val filteredRecipes = combine(_recipes, _filterQuery) { recipes, query ->
         if (query.isBlank()) {
@@ -86,7 +88,7 @@ class RecipeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.value = "레시피 삭제에 실패했어요."
+                    _errorMessage.emit("레시피 삭제에 실패했어요.")
                 }
 
                 is Resource.Loading -> Unit
@@ -101,10 +103,6 @@ class RecipeViewModel @Inject constructor(
 
     fun updateFilterQuery(query: String) {
         _filterQuery.value = query
-    }
-
-    fun clearErrorMessage() {
-        _errorMessage.value = null
     }
 
     fun removeRecipeFromList(id: String) {
