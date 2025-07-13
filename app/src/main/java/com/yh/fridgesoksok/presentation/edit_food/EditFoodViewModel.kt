@@ -9,7 +9,6 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.LocalFoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
-import com.yh.fridgesoksok.presentation.upload.UploadState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,17 +34,17 @@ class EditFoodViewModel @Inject constructor(
     private val _updateFoodSuccess = MutableSharedFlow<Unit>()
     val updateFoodSuccess = _updateFoodSuccess.asSharedFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
     fun updateFood(food: FoodModel) {
+        if (food.id.isBlank()) return
+
         updateFoodUseCase(food.toDomain()).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     _state.value = EditFoodState.Success
-                    viewModelScope.launch {
-                        _updateFoodSuccess.emit(Unit)
-                    }
+                    _updateFoodSuccess.emit(Unit)
                 }
 
                 is Resource.Loading -> {
@@ -54,7 +52,7 @@ class EditFoodViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.value = "변경에 실패했어요. 다시 시도해주세요."
+                    _errorMessage.emit("변경에 실패했어요. 다시 시도해주세요.")
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기위해 Success 세팅
                     _state.value = EditFoodState.Success
                 }
@@ -63,7 +61,7 @@ class EditFoodViewModel @Inject constructor(
     }
 
     fun onNameInputChanged(query: String) {
-        if (query.length > 2) {
+        if (query.length >= 2) {
             searchLocalFoodsUseCase(query).onEach { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -71,6 +69,7 @@ class EditFoodViewModel @Inject constructor(
                     }
 
                     is Resource.Error -> _suggestions.value = emptyList()
+
                     is Resource.Loading -> Unit
                 }
             }.launchIn(viewModelScope)
@@ -79,9 +78,5 @@ class EditFoodViewModel @Inject constructor(
 
     fun clearSuggestions() {
         _suggestions.value = emptyList()
-    }
-
-    fun clearErrorMessage() {
-        _errorMessage.value = null
     }
 }

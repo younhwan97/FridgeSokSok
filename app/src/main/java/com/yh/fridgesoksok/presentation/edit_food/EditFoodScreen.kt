@@ -44,13 +44,20 @@ fun EditFoodScreen(
     sharedViewModel: SharedViewModel,
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
+    // 화면상태(초기 Success, 변경 Uploading)
     val state by viewModel.state.collectAsState()
-    var nameError by remember { mutableStateOf(false) }
+    // 스낵바
     val snackbarHostState = remember { SnackbarHostState() }
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    // 추천 검색어
+    val suggestions by viewModel.suggestions.collectAsState()
+    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
+    // 에러 및 다이얼로그
+    var nameError by remember { mutableStateOf(false) }
     var showDateSelectorDialog by remember { mutableStateOf(false) }
+    // 중복처리 제어
+    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // 편집 대상
+    // 편집 대상(공유 뷰모델)
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
     var editFood by remember {
         mutableStateOf(
@@ -65,13 +72,6 @@ fun EditFoodScreen(
             )
         )
     }
-
-    // 추천 검색어
-    val suggestions by viewModel.suggestions.collectAsState()
-    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
-
-    // 중복처리 제어
-    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
     // 뒤로가기 처리
     BackHandler(enabled = canTrigger) {
@@ -91,10 +91,9 @@ fun EditFoodScreen(
     }
 
     // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearErrorMessage()
         }
     }
 
@@ -162,7 +161,7 @@ fun EditFoodScreen(
                 }
             )
         }
-        
+
         // 추천 검색어
         if (suggestions.isNotEmpty()) {
             EditFoodNameSuggestion(
@@ -180,7 +179,7 @@ fun EditFoodScreen(
                 }
             )
         }
-        
+
         // 날짜 선택 다이얼로그
         if (showDateSelectorDialog) {
             EditFoodDateSelector(
