@@ -5,5 +5,6 @@ data class UserProfileRespond(
     val username: String,
     val accountType: String,
     val notification: Boolean,
-    val fcmToken: String
+    val fcmToken: String,
+    val isPremium: Boolean
 )

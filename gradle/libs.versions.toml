@@ -81,7 +81,7 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler-ksp = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 # Coli
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
-# Lottile
+# Lottie
 lottie = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie"}
 # Firebase Bom
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }

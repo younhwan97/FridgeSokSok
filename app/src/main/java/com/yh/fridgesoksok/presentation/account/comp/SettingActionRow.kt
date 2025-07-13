@@ -22,8 +22,8 @@ import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 fun SettingActionRow(
     label: String,
     enabled: Boolean = true,
-    textColor: Color = CustomGreyColor7,
     showArrow: Boolean = false,
+    textColor: Color = CustomGreyColor7,
     onClick: () -> Unit
 ) {
     TextButton(

@@ -68,10 +68,7 @@ fun AccountScreen(
     }
 
     // 화면
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -134,10 +131,6 @@ fun AccountScreen(
                 SettingActionRow("로그아웃") {
                     showLogoutDialog = true
                 }
-
-//            SettingActionRow("메시지(TEST)", textColor = CustomGreyColor5) {
-//                viewModel.sendFcmMessageOnlyTest()
-//            }
             }
         }
 

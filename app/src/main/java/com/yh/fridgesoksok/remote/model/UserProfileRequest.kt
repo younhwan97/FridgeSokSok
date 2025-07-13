@@ -5,5 +5,6 @@ data class UserProfileRequest(
     val accountType: String?,
     val notification: Boolean?,
     val fcmToken: String?,
-    val oauthId: String?
+    val oauthId: String?,
+    val premium: Boolean?
 )
