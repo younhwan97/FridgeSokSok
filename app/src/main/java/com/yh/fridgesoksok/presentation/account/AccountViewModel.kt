@@ -55,8 +55,11 @@ class AccountViewModel @Inject constructor(
                     }
                 }
 
+                is Resource.Error -> {
+                    _userSetting.value = null
+                }
+
                 is Resource.Loading -> Unit
-                is Resource.Error -> Unit
             }
         }.launchIn(viewModelScope)
     }

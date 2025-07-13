@@ -79,7 +79,7 @@ fun AccountScreen(
             SettingSection(Constants.FRIDGE) {
                 SettingSwitchRow(
                     label = "소비기한 알림",
-                    checked = hasSystemNotificationPermission && (userSetting?.receiveNotification == true)
+                    checked = userSetting?.receiveNotification?.let { hasSystemNotificationPermission && it }
                 ) {
                     if (hasSystemNotificationPermission) {
                         triggerCooldown()
@@ -137,7 +137,7 @@ fun AccountScreen(
         // 알림권한 확인 다이얼로그
         if (showPermissionDialog) {
             ConfirmDialog(
-                message = "앱 알림을 받으시려면 알림 권한을 켜야 해요.\n\n설정 화면으로 이동할까요?",
+                message = "앱 알림을 받으시려면 권한을 켜야 해요.\n\n설정 화면으로 이동할까요?",
                 confirmText = "설정으로 이동",
                 onConfirm = {
                     showPermissionDialog = false

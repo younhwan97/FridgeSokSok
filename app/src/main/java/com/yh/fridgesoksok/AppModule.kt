@@ -13,12 +13,12 @@ import javax.inject.Named
 internal class AppModule {
 
     @Provides
-    fun provideContext(application: Application): Context {
-        return application.applicationContext
-    }
+    fun provideContext(application: Application): Context =
+        application.applicationContext
 
     @Provides
     @Named("baseUrl")
     fun provideBaseUrl(application: Application): String =
         (application as FridgeApplication).baseUrl
+
 }
