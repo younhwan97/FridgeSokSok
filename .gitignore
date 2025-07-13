@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/android,androidstudio,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=android,androidstudio,windows
 
+app/src/main/assets/initial.csv
+
 ### Android ###
 # Gradle files
 .gradle/
