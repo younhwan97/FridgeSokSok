@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.login.comp.*
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
@@ -28,21 +29,18 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.state.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     // 로그인 실패 시 스낵바 메시징
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
             snackBarHostState.showSnackbar(it)
-            viewModel.clearErrorMessage()
         }
     }
 
-    // 네비게이션
+    // 로그인 선공 시 네비게이션
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            // 로그인 성공 시 모든 스택을 제거한 뒤 홈화면으로 이동
             navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
         }
     }
