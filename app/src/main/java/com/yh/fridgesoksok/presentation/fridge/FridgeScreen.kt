@@ -38,11 +38,7 @@ fun FridgeScreen(
     val selectedType by viewModel.selectedType.collectAsState()
     val selectedFoods by viewModel.selectedFoods.collectAsState()
     val filteredFoods by viewModel.filteredFoods.collectAsState()
-
-    // 공유 뷰모델 상태값
-    val selectAllRequested by sharedViewModel.selectAllFoodsRequested.collectAsState()
-    val deselectAllRequested by sharedViewModel.deselectAllFoodsRequested.collectAsState()
-    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
+    val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()
 
     // 화면 재진입 시 데이터 로드
     LaunchedEffect(lifecycleOwner) {
@@ -51,39 +47,27 @@ fun FridgeScreen(
         }
     }
 
-    // 전체 선택/해제 처리
-    LaunchedEffect(selectAllRequested, deselectAllRequested) {
-        when {
-            selectAllRequested -> {
-                viewModel.setSelectedFoods(filteredFoods.toSet())
-                sharedViewModel.clearSelectAllFoodsRequest()
-            }
+    // 전체선택 처리
+    LaunchedEffect(Unit) {
+        sharedViewModel.selectAllFoodsRequested.collect {
+            viewModel.setSelectedFoods(filteredFoods.toSet())
+        }
+    }
 
-            deselectAllRequested -> {
-                viewModel.setDeselectedFoods(filteredFoods.toSet())
-                sharedViewModel.clearDeselectAllFoodsRequest()
-            }
+    // 전체해제 처리
+    LaunchedEffect(Unit) {
+        sharedViewModel.deselectAllFoodsRequested.collect {
+            viewModel.setDeselectedFoods(filteredFoods.toSet())
         }
     }
 
     // 레시피 생성 상태 감지 및 처리
-    LaunchedEffect(recipeState) {
-        when (recipeState) {
-            is RecipeGenerationState.Loading -> {
-                if (selectedFoods.isNotEmpty()) {
-                    viewModel.createRecipe(selectedFoods) { success, errorMsg ->
-                        if (recipeState == RecipeGenerationState.Loading) {
-                            if (success) {
-                                sharedViewModel.completeRecipeGeneration(success = true)
-                            } else {
-                                sharedViewModel.completeRecipeGeneration(success = false, errorMessage = errorMsg)
-                            }
-                        }
-                    }
-                } else {
-                    sharedViewModel.completeRecipeGeneration(success = false, errorMessage = "재료 미선택")
+    LaunchedEffect(recipeGenerationState) {
+        when (recipeGenerationState) {
+            is RecipeGenerationState.Loading ->
+                viewModel.createRecipe(selectedFoods) { success, errorMsg ->
+                    sharedViewModel.completeRecipeGeneration(success = success, errorMessage = errorMsg)
                 }
-            }
 
             is RecipeGenerationState.Success -> {
                 homeNavController.navigate(Screen.RecipeTab.route) {
@@ -97,11 +81,8 @@ fun FridgeScreen(
                 viewModel.setDeselectedFoods(filteredFoods.toSet())
             }
 
-            is RecipeGenerationState.Error -> {
-                sharedViewModel.resetRecipeGenerationState()
-            }
-
-            RecipeGenerationState.Idle -> Unit
+            is RecipeGenerationState.Error -> sharedViewModel.resetRecipeGenerationState()
+            is RecipeGenerationState.Idle -> Unit
         }
     }
 

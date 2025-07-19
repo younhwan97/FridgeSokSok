@@ -2,11 +2,16 @@ package com.yh.fridgesoksok.presentation
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.checkerframework.checker.guieffect.qual.UI
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,17 +43,23 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     fun clearEditedFood() { _editedFood.value = null }
 
     // ✅ 전체 선택/해제 요청 (FridgeScreen 내 일회성 트리거 용도)
-    private val _selectAllFoodsRequested = MutableStateFlow(false)
-    val selectAllFoodsRequested = _selectAllFoodsRequested.asStateFlow()
+    private val _selectAllFoodsRequested = MutableSharedFlow<Unit>()
+    val selectAllFoodsRequested = _selectAllFoodsRequested.asSharedFlow()
 
-    fun requestSelectAllFoods() { _selectAllFoodsRequested.value = true }
-    fun clearSelectAllFoodsRequest() { _selectAllFoodsRequested.value = false }
+    fun requestSelectAllFoods() {
+        viewModelScope.launch {
+            _selectAllFoodsRequested.emit(Unit)
+        }
+    }
 
-    private val _deselectAllFoodsRequested = MutableStateFlow(false)
-    val deselectAllFoodsRequested = _deselectAllFoodsRequested.asStateFlow()
+    private val _deselectAllFoodsRequested = MutableSharedFlow<Unit>()
+    val deselectAllFoodsRequested = _deselectAllFoodsRequested.asSharedFlow()
 
-    fun requestDeselectAllFoods() { _deselectAllFoodsRequested.value = true }
-    fun clearDeselectAllFoodsRequest() { _deselectAllFoodsRequested.value = false }
+    fun requestDeselectAllFoods() {
+        viewModelScope.launch {
+            _deselectAllFoodsRequested.emit(Unit)
+        }
+    }
 
     // ✅ 레시피 생성 요청 (FridgeScreen에서 감지 → ViewModel 호출)
     private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
@@ -58,8 +69,7 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     fun resetRecipeGenerationState() { _recipeGenerationState.value = RecipeGenerationState.Idle }
 
     fun completeRecipeGeneration(success: Boolean, errorMessage: String? = null) {
-        _recipeGenerationState.value =
-            if (success) RecipeGenerationState.Success else RecipeGenerationState.Error(errorMessage)
+        _recipeGenerationState.value = if (success) RecipeGenerationState.Success else RecipeGenerationState.Error(errorMessage)
     }
 }
 
