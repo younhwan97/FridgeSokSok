@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Logger
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import kotlin.math.abs
 
 @HiltViewModel
 class AppInitializerViewModel @Inject constructor(
@@ -33,7 +33,7 @@ class AppInitializerViewModel @Inject constructor(
         /* Local 데이터 생성
         * 1. 검색어 추천을 위해 앱 최초 실행 시 한번만 수행 */
         Logger.i("Onboarding", "로컬데이터 초기화")
-        
+
         checkAndInitialize()
     }
 
@@ -41,7 +41,10 @@ class AppInitializerViewModel @Inject constructor(
         getCountLocalFoodsUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    if (result.data == 0) {
+                    // assets/initial.csv의 데이터(라인)개수 추출
+                    val initialCsvLineCount = getLineCountFromAssets(context, "initial.csv")
+                    // RoomDB에 저장된 데이터의 개수와 initial.csv 개수를 비교하여 데이터 초기화 or 스킵 여부 판단
+                    if (result.data != null && abs(result.data - initialCsvLineCount) > 30) {
                         initializeFoodsFromCsv()
                     } else {
                         Logger.d("Onboarding", "로컬데이터 초기화 스킵")
@@ -101,12 +104,18 @@ class AppInitializerViewModel @Inject constructor(
         return inputStream.bufferedReader().readLines()
             .mapNotNull { line ->
                 val tokens = line.split(",")
-                if (tokens.size >= 3) {
+                if (tokens.size == 3) {
                     val itemName = tokens[0].trim()
                     val hours = tokens[1].trim().toIntOrNull() ?: return@mapNotNull null
                     val categoryId = tokens[2].trim().toIntOrNull() ?: return@mapNotNull null
                     LocalFood(itemName, categoryId, hours)
                 } else null
             }
+    }
+
+    private fun getLineCountFromAssets(context: Context, fileName: String): Int {
+        return context.assets.open(fileName).bufferedReader().useLines { lines ->
+            lines.count()
+        }
     }
 }
