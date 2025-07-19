@@ -38,11 +38,15 @@ fun AccountScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val userSetting by viewModel.userSetting.collectAsState()
-    val hasSystemNotificationPermission by rememberNotificationPermissionState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 다이얼로그 상태
+    // 유저 설정값(기한알림, 자동삭제, 레시피재료)
+    val userSetting by viewModel.userSetting.collectAsState()
+    
+    // 유저 시스템 알림권한
+    val hasSystemNotificationPermission by rememberNotificationPermissionState()
+    
+    // 다이얼로그
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
