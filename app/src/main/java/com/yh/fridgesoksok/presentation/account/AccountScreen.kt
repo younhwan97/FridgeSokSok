@@ -28,6 +28,7 @@ import com.yh.fridgesoksok.presentation.account.comp.*
 import com.yh.fridgesoksok.presentation.common.comp.*
 import com.yh.fridgesoksok.presentation.common.util.*
 import com.yh.fridgesoksok.presentation.theme.*
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AccountScreen(
@@ -40,9 +41,6 @@ fun AccountScreen(
     val userSetting by viewModel.userSetting.collectAsState()
     val hasSystemNotificationPermission by rememberNotificationPermissionState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val successDeleteUser by viewModel.successDeleteUser.collectAsState()
-    val successClearUser by viewModel.successClearUser.collectAsState()
 
     // 다이얼로그 상태
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -53,16 +51,15 @@ fun AccountScreen(
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 800)
 
     // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
             snackbarHostState.showSnackbar(it)
-            viewModel.clearErrorMessage()
         }
     }
 
     // 로그아웃, 회원탈퇴 성공 시 로그인 화면으로 이동
-    LaunchedEffect(successClearUser, successDeleteUser) {
-        if (successClearUser == true || successDeleteUser == true) {
+    LaunchedEffect(Unit) {
+        viewModel.successServerRequest.collectLatest {
             navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
         }
     }

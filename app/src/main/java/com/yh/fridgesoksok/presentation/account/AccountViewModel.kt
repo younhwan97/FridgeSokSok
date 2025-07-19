@@ -12,7 +12,9 @@ import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsUseCase
 import com.yh.fridgesoksok.presentation.model.UserSettingModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -32,14 +34,11 @@ class AccountViewModel @Inject constructor(
     private val _userSetting = MutableStateFlow<UserSettingModel?>(null)
     val userSetting = _userSetting.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
-    private val _successClearUser = MutableStateFlow<Boolean?>(null)
-    val successClearUser = _successClearUser.asStateFlow()
-
-    private val _successDeleteUser = MutableStateFlow<Boolean?>(null)
-    val successDeleteUser = _successDeleteUser.asStateFlow()
+    private val _successServerRequest = MutableSharedFlow<Unit>()
+    val successServerRequest = _successServerRequest.asSharedFlow()
 
     init {
         getUserSetting()
@@ -122,23 +121,12 @@ class AccountViewModel @Inject constructor(
         clearUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    val data = result.data
-                    if (data == true) {
-                        _successClearUser.value = true
-                    } else {
-                        _successClearUser.value = false
-                        _errorMessage.value = "로그아웃에 실패했어요 :("
-                    }
+                    if (result.data == true) _successServerRequest.emit(Unit)
+                    else _errorMessage.emit("로그아웃에 실패했어요 :(")
                 }
 
-                is Resource.Error -> {
-                    _successClearUser.value = false
-                    _errorMessage.value = "로그아웃에 실패했어요 :("
-                }
-
-                is Resource.Loading -> {
-                    _successClearUser.value = null
-                }
+                is Resource.Error -> _errorMessage.emit("로그아웃에 실패했어요 :(")
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
@@ -149,24 +137,13 @@ class AccountViewModel @Inject constructor(
                 is Resource.Success -> {
                     clearUserUseCase().onEach {
                         // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
-                        _successDeleteUser.value = true
+                        _successServerRequest.emit(Unit)
                     }.launchIn(viewModelScope)
                 }
 
-                is Resource.Error -> {
-                    _successDeleteUser.value = false
-                    _errorMessage.value = "회월탈퇴에 실패했어요 :("
-                }
-
-                is Resource.Loading -> {
-                    _successDeleteUser.value = null
-                }
-
+                is Resource.Error -> _errorMessage.emit("회월탈퇴에 실패했어요 :(")
+                is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
-    }
-
-    fun clearErrorMessage() {
-        _errorMessage.value = null
     }
 }
