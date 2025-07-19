@@ -44,20 +44,21 @@ fun EditFoodScreen(
     sharedViewModel: SharedViewModel,
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
     // 화면상태(초기 Success, 변경 Uploading)
     val state by viewModel.state.collectAsState()
-    // 스낵바
-    val snackbarHostState = remember { SnackbarHostState() }
     // 추천 검색어
     val suggestions by viewModel.suggestions.collectAsState()
     val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
-    // 에러 및 다이얼로그
-    var nameError by remember { mutableStateOf(false) }
+    // 에러플래그 및 다이얼로그
+    var showNameError by remember { mutableStateOf(false) }
     var showDateSelectorDialog by remember { mutableStateOf(false) }
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
     // 편집 대상(공유 뷰모델)
+    // source -> HOME -> 변경
+    // source -> UPLOAD -> 추가
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
     var editFood by remember {
         mutableStateOf(
@@ -124,7 +125,7 @@ fun EditFoodScreen(
                 onClick = {
                     // 입력값 유효성 검증
                     if (editFood.itemName.isBlank()) {
-                        nameError = true
+                        showNameError = true
                         return@EditFoodBottomButton
                     }
                     // 소스에 따른 분기처리
@@ -151,7 +152,7 @@ fun EditFoodScreen(
         ) {
             EditFoodContent(
                 food = editFood,
-                nameError = nameError,
+                nameError = showNameError,
                 onFoodChange = { editFood = it },
                 onDateEditRequest = { showDateSelectorDialog = true },
                 onSuggestionUpdate = viewModel::onNameInputChanged,

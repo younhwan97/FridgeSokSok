@@ -39,9 +39,10 @@ fun RecipeScreen(
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
+    // 사용자가 입력 중인 검색어 (즉시 반영 X)
     val typingQuery by viewModel.typingQuery.collectAsState()
+    // 필터링된 레시피 목록 (검색어 기준)
     val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
-
     // 삭제처리
     var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
     val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }

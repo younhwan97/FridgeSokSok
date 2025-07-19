@@ -34,10 +34,15 @@ fun FridgeScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    // 사용자가 입력 중인 검색어 (즉시 반영 X)
     val typingQuery by viewModel.typingQuery.collectAsState()
+    // 선택된 음식 타입 필터 (냉동, 유제품 등)
     val selectedType by viewModel.selectedType.collectAsState()
+    // 현재 선택된 음식 목록 (레시피 생성에서 사용)
     val selectedFoods by viewModel.selectedFoods.collectAsState()
+    // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val filteredFoods by viewModel.filteredFoods.collectAsState()
+    // 레시피 생성 상태 (Idle / Loading / Success / Error)
     val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()
 
     // 화면 재진입 시 데이터 로드
