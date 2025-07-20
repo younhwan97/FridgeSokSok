@@ -126,6 +126,7 @@ class FridgeViewModel @Inject constructor(
 
     fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit) {
         if (foods.isEmpty()) return onResult(false, "재료 미선택")
+
         createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
             when (result) {
                 is Resource.Success -> onResult(true, null)

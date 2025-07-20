@@ -38,10 +38,10 @@ fun FridgeScreen(
     val typingQuery by viewModel.typingQuery.collectAsState()
     // 선택된 음식 타입 필터 (냉동, 유제품 등)
     val selectedType by viewModel.selectedType.collectAsState()
-    // 현재 선택된 음식 목록 (레시피 생성에서 사용)
-    val selectedFoods by viewModel.selectedFoods.collectAsState()
     // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val filteredFoods by viewModel.filteredFoods.collectAsState()
+    // 선택된 음식 목록 (레시피 생성에서 사용)
+    val selectedFoods by viewModel.selectedFoods.collectAsState()
     // 레시피 생성 상태 (Idle / Loading / Success / Error)
     val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()
 
@@ -66,15 +66,20 @@ fun FridgeScreen(
         }
     }
 
-    // 레시피 생성 상태 감지 및 처리
+    // "SharedViewModel" 레시피 생성 상태 감지 및 처리
     LaunchedEffect(recipeGenerationState) {
         when (recipeGenerationState) {
+            // 1. 레피시 생성 요청
             is RecipeGenerationState.Loading ->
+                // Home 화면에서 레시피 생성 상태가 Idle → Loading으로 전환되면 이를 감지해 즉시 레시피 생성 API를 호출함
                 viewModel.createRecipe(selectedFoods) { success, errorMsg ->
+                    // 성공/실패 상태를 SharedViewModel에 반영
                     sharedViewModel.completeRecipeGeneration(success = success, errorMessage = errorMsg)
                 }
 
+            // 2. 레시피 생성 성공
             is RecipeGenerationState.Success -> {
+                // RecipeTab으로 이동
                 homeNavController.navigate(Screen.RecipeTab.route) {
                     popUpTo(homeNavController.graph.startDestinationId) {
                         saveState = true
@@ -86,7 +91,10 @@ fun FridgeScreen(
                 viewModel.setDeselectedFoods(filteredFoods.toSet())
             }
 
+            // 레시피 생성 실패
             is RecipeGenerationState.Error -> sharedViewModel.resetRecipeGenerationState()
+            
+            // 대기 상태
             is RecipeGenerationState.Idle -> Unit
         }
     }
