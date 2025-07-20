@@ -96,6 +96,7 @@ private fun BottomNavigationBar(
                             homeNavController.navigate(screen.route) {
                                 popUpTo(homeNavController.graph.findStartDestination().id) {
                                     saveState = true
+                                    inclusive = false
                                 }
                                 restoreState = true
                                 launchSingleTop = true

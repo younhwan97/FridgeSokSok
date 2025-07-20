@@ -84,6 +84,7 @@ fun FridgeScreen(
                 homeNavController.navigate(Screen.RecipeTab.route) {
                     popUpTo(homeNavController.graph.findStartDestination().id) {
                         saveState = true
+                        inclusive = false
                     }
                     restoreState = true
                     launchSingleTop = true
