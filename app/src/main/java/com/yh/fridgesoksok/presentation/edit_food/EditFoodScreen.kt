@@ -45,7 +45,7 @@ fun EditFoodScreen(
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    // 화면상태(초기 Success, 변경 Uploading)
+    // 화면상태 (초기 Success, 변경 Uploading)
     val state by viewModel.state.collectAsState()
     // 추천 검색어
     val suggestions by viewModel.suggestions.collectAsState()
@@ -56,7 +56,7 @@ fun EditFoodScreen(
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // 편집 대상(공유 뷰모델)
+    // 편집 대상 (공유 뷰모델)
     // source -> HOME -> 변경
     // source -> UPLOAD -> 추가
     val editFoodState by sharedViewModel.editFoodState.collectAsState()
@@ -86,7 +86,7 @@ fun EditFoodScreen(
 
     // 식품 업데이트 성공 시 Home으로 이동
     LaunchedEffect(Unit) {
-        viewModel.updateFoodSuccess.collectLatest {
+        viewModel.successUpdateFood.collectLatest {
             navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
         }
     }

@@ -10,7 +10,6 @@ import com.yh.fridgesoksok.presentation.model.LocalFoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -31,8 +30,8 @@ class EditFoodViewModel @Inject constructor(
     private val _suggestions = MutableStateFlow<List<LocalFoodModel>>(emptyList())
     val suggestions = _suggestions.asStateFlow()
 
-    private val _updateFoodSuccess = MutableSharedFlow<Unit>()
-    val updateFoodSuccess = _updateFoodSuccess.asSharedFlow()
+    private val _successUpdateFood = MutableSharedFlow<Unit>()
+    val successUpdateFood = _successUpdateFood.asSharedFlow()
 
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
@@ -44,7 +43,7 @@ class EditFoodViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     _state.value = EditFoodState.Success
-                    _updateFoodSuccess.emit(Unit)
+                    _successUpdateFood.emit(Unit)
                 }
 
                 is Resource.Loading -> {
@@ -69,7 +68,6 @@ class EditFoodViewModel @Inject constructor(
                     }
 
                     is Resource.Error -> _suggestions.value = emptyList()
-
                     is Resource.Loading -> Unit
                 }
             }.launchIn(viewModelScope)
