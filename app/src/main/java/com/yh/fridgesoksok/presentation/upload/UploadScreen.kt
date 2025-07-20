@@ -34,7 +34,7 @@ fun UploadScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // 중복처리 제어
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+    val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
     // Camera/Gallery -> Upload 이미지 전달 후 OCR 처리
     LaunchedEffect(receipt) {
@@ -48,24 +48,23 @@ fun UploadScreen(
 
     // Edit -> Upload 편집결과 감지 및 반영
     LaunchedEffect(Unit) {
-        snapshotFlow { sharedViewModel.editedFood.value }
-            .collectLatest { food ->
-                if (food != null && food.itemName.isNotBlank()) {
-                    val exists = food.id.isNotBlank() && viewModel.newFoods.value.any { it.id == food.id }
-                    if (exists) {
-                        // 기존항목 업데이트
-                        viewModel.updateFood(food.id, food)
-                    } else {
-                        // 신규항목 추가
-                        viewModel.addFood(food)
-                    }
-                    // 상태 초기화
-                    sharedViewModel.clearEditedFood()
+        sharedViewModel.editedFood.collectLatest { food ->
+            if (food != null && food.itemName.isNotBlank()) {
+                val exists = food.id.isNotBlank() && viewModel.newFoods.value.any { it.id == food.id }
+                if (exists) {
+                    // 기존항목 업데이트
+                    viewModel.updateFood(food.id, food)
+                } else {
+                    // 신규항목 추가
+                    viewModel.addFood(food)
                 }
+                // 상태 초기화
+                sharedViewModel.clearEditedFood()
             }
+        }
     }
 
-    // 식품 등록 성공 시 Home으로 이동
+    // 식품 등록 성공 시 Home 화면으로 이동
     LaunchedEffect(Unit) {
         viewModel.addFoodsSuccess.collectLatest {
             navController.popBackStack(Screen.HomeScreen.route, inclusive = false)

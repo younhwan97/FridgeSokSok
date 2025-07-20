@@ -52,6 +52,7 @@ fun UploadTopAppBar(
         actions = {
             Button(
                 modifier = Modifier.padding(end = 16.dp),
+                enabled = isNavigationEnabled,
                 onClick = { onActionClick() },
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp)
