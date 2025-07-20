@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
@@ -81,11 +82,11 @@ fun FridgeScreen(
             is RecipeGenerationState.Success -> {
                 // RecipeTab으로 이동
                 homeNavController.navigate(Screen.RecipeTab.route) {
-                    popUpTo(homeNavController.graph.startDestinationId) {
+                    popUpTo(homeNavController.graph.findStartDestination().id) {
                         saveState = true
                     }
-                    launchSingleTop = true
                     restoreState = true
+                    launchSingleTop = true
                 }
                 sharedViewModel.resetRecipeGenerationState()
                 viewModel.setDeselectedFoods(filteredFoods.toSet())

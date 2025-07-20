@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
@@ -93,11 +94,11 @@ private fun BottomNavigationBar(
                     .clickable {
                         if (!selected) {
                             homeNavController.navigate(screen.route) {
-                                popUpTo(homeNavController.graph.startDestinationId) {
+                                popUpTo(homeNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
-                                launchSingleTop = true
                                 restoreState = true
+                                launchSingleTop = true
                             }
                         }
                     }
