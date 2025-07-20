@@ -21,13 +21,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.common.Constants
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.common.extension.*
-import com.yh.fridgesoksok.presentation.account.comp.*
-import com.yh.fridgesoksok.presentation.common.comp.*
-import com.yh.fridgesoksok.presentation.common.util.*
-import com.yh.fridgesoksok.presentation.theme.*
+import com.yh.fridgesoksok.presentation.account.comp.SettingActionRow
+import com.yh.fridgesoksok.presentation.account.comp.SettingSection
+import com.yh.fridgesoksok.presentation.account.comp.SettingSwitchRow
+import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.extension.launchNotificationSettings
+import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
+import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionState
+import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -39,11 +47,11 @@ fun AccountScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
-    // 유저 시스템 알림권한
+    // 시스템 알림권한
     val hasSystemNotificationPermission by rememberNotificationPermissionState()
-    // 유저 설정값(기한알림, 자동삭제, 레시피재료)
+    // 유저 설정값 (기한알림, 자동삭제, 레시피재료)
     val userSetting by viewModel.userSetting.collectAsState()
-    // 다이얼로그
+    // 다이얼로그 (로그아웃, 회원탈퇴, 권한설정)
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -60,7 +68,12 @@ fun AccountScreen(
     // 로그아웃, 회원탈퇴 성공 시 로그인 화면으로 이동
     LaunchedEffect(Unit) {
         viewModel.successServerRequest.collectLatest {
-            navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
+            navController.navigate(Screen.LoginScreen.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
     }
 

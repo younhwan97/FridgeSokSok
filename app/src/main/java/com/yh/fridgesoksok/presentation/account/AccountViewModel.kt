@@ -54,10 +54,7 @@ class AccountViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Error -> {
-                    _userSetting.value = null
-                }
-
+                is Resource.Error -> _userSetting.value = null
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -121,8 +118,11 @@ class AccountViewModel @Inject constructor(
         clearUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    if (result.data == true) _successServerRequest.emit(Unit)
-                    else _errorMessage.emit("로그아웃에 실패했어요 :(")
+                    if (result.data == true) {
+                        _successServerRequest.emit(Unit)
+                    } else {
+                        _errorMessage.emit("로그아웃에 실패했어요 :(")
+                    }
                 }
 
                 is Resource.Error -> _errorMessage.emit("로그아웃에 실패했어요 :(")
@@ -135,10 +135,14 @@ class AccountViewModel @Inject constructor(
         deleteUserUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    clearUserUseCase().onEach {
-                        // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
-                        _successServerRequest.emit(Unit)
-                    }.launchIn(viewModelScope)
+                    if (result.data == true) {
+                        clearUserUseCase().onEach {
+                            // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
+                            _successServerRequest.emit(Unit)
+                        }.launchIn(viewModelScope)
+                    } else {
+                        _errorMessage.emit("회원탈퇴에 실패했어요 :(")
+                    }
                 }
 
                 is Resource.Error -> _errorMessage.emit("회월탈퇴에 실패했어요 :(")
