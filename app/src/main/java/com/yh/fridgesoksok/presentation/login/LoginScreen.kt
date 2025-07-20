@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.login.comp.*
@@ -38,10 +39,15 @@ fun LoginScreen(
         }
     }
 
-    // 로그인 선공 시 네비게이션
+    // 로그인 선공 시 Home 화면으로 이동
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
-            navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
+            navController.navigate(Screen.HomeScreen.route) {
+                popUpTo(0) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
     }
 

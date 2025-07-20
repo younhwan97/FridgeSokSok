@@ -69,7 +69,7 @@ fun AccountScreen(
     LaunchedEffect(Unit) {
         viewModel.successServerRequest.collectLatest {
             navController.navigate(Screen.LoginScreen.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
+                popUpTo(0) {
                     inclusive = true
                 }
                 launchSingleTop = true

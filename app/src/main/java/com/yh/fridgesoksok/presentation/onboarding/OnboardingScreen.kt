@@ -15,6 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 
@@ -28,14 +29,32 @@ fun OnboardingScreen(
     val isInitDone by appInitializerViewModel.isInitializationCompleted.collectAsState()
 
     // 네비게이션
-    LaunchedEffect(onboardingState, isInitDone) {
+    LaunchedEffect(isInitDone, onboardingState) {
+        // 앱 초기화가 끝나지 않았을 때 리턴
         if (!isInitDone) return@LaunchedEffect
+
         when (onboardingState) {
-            // 온보딩 성공 시 모든 스택을 제거한 뒤 홈화면으로 이동
-            is OnboardingState.Success -> navController.navigate(Screen.HomeScreen.route) { popUpTo(0) { inclusive = true } }
-            // 온보딩 실패 시 모든 스택을 제거한 뒤 로그인화면으로 이동
-            is OnboardingState.Error -> navController.navigate(Screen.LoginScreen.route) { popUpTo(0) { inclusive = true } }
-            else -> Unit
+            // 온보딩 성공 시 홈 화면으로 이동
+            is OnboardingState.Success -> {
+                navController.navigate(Screen.HomeScreen.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
+            // 온보딩 실패 시 로그인 화면으로 이동
+            is OnboardingState.Error -> {
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+
+            is OnboardingState.Loading -> Unit
         }
     }
 
