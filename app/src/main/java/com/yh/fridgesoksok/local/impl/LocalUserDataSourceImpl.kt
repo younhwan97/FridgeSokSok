@@ -2,8 +2,8 @@ package com.yh.fridgesoksok.local.impl
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
+import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import javax.inject.Inject
 
@@ -12,8 +12,7 @@ class LocalUserDataSourceImpl @Inject constructor(
 ) : LocalUserDataSource {
 
     companion object {
-        private const val TAG = "LocalUserLogger"
-        private const val PREF_NAME = "user_info"
+        private const val PREF_NAME = "userInfo"
 
         private const val KEY_ID = "id"
         private const val KEY_ACCESS_TOKEN = "accessToken"
@@ -25,15 +24,12 @@ class LocalUserDataSourceImpl @Inject constructor(
         private const val KEY_FCM_TOKEN = "fcmToken"
     }
 
-    private fun getPreferences(): SharedPreferences =
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private fun getPreferences(): SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
     private inline fun editAndCommit(block: SharedPreferences.Editor.() -> Unit): Boolean {
-        val success = getPreferences().edit().apply {
+        return getPreferences().edit().apply {
             block()
         }.commit()
-
-        return success
     }
 
     override fun loadUser(): UserEntity {
@@ -95,5 +91,14 @@ class LocalUserDataSourceImpl @Inject constructor(
         val pcmToken = prefs.getString(KEY_FCM_TOKEN, null).orEmpty()
 
         return pcmToken
+    }
+
+    override suspend fun updateApiUsage(apiUsages: List<ApiUsageEntity>): Boolean {
+        return editAndCommit {
+            apiUsages.forEach { usage ->
+                putInt("${usage.feature}_MAX", usage.max)
+                putInt("${usage.feature}_USED", usage.used)
+            }
+        }
     }
 }

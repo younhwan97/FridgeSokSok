@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.data.remote
 
 import com.yh.fridgesoksok.common.Channel
+import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
@@ -31,4 +32,6 @@ interface RemoteUserDataSource {
     suspend fun updateUserFcmToken(fcmToken: String): String
 
     suspend fun sendMessage(message: String): String
+
+    suspend fun getApiUsage(): List<ApiUsageEntity>
 }

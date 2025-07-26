@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.remote.impl
 
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Logger
+import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
@@ -180,6 +181,18 @@ class RemoteUserDataSourceImpl @Inject constructor(
             data
         } catch (e: Exception) {
             Logger.e("RemoteUserData", "sendMessage 실패", e)
+            throw e
+        }
+    }
+
+    override suspend fun getApiUsage(): List<ApiUsageEntity> {
+        return try {
+            Logger.d("RemoteUserData", "getApiUsage")
+            val response = fridgeApiService.getApiUsage()
+            val data = response.data ?: throw IllegalStateException("getApiUsage data(=null)")
+            data.toEntity()
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "getApiUsage 실패", e)
             throw e
         }
     }

@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.domain.repository
 
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
@@ -45,4 +46,8 @@ interface UserRepository {
     fun getLocalUserFcmToken(): String
 
     fun sendMessage(message: String): Flow<Resource<String>>
+
+    fun getApiUsage(): Flow<Resource<List<ApiUsage>>>
+
+    fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>>
 }

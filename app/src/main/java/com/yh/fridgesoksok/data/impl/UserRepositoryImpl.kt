@@ -6,6 +6,7 @@ import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
+import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.model.Fridge
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
@@ -104,6 +105,16 @@ class UserRepositoryImpl @Inject constructor(
     override fun sendMessage(message: String): Flow<Resource<String>> =
         flowWithResource {
             remoteUserDataSource.sendMessage(message)
+        }
+
+    override fun getApiUsage(): Flow<Resource<List<ApiUsage>>> =
+        flowWithResource {
+            remoteUserDataSource.getApiUsage().map { it.toDomain() }
+        }
+
+    override fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>> =
+        flowWithResource {
+            localUserDataSource.updateApiUsage(apiUsages.map { it.toEntity() })
         }
 
     private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =

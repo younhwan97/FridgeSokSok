@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.remote.api
 
+import com.yh.fridgesoksok.remote.model.ApiUsageRespond
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
@@ -116,6 +117,9 @@ interface FridgeApiService {
     suspend fun updateUser(
         @Body userProfileRequest: UserProfileRequest
     ): CommonResponse<UserProfileRespond>
+
+    @GET("users/api-usage")
+    suspend fun getApiUsage(): CommonResponse<ApiUsageRespond>
 
     @DELETE("users/delete")
     suspend fun deleteUser(): CommonResponse<Boolean>

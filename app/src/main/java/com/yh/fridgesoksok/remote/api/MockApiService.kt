@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.remote.api
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.yh.fridgesoksok.remote.model.ApiUsageRespond
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
@@ -52,6 +53,10 @@ class MockApiService(
                 )
             )
         )
+    }
+
+    override suspend fun getApiUsage(): CommonResponse<ApiUsageRespond> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun deleteUser(): CommonResponse<Boolean> {
