@@ -19,4 +19,5 @@ interface LocalUserDataSource {
 
     suspend fun updateApiUsage(apiUsages: List<ApiUsageEntity>): Boolean
 
+    fun getApiUsage(feature: String): ApiUsageEntity
 }

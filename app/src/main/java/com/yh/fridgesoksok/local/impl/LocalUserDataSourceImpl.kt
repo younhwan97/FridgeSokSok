@@ -12,7 +12,7 @@ class LocalUserDataSourceImpl @Inject constructor(
 ) : LocalUserDataSource {
 
     companion object {
-        private const val PREF_NAME = "userInfo"
+        private const val PREF_NAME = "user_info"
 
         private const val KEY_ID = "id"
         private const val KEY_ACCESS_TOKEN = "accessToken"
@@ -34,8 +34,7 @@ class LocalUserDataSourceImpl @Inject constructor(
 
     override fun loadUser(): UserEntity {
         val prefs = getPreferences()
-
-        val user = UserEntity(
+        return UserEntity(
             id = prefs.getString(KEY_ID, null).orEmpty(),
             accessToken = prefs.getString(KEY_ACCESS_TOKEN, null).orEmpty(),
             refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null).orEmpty(),
@@ -43,12 +42,10 @@ class LocalUserDataSourceImpl @Inject constructor(
             accountType = prefs.getString(KEY_ACCOUNT_TYPE, null).orEmpty(),
             defaultFridgeId = prefs.getString(KEY_DEFAULT_FRIDGE_ID, null).orEmpty()
         )
-
-        return user
     }
 
-    override suspend fun saveUser(userEntity: UserEntity): Boolean {
-        return editAndCommit {
+    override suspend fun saveUser(userEntity: UserEntity): Boolean =
+        editAndCommit {
             putString(KEY_ID, userEntity.id)
             putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
             putString(KEY_REFRESH_TOKEN, userEntity.refreshToken)
@@ -56,10 +53,9 @@ class LocalUserDataSourceImpl @Inject constructor(
             putString(KEY_ACCOUNT_TYPE, userEntity.accountType)
             putString(KEY_DEFAULT_FRIDGE_ID, userEntity.defaultFridgeId)
         }
-    }
 
-    override suspend fun updateUser(userEntity: UserEntity): Boolean {
-        return editAndCommit {
+    override suspend fun updateUser(userEntity: UserEntity): Boolean =
+        editAndCommit {
             putString(KEY_ID, userEntity.id)
             putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
             putString(KEY_REFRESH_TOKEN, userEntity.refreshToken)
@@ -67,7 +63,6 @@ class LocalUserDataSourceImpl @Inject constructor(
             putString(KEY_ACCOUNT_TYPE, userEntity.accountType)
             putString(KEY_DEFAULT_FRIDGE_ID, userEntity.defaultFridgeId)
         }
-    }
 
     override suspend fun clearUser(): Boolean =
         editAndCommit {
@@ -79,18 +74,14 @@ class LocalUserDataSourceImpl @Inject constructor(
             remove(KEY_DEFAULT_FRIDGE_ID)
         }
 
-    override suspend fun updateUserFcmToken(fcmToken: String): Boolean {
-        return editAndCommit {
+    override suspend fun updateUserFcmToken(fcmToken: String): Boolean =
+        editAndCommit {
             putString(KEY_FCM_TOKEN, fcmToken)
         }
-    }
 
     override fun getUserFcmToken(): String {
         val prefs = getPreferences()
-
-        val pcmToken = prefs.getString(KEY_FCM_TOKEN, null).orEmpty()
-
-        return pcmToken
+        return prefs.getString(KEY_FCM_TOKEN, null).orEmpty()
     }
 
     override suspend fun updateApiUsage(apiUsages: List<ApiUsageEntity>): Boolean {
@@ -100,5 +91,14 @@ class LocalUserDataSourceImpl @Inject constructor(
                 putInt("${usage.feature}_USED", usage.used)
             }
         }
+    }
+
+    override fun getApiUsage(feature: String): ApiUsageEntity {
+        val prefs = getPreferences()
+        return ApiUsageEntity(
+            feature = feature,
+            max = prefs.getInt("${feature}_MAX", 0),
+            used = prefs.getInt("${feature}_USED", 0),
+        )
     }
 }

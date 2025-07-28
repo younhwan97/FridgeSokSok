@@ -1,9 +1,13 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.common.api.Api
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.ApiUsage
+import com.yh.fridgesoksok.domain.usecase.GetApiUsageFromLocalUseCase
 import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
@@ -24,6 +28,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val screenName = "Onboarding"
+
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val loadUserUseCase: LoadUserUseCase,
@@ -34,30 +40,30 @@ class OnboardingViewModel @Inject constructor(
     private val getLocalUserFcmTokenUseCase: GetLocalUserFcmTokenUseCase,
     private val updateUserFcmTokenUseCase: UpdateUserFcmTokenUseCase,
     private val getApiUsageUseCase: GetApiUsageUseCase,
-    private val updateApiUsageUseCase: UpdateApiUsageUseCase,
+    private val updateApiUsageUseCase: UpdateApiUsageUseCase
 ) : ViewModel() {
-
-    private val screenName = "Onboarding"
 
     private val _state = MutableStateFlow<OnboardingState>(OnboardingState.Loading)
     val state = _state.asStateFlow()
 
     init {
-        Logger.i(screenName, "온보딩 시작")
         /* 온보딩 프로세스
-            1. 로컬 유저정보 로드
-            2. 토큰 유효성 확인
-            3. 토큰 갱신
-            4. 유저 기본냉장고 ID 추출
-            5. 로컬 유저정보 업데이트
-            6. 로컬 FCM 토큰 확인
-            7. FCM 토큰 갱신 */
+            1. (로컬) 유저정보 로드
+            2. (서버) 토큰 유효성 확인
+            3. (서버) 토큰 갱신
+            4. (서버) 유저 기본냉장고 ID 추출
+            5. (로컬) 유저정보 업데이트
+            6. (서버) API 사용량 및 제한 확인
+            7. (로컬) API 사용량 및 제한 정보 로컬 저장
+            8. (로컬) 로컬 FCM 토큰 확인
+            9. (서버) FCM 토큰 갱신 */
         startOnboarding()
     }
 
     private fun startOnboarding() {
+        Logger.i(screenName, "온보딩 시작")
         val user = UserModel.fromLocal(loadUserUseCase())
-        if (!user.isValid()) return fail("토큰 없음")
+        if (!user.isValid()) return fail("토큰정보 없음")
         validateToken(user)
     }
 
@@ -141,7 +147,7 @@ class OnboardingViewModel @Inject constructor(
                     getApiUsage()
                 }
 
-                is Resource.Error -> fail("유저 저장 실패 ${result.message}")
+                is Resource.Error -> fail("유저 저장 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -158,11 +164,32 @@ class OnboardingViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    Logger.d(screenName, "유저 API 정보 확인 성공")
+                    Logger.d(screenName, "API 정보 확인 성공")
+                    updateApiUsage(usages)
+                }
+
+                is Resource.Error -> fail("API 정보 확인 실패 (${result.message})")
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    // API 사용량 및 호출제한 정보 저장
+    private fun updateApiUsage(usages: List<ApiUsage>) {
+        updateApiUsageUseCase(usages).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val success = result.data ?: false
+                    if (!success) {
+                        fail("유저 API 정보 저장 실패")
+                        return@onEach
+                    }
+
+                    Logger.d(screenName, "API 정보 저장 성공")
                     updateUserFcmToken()
                 }
 
-                is Resource.Error -> fail("유저 API 정보 확인 실패 ${result.message}")
+                is Resource.Error -> fail("API 정보 저장 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -190,7 +217,7 @@ class OnboardingViewModel @Inject constructor(
                         Logger.i(screenName, "온보딩 완료")
                     }
 
-                    is Resource.Error -> fail("FCM 토큰 갱신 실패 ${result.message}")
+                    is Resource.Error -> fail("FCM 토큰 갱신 실패 (${result.message})")
                     is Resource.Loading -> Unit
                 }
             }.launchIn(viewModelScope)

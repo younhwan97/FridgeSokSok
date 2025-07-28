@@ -112,6 +112,9 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.getApiUsage().map { it.toDomain() }
         }
 
+    override fun getApiUsageFromLocal(feature: String): ApiUsage =
+        localUserDataSource.getApiUsage(feature).toDomain()
+
     override fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>> =
         flowWithResource {
             localUserDataSource.updateApiUsage(apiUsages.map { it.toEntity() })
