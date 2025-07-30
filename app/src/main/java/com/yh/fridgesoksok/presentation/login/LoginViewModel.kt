@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnChannelUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateUserOnServerUseCase
+import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
@@ -24,6 +27,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val screenName = "Login"
+
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val createUserOnChannelUseCase: CreateUserOnChannelUseCase,
@@ -31,7 +36,9 @@ class LoginViewModel @Inject constructor(
     private val createUserOnServerUseCase: CreateUserOnServerUseCase,
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase,
     private val getLocalUserFcmTokenUseCase: GetLocalUserFcmTokenUseCase,
-    private val updateUserFcmTokenUseCase: UpdateUserFcmTokenUseCase
+    private val updateUserFcmTokenUseCase: UpdateUserFcmTokenUseCase,
+    private val getApiUsageUseCase: GetApiUsageUseCase,
+    private val updateApiUsageUseCase: UpdateApiUsageUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Loading)
@@ -42,7 +49,7 @@ class LoginViewModel @Inject constructor(
 
     // (네이버, 카카오 등의) 채널로 부터 유저 생성
     fun createUserOnChannel(channel: Channel) {
-        Logger.i("Login", "로그인 시도 $channel")
+        Logger.i(screenName, "로그인 시도 $channel")
 
         createUserOnChannelUseCase(channel).onEach { result ->
             when (result) {
@@ -50,7 +57,7 @@ class LoginViewModel @Inject constructor(
                     val userModel = result.data?.let(UserModel::fromLocal)
                     if (userModel == null || !userModel.isValid()) return@onEach fail("채널 응답 데이터가 유효하지 않음")
 
-                    Logger.d("Login", "채널 로그인 성공 $userModel")
+                    Logger.d(screenName, "채널 로그인 성공 $userModel")
                     if (userModel.accountType == "temp") {
                         getUserDefaultFridge(userModel)
                     } else {
@@ -72,7 +79,7 @@ class LoginViewModel @Inject constructor(
                     val userModel = result.data?.let(UserModel::fromLocal)
                     if (userModel == null || !userModel.isValid()) return@onEach fail("서버 응답 데이터가 유효하지 않음")
 
-                    Logger.d("Login", "서버 유저 생성 성공 $userModel")
+                    Logger.d(screenName, "서버 유저 생성 성공 $userModel")
                     val updatedUser = user.withUpdatedUserInfo(
                         newAccess = userModel.accessToken,
                         newRefresh = userModel.refreshToken,
@@ -114,11 +121,53 @@ class LoginViewModel @Inject constructor(
                     val isUserSaved = result.data ?: false
                     if (!isUserSaved) return@onEach fail("유저 저장 실패")
 
-                    Logger.d("Login", "유저 저장 성공 $user")
-                    updateUserFcmToken()
+                    Logger.d(screenName, "유저 저장 성공 $user")
+                    getApiUsage()
                 }
 
                 is Resource.Error -> fail("유저 저장 실패 (${result.message})")
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    // API 사용량 및 호출제한 확인
+    private fun getApiUsage() {
+        getApiUsageUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val usages = result.data
+                    if (usages.isNullOrEmpty()) {
+                        fail("유저 API 정보 확인 실패")
+                        return@onEach
+                    }
+
+                    Logger.d(screenName, "API 정보 확인 성공")
+                    updateApiUsage(usages)
+                }
+
+                is Resource.Error -> fail("API 정보 확인 실패 (${result.message})")
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    // API 사용량 및 호출제한 정보 저장
+    private fun updateApiUsage(usages: List<ApiUsage>) {
+        updateApiUsageUseCase(usages).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val success = result.data ?: false
+                    if (!success) {
+                        fail("유저 API 정보 저장 실패")
+                        return@onEach
+                    }
+
+                    Logger.d(screenName, "API 정보 저장 성공")
+                    updateUserFcmToken()
+                }
+
+                is Resource.Error -> fail("API 정보 저장 실패 (${result.message})")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -135,9 +184,9 @@ class LoginViewModel @Inject constructor(
                         val isUserUpdated = result.data == fcmToken
                         if (!isUserUpdated) return@onEach fail("FCM 토큰 갱신 실패")
 
+                        Logger.d(screenName, "FCM 토큰 갱신 성공")
+                        Logger.i(screenName, "로그인 성공")
                         _state.value = LoginState.Success
-                        Logger.d("Login", "FCM 토큰 갱신 성공")
-                        Logger.i("Login", "로그인 성공")
                     }
 
                     is Resource.Error -> fail("FCM 토큰 갱신 실패 ${result.message}")
@@ -145,14 +194,14 @@ class LoginViewModel @Inject constructor(
                 }
             }.launchIn(viewModelScope)
         } else {
+            Logger.d(screenName, "FCM 토큰 갱신 성공")
+            Logger.i(screenName, "로그인 성공")
             _state.value = LoginState.Success
-            Logger.d("Login", "FCM 토큰 갱신 성공")
-            Logger.i("Login", "로그인 성공")
         }
     }
 
     private fun fail(reason: String) {
-        Logger.e("Login", "$reason → 로그인 실패")
+        Logger.e(screenName, "$reason → 로그인 실패")
         _state.value = LoginState.Error
 
         viewModelScope.launch {

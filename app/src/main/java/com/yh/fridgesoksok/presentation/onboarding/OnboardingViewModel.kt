@@ -1,13 +1,10 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.common.api.Api
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.ApiUsage
-import com.yh.fridgesoksok.domain.usecase.GetApiUsageFromLocalUseCase
 import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
@@ -25,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val screenName = "Onboarding"
@@ -209,24 +205,22 @@ class OnboardingViewModel @Inject constructor(
                             return@onEach
                         }
 
-                        viewModelScope.launch {
-                            _state.value = OnboardingState.Success
-                        }
-
                         Logger.d(screenName, "FCM 토큰 갱신 성공")
                         Logger.i(screenName, "온보딩 완료")
+                        _state.value = OnboardingState.Success
                     }
 
-                    is Resource.Error -> fail("FCM 토큰 갱신 실패 (${result.message})")
+                    is Resource.Error -> {
+                        Logger.d(screenName, "FCM 토큰 갱신 실패 ${result.message}")
+                        _state.value = OnboardingState.Success
+                    }
+
                     is Resource.Loading -> Unit
                 }
             }.launchIn(viewModelScope)
         } else {
-            viewModelScope.launch {
-                _state.value = OnboardingState.Success
-            }
-
             Logger.i(screenName, "온보딩 완료")
+            _state.value = OnboardingState.Success
         }
     }
 
