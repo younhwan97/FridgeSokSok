@@ -14,6 +14,7 @@ import com.yh.fridgesoksok.domain.model.UserSetting
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -112,7 +113,7 @@ class UserRepositoryImpl @Inject constructor(
             remoteUserDataSource.getApiUsage().map { it.toDomain() }
         }
 
-    override fun getApiUsageFromLocal(feature: String): ApiUsage =
+    override fun getLocalApiUsage(feature: String): ApiUsage =
         localUserDataSource.getApiUsage(feature).toDomain()
 
     override fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>> =
@@ -126,7 +127,12 @@ class UserRepositoryImpl @Inject constructor(
             try {
                 emit(Resource.Success(block()))
             } catch (exception: Exception) {
-                emit(Resource.Error(exception.localizedMessage ?: "Unknown Error"))
+                val statusCode = if (exception is HttpException) {
+                    exception.code()
+                } else {
+                    null
+                }
+                emit(Resource.Error(message = exception.localizedMessage ?: "Unknown Error", status = statusCode))
             }
         }
 }

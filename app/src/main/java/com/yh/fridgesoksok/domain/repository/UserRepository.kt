@@ -49,7 +49,7 @@ interface UserRepository {
 
     fun getApiUsage(): Flow<Resource<List<ApiUsage>>>
 
-    fun getApiUsageFromLocal(feature: String): ApiUsage
+    fun getLocalApiUsage(feature: String): ApiUsage
 
     fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>>
 }

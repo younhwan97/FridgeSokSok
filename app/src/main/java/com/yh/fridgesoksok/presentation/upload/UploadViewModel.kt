@@ -81,7 +81,11 @@ class UploadViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.emit("영수증을 인식하지 못했어요 :(")
+                    if (result.status == 429) {
+                        _errorMessage.emit("영수증 인식 횟수를 모두 소진하였습니다.")
+                    } else {
+                        _errorMessage.emit("영수증을 인식하지 못했어요 :(")
+                    }
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기위해 Success 세팅
                     _state.value = UploadState.Success
                 }

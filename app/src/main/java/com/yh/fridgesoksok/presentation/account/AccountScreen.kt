@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.common.Constants
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.account.comp.SettingActionRow

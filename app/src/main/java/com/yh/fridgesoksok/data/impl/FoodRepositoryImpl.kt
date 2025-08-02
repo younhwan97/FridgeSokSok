@@ -12,6 +12,7 @@ import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class FoodRepositoryImpl @Inject constructor(
@@ -70,7 +71,12 @@ class FoodRepositoryImpl @Inject constructor(
             try {
                 emit(Resource.Success(block()))
             } catch (exception: Exception) {
-                emit(Resource.Error(exception.localizedMessage ?: "Unknown Error"))
+                val statusCode = if (exception is HttpException) {
+                    exception.code()
+                } else {
+                    null
+                }
+                emit(Resource.Error(message = exception.localizedMessage ?: "Unknown Error", status = statusCode))
             }
         }
 }

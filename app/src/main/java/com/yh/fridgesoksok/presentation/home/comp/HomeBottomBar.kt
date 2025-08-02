@@ -47,6 +47,7 @@ fun HomeBottomBar(
     currentRoute: String,
     homeNavController: NavHostController,
     recipeGenerationState: RecipeGenerationState,
+    isRecipeGenerationAvailable: Boolean = false,
     onClickGenerateRecipe: () -> Unit = {},
 ) {
     Surface(
@@ -64,7 +65,7 @@ fun HomeBottomBar(
                 BottomNavigationBar(currentRoute, homeNavController)
 
             currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT ->
-                GenerateRecipeBar(onClickGenerateRecipe, recipeGenerationState)
+                GenerateRecipeBar(onClickGenerateRecipe, recipeGenerationState, isRecipeGenerationAvailable)
 
             currentRoute == Screen.RecipeTab.route ->
                 BottomNavigationBar(currentRoute, homeNavController)
@@ -130,13 +131,14 @@ private fun BottomNavigationBar(
 @Composable
 private fun GenerateRecipeBar(
     onClickGenerateRecipe: () -> Unit,
-    recipeGenerationState: RecipeGenerationState
+    recipeGenerationState: RecipeGenerationState,
+    isRecipeGenerationAvailable: Boolean
 ) {
     Button(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         onClick = onClickGenerateRecipe,
         shape = RoundedCornerShape(12.dp),
-        enabled = recipeGenerationState != RecipeGenerationState.Loading,
+        enabled = recipeGenerationState != RecipeGenerationState.Loading && isRecipeGenerationAvailable,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = Color.White,
@@ -148,6 +150,12 @@ private fun GenerateRecipeBar(
             CircularProgressIndicator(
                 modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp,
+            )
+        } else if (!isRecipeGenerationAvailable) {
+            Text(
+                text = "오늘의 생성한도 초과",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
             )
         } else {
             Text(

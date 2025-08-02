@@ -43,7 +43,6 @@ class FridgeViewModel @Inject constructor(
     val selectedFoods = _selectedFoods.asStateFlow()
 
     private val _filterQuery = MutableStateFlow("")
-    val filterQuery = _filterQuery.asStateFlow()
 
     private val _typingQuery = MutableStateFlow("")
     val typingQuery = _typingQuery.asStateFlow()
@@ -125,13 +124,22 @@ class FridgeViewModel @Inject constructor(
     }
 
     fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit) {
-        if (foods.isEmpty()) return onResult(false, "재료 미선택")
+        if (foods.isEmpty()) {
+            onResult(false, "재료 미선택")
+            return
+        }
 
         createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
             when (result) {
                 is Resource.Success -> onResult(true, null)
 
-                is Resource.Error -> onResult(false, result.message ?: "레시피 생성 실패")
+                is Resource.Error -> {
+                    if (result.status == 429) {
+                        onResult(false, "AI 레시피 생성 횟수를 모두 소진하였습니다.")
+                    } else {
+                        onResult(false, result.message ?: "레시피 생성 실패")
+                    }
+                }
 
                 is Resource.Loading -> Unit
             }

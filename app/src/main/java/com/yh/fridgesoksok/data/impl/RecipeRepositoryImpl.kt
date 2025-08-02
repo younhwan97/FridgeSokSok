@@ -9,6 +9,7 @@ import com.yh.fridgesoksok.domain.model.Recipe
 import com.yh.fridgesoksok.domain.repository.RecipeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class RecipeRepositoryImpl @Inject constructor(
@@ -36,7 +37,12 @@ class RecipeRepositoryImpl @Inject constructor(
             try {
                 emit(Resource.Success(block()))
             } catch (exception: Exception) {
-                emit(Resource.Error(exception.localizedMessage ?: "Unknown Error"))
+                val statusCode = if (exception is HttpException) {
+                    exception.code()
+                } else {
+                    null
+                }
+                emit(Resource.Error(message = exception.localizedMessage ?: "Unknown Error", status = statusCode))
             }
         }
 }

@@ -63,6 +63,9 @@ fun HomeScreen(
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
+    // 레시피 생성 API 사용가능 여부
+    val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState()
+
     // 알림 권한 요청
     LaunchedEffect(Unit) {
         launchNotification()
@@ -105,6 +108,7 @@ fun HomeScreen(
                 currentRoute = currentRoute,
                 homeNavController = homeNavController,
                 recipeGenerationState = recipeState,
+                isRecipeGenerationAvailable = isRecipeGenerationAvailable,
                 onClickGenerateRecipe = { sharedViewModel.startRecipeGeneration() }
             )
         },
