@@ -84,7 +84,7 @@ fun EditFoodDateSelector(
     onConfirm: (LocalDate) -> Unit
 ) {
     val today = remember { LocalDate.now() }
-    val maxDate = remember { today.plusYears(2) }
+    val maxDate = remember { today.plusYears(3) }
     val minMonth = remember { YearMonth.from(today) }
     val maxMonth = remember { YearMonth.from(maxDate) }
 
@@ -133,7 +133,7 @@ fun EditFoodDateSelector(
                         Icon(Icons.Default.ChevronLeft, contentDescription = "이전 달")
                     }
                     Text(
-                        text = currentMonth.format(DateTimeFormatter.ofPattern("yyyy M월")),
+                        text = currentMonth.format(DateTimeFormatter.ofPattern("yyyy년 M월")),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
