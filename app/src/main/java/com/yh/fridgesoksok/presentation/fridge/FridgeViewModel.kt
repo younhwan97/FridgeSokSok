@@ -76,8 +76,9 @@ class FridgeViewModel @Inject constructor(
 
                 is Resource.Loading -> {
                     // First Loading
-                    if (_foods.value.isEmpty())
+                    if (_foods.value.isEmpty()) {
                         _state.value = FridgeState.Loading
+                    }
                 }
 
                 is Resource.Error -> {

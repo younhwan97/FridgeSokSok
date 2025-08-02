@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,13 +44,13 @@ fun FridgeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     // 사용자가 입력 중인 검색어 (즉시 반영 X)
     val typingQuery by viewModel.typingQuery.collectAsState()
-    // 선택된 음식 타입 필터 (냉동, 유제품 등)
+    // 음식 타입 필터 (냉동, 유제품 등)
     val selectedType by viewModel.selectedType.collectAsState()
     // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val filteredFoods by viewModel.filteredFoods.collectAsState()
     // 선택된 음식 목록 (레시피 생성에서 사용)
     val selectedFoods by viewModel.selectedFoods.collectAsState()
-    // 레시피 생성 상태 (Idle / Loading / Success / Error)
+    // 레시피 생성 상태 (공유 뷰모델, Idle / Loading / Success / Error)
     val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()
 
     // 화면 재진입 시 데이터 로드
@@ -75,7 +74,7 @@ fun FridgeScreen(
         }
     }
 
-    // "SharedViewModel" 레시피 생성 상태 감지 및 처리
+    // 공유 뷰모델 레시피 생성 상태 감지 및 처리
     LaunchedEffect(recipeGenerationState) {
         when (recipeGenerationState) {
             // 1. 레피시 생성 요청
