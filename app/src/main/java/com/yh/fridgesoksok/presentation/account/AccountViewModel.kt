@@ -28,7 +28,6 @@ class AccountViewModel @Inject constructor(
     private val updateReceiveNotificationUseCase: UpdateReceiveNotificationUseCase,
     private val updateAutoDeleteExpiredUseCase: UpdateAutoDeleteExpiredUseCase,
     private val updateUseAllIngredientsUseCase: UpdateUseAllIngredientsUseCase,
-    // private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     private val _userSetting = MutableStateFlow<UserSettingModel?>(null)
@@ -41,6 +40,7 @@ class AccountViewModel @Inject constructor(
     val successServerRequest = _successServerRequest.asSharedFlow()
 
     init {
+        // 유저 개인 설정값 추출
         getUserSetting()
     }
 

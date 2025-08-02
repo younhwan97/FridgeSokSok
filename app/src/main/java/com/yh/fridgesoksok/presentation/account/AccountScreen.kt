@@ -46,11 +46,11 @@ fun AccountScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
-    // 시스템 알림권한
+    // OS 시스템 알림권한
     val hasSystemNotificationPermission by rememberNotificationPermissionState()
-    // 유저 설정값 (기한알림, 자동삭제, 레시피재료)
+    // 유저 개인 설정값 (기한알림, 자동삭제, 레시피재료)
     val userSetting by viewModel.userSetting.collectAsState()
-    // 다이얼로그 (로그아웃, 회원탈퇴, 권한설정)
+    // 다이얼로그 표시 상태 (로그아웃, 회원탈퇴, 권한설정)
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
@@ -68,8 +68,9 @@ fun AccountScreen(
     LaunchedEffect(Unit) {
         viewModel.successServerRequest.collectLatest {
             navController.navigate(Screen.LoginScreen.route) {
+                // 백스택 전체 제거
                 popUpTo(0) {
-                    inclusive = true
+                    inclusive = true // (의미X)
                 }
                 launchSingleTop = true
             }
