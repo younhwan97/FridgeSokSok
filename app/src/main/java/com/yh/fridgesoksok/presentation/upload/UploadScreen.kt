@@ -32,7 +32,6 @@ fun UploadScreen(
     val newFoods by viewModel.newFoods.collectAsState()
     val receipt by sharedViewModel.receipt.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 

@@ -55,7 +55,10 @@ class LoginViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val userModel = result.data?.let(UserModel::fromLocal)
-                    if (userModel == null || !userModel.isValid()) return@onEach fail("채널 응답 데이터가 유효하지 않음")
+                    if (userModel == null || !userModel.isValid()) {
+                        fail("채널 응답 데이터가 유효하지 않음")
+                        return@onEach
+                    }
 
                     Logger.d(screenName, "채널 로그인 성공 $userModel")
                     if (userModel.accountType == "temp") {
@@ -77,7 +80,10 @@ class LoginViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val userModel = result.data?.let(UserModel::fromLocal)
-                    if (userModel == null || !userModel.isValid()) return@onEach fail("서버 응답 데이터가 유효하지 않음")
+                    if (userModel == null || !userModel.isValid()) {
+                        fail("서버 응답 데이터가 유효하지 않음")
+                        return@onEach
+                    }
 
                     Logger.d(screenName, "서버 유저 생성 성공 $userModel")
                     val updatedUser = user.withUpdatedUserInfo(
@@ -101,7 +107,10 @@ class LoginViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val fridgeModel = result.data?.toPresentation()
-                    if (fridgeModel == null || !fridgeModel.isValid()) return@onEach fail("기본 냉장고ID 추출 실패")
+                    if (fridgeModel == null || !fridgeModel.isValid()) {
+                        fail("기본 냉장고ID 추출 실패")
+                        return@onEach
+                    }
 
                     val updatedUser = user.withDefaultFridgeId(fridgeModel.id)
                     saveUser(updatedUser)
@@ -119,7 +128,10 @@ class LoginViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     val isUserSaved = result.data ?: false
-                    if (!isUserSaved) return@onEach fail("유저 저장 실패")
+                    if (!isUserSaved) {
+                        fail("유저 저장 실패")
+                        return@onEach
+                    }
 
                     Logger.d(screenName, "유저 저장 성공 $user")
                     getApiUsage()
@@ -182,7 +194,10 @@ class LoginViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         val isUserUpdated = result.data == fcmToken
-                        if (!isUserUpdated) return@onEach fail("FCM 토큰 갱신 실패")
+                        if (!isUserUpdated) {
+                            fail("FCM 토큰 갱신 실패")
+                            return@onEach
+                        }
 
                         Logger.d(screenName, "FCM 토큰 갱신 성공")
                         Logger.i(screenName, "로그인 성공")

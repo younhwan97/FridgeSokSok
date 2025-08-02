@@ -48,13 +48,13 @@ fun CameraScreen(
     sharedViewModel: SharedViewModel,
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // 카메라 제어 상태
     val cameraController = rememberCameraController(context)
     var isCameraReady by remember { mutableStateOf(false) }
     var isPreviewVisible by remember { mutableStateOf(true) }
     var capturedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 

@@ -18,10 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
-import com.yh.fridgesoksok.presentation.login.comp.*
+import com.yh.fridgesoksok.presentation.login.comp.LoginAppLogo
+import com.yh.fridgesoksok.presentation.login.comp.LoginButtons
+import com.yh.fridgesoksok.presentation.login.comp.LoginCenterContent
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -29,9 +30,10 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    val loginState by viewModel.state.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
-
+    // 로그인 상태 (초기 Loading, 성공 Success)
+    val loginState by viewModel.state.collectAsState()
+    
     // 로그인 실패 시 스낵바 메시징
     LaunchedEffect(Unit) {
         viewModel.errorMessage.collectLatest {
@@ -43,6 +45,7 @@ fun LoginScreen(
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
             navController.navigate(Screen.HomeScreen.route) {
+                // 백스택 전체 제거
                 popUpTo(0) {
                     inclusive = true
                 }
