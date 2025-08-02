@@ -20,8 +20,10 @@ class HomeViewModel @Inject constructor(
     val isRecipeGenerationAvailable = _isRecipeGenerationAvailable.asStateFlow()
 
     init {
-        val usage = getLocalApiUsageUseCase(feature = ApiUsage.RECIPE_GENERATION.key)
-        _isRecipeGenerationAvailable.value = usage.max != usage.used
+        // 레시피 생성 API 사용가능여부 셋팅
+        _isRecipeGenerationAvailable.value = with(getLocalApiUsageUseCase(ApiUsage.RECIPE_GENERATION.key)) {
+            used < max
+        }
     }
 
     fun updateToDefaultUiMode() {

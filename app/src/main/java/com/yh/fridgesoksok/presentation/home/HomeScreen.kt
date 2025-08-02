@@ -43,15 +43,21 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    var isFabExpanded by remember { mutableStateOf(false) }
+    // Home 라우팅 (Fridge, Recipe, Account)
     val homeNavController = rememberNavController()
     val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
-
+    // HomeUI 모드 (Default, Recipe 재료선택)
     val homeUiMode by homeViewModel.uiMode.collectAsState()
+    // 레시피 생성 상태 (공유 뷰모델)
     val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
-    var isFabExpanded by remember { mutableStateOf(false) }
+    // 레시피 생성 API 사용가능 여부
+    val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState()
+    // 중복처리 제어
+    val (canTrigger, triggerCooldown) = rememberActionCooldown()
+    // 갤러리 이미지
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     var showConfirmDialog by remember { mutableStateOf(false) }
-
     // 알림, 갤러리, 카메라 런처
     val launchNotification = rememberNotificationPermissionLauncher(context) { }
     val launchCamera = rememberCameraLauncher(context) { navController.navigate(Screen.CameraScreen.route) }
@@ -59,12 +65,6 @@ fun HomeScreen(
         selectedImageUri.value = uri
         showConfirmDialog = true
     }
-
-    // 중복처리 제어
-    val (canTrigger, triggerCooldown) = rememberActionCooldown()
-
-    // 레시피 생성 API 사용가능 여부
-    val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState()
 
     // 알림 권한 요청
     LaunchedEffect(Unit) {
@@ -81,7 +81,7 @@ fun HomeScreen(
         when {
             // FAB 오픈 상태에서 뒤로가기 시 FAB 닫기
             isFabExpanded -> isFabExpanded = false
-            // 레시피 모드에서 뒤로가기 시 UI 모드 리셋
+            // 레시피 재료선택 모드에서 뒤로가기 시 HomeUI 모드 리셋
             homeUiMode == HomeUiMode.RECIPE_SELECT -> homeViewModel.resetUiMode()
         }
     }
@@ -158,7 +158,9 @@ fun HomeScreen(
                 onConfirm = {
                     val bitmap = uriToBitmap(context, selectedImageUri.value!!)
                     if (bitmap != null) {
+                        // 공유 뷰모델 영수증 이미지 셋팅
                         sharedViewModel.setReceipt(bitmap)
+                        // Upload 화면으로 이동
                         navController.navigate(Screen.UploadScreen.route)
                     }
                     showConfirmDialog = false
