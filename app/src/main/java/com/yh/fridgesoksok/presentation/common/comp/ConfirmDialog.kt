@@ -19,10 +19,12 @@ fun ConfirmDialog(
     onConfirm: () -> Unit,
     confirmText: String = "확인",
     confirmTextColor: Color = MaterialTheme.colorScheme.primary,
+    confirmTextVisibility: Boolean = true,
     confirmContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     onDismiss: () -> Unit,
     dismissText: String = "취소",
     dismissTextColor: Color = CustomGreyColor7,
+    dismissTextVisibility: Boolean = true,
     dismissContainerColor: Color = CustomGreyColor2
 ) {
     AlertDialog(
@@ -31,29 +33,33 @@ fun ConfirmDialog(
         tonalElevation = 6.dp,
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = confirmContainerColor)
-            ) {
-                Text(
-                    text = confirmText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = confirmTextColor
-                )
+            if (confirmTextVisibility){
+                TextButton(
+                    onClick = onConfirm,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = confirmContainerColor)
+                ) {
+                    Text(
+                        text = confirmText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = confirmTextColor
+                    )
+                }
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = dismissContainerColor)
-            ) {
-                Text(
-                    text = dismissText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = dismissTextColor
-                )
+            if (dismissTextVisibility) {
+                TextButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = dismissContainerColor)
+                ) {
+                    Text(
+                        text = dismissText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = dismissTextColor
+                    )
+                }
             }
         },
         title = {

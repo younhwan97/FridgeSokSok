@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Logger
@@ -7,6 +8,7 @@ import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalUserFcmTokenUseCase
+import com.yh.fridgesoksok.domain.usecase.GetServerStatusUseCase
 import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.ReissueUserTokenUseCase
@@ -28,6 +30,7 @@ const val screenName = "Onboarding"
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
+    private val getServerStatusUseCase: GetServerStatusUseCase,
     private val loadUserUseCase: LoadUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
     private val validateUserTokenUseCase: ValidateUserTokenUseCase,
@@ -42,8 +45,12 @@ class OnboardingViewModel @Inject constructor(
     private val _state = MutableStateFlow<OnboardingState>(OnboardingState.Loading)
     val state = _state.asStateFlow()
 
+    private val _successServerConnect = MutableStateFlow<Boolean>(true)
+    val successServerConnect = _successServerConnect.asStateFlow()
+
     init {
         /* 온보딩 프로세스
+            0. (서버) 서버상태 체크
             1. (로컬) 유저정보 로드
             2. (서버) 토큰 유효성 확인
             3. (서버) 토큰 갱신
@@ -58,9 +65,32 @@ class OnboardingViewModel @Inject constructor(
 
     private fun startOnboarding() {
         Logger.i(screenName, "온보딩 시작")
-        val user = UserModel.fromLocal(loadUserUseCase())
-        if (!user.isValid()) return fail("토큰정보 없음")
-        validateToken(user)
+        getServerStatus()
+    }
+
+    // 서버상태 체크
+    private fun getServerStatus() {
+        getServerStatusUseCase().onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val data = result.data
+                    if (data?.status != "UP") {
+                        _successServerConnect.value = false
+                        fail("서버상태 비정상")
+                        return@onEach
+                    }
+
+                    Logger.d(screenName, "서버상태 정상")
+
+                    val user = UserModel.fromLocal(loadUserUseCase())
+                    if (!user.isValid()) return@onEach fail("토큰정보 없음")
+                    validateToken(user)
+                }
+
+                is Resource.Error -> _successServerConnect.value = false
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
     }
 
     // 유저 리프레쉬 토큰 유효성 확인

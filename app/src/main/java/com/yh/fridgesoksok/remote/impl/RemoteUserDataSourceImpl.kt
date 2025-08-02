@@ -4,6 +4,7 @@ import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.FridgeEntity
+import com.yh.fridgesoksok.data.model.ServerStatusEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.model.UserSettingEntity
@@ -24,6 +25,18 @@ class RemoteUserDataSourceImpl @Inject constructor(
     private val naverApiService: NaverApiService,
     private val fridgeApiService: FridgeApiService
 ) : RemoteUserDataSource {
+
+    override suspend fun getServerStatus(): ServerStatusEntity {
+        return try {
+            Logger.d("RemoteUserData", "getServerStatus")
+            val response = fridgeApiService.getServerStatus()
+            val data = response.data ?: throw IllegalStateException("getServerStatus data(=null)")
+            data.toEntity()
+        } catch (e: Exception) {
+            Logger.e("RemoteUserData", "getServerStatus 실패", e)
+            throw e
+        }
+    }
 
     override suspend fun createUserOnChannel(channel: Channel): UserEntity {
         return try {

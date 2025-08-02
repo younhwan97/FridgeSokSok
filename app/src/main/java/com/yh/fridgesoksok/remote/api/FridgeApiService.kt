@@ -1,6 +1,6 @@
 package com.yh.fridgesoksok.remote.api
 
-import com.yh.fridgesoksok.remote.model.ApiUsageRespond
+import com.yh.fridgesoksok.remote.model.ApiUsageResponse
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
@@ -10,13 +10,14 @@ import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
 import com.yh.fridgesoksok.remote.model.RecipeRequest
 import com.yh.fridgesoksok.remote.model.RecipeResponse
+import com.yh.fridgesoksok.remote.model.ServerStatusResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserProfileRequest
-import com.yh.fridgesoksok.remote.model.UserProfileRespond
+import com.yh.fridgesoksok.remote.model.UserProfileResponse
 import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
-import com.yh.fridgesoksok.remote.model.UserSettingRespond
+import com.yh.fridgesoksok.remote.model.UserSettingResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -94,6 +95,10 @@ interface FridgeApiService {
 
     /* ************************************************************* */
     /* ************************ User API *************************** */
+    @GET("status")
+    suspend fun getServerStatus(
+    ): CommonResponse<ServerStatusResponse>
+
     @Headers("Content-Type: application/json")
     @POST("users/create")
     suspend fun createTmpUser(
@@ -108,18 +113,18 @@ interface FridgeApiService {
     @PUT("users/settings")
     suspend fun updateUserSettings(
         @Body userSettingRequest: UserSettingRequest
-    ): CommonResponse<UserSettingRespond>
+    ): CommonResponse<UserSettingResponse>
 
     @GET("users/settings")
-    suspend fun getUserSettings(): CommonResponse<UserSettingRespond>
+    suspend fun getUserSettings(): CommonResponse<UserSettingResponse>
 
     @POST("users/edit")
     suspend fun updateUser(
         @Body userProfileRequest: UserProfileRequest
-    ): CommonResponse<UserProfileRespond>
+    ): CommonResponse<UserProfileResponse>
 
     @GET("users/api-usage")
-    suspend fun getApiUsage(): CommonResponse<ApiUsageRespond>
+    suspend fun getApiUsage(): CommonResponse<ApiUsageResponse>
 
     @DELETE("users/delete")
     suspend fun deleteUser(): CommonResponse<Boolean>

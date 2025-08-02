@@ -3,7 +3,7 @@ package com.yh.fridgesoksok.remote.api
 import android.content.Context
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.yh.fridgesoksok.remote.model.ApiUsageRespond
+import com.yh.fridgesoksok.remote.model.ApiUsageResponse
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.FoodAddRequest
@@ -12,14 +12,15 @@ import com.yh.fridgesoksok.remote.model.FridgeResponse
 import com.yh.fridgesoksok.remote.model.ReceiptResponse
 import com.yh.fridgesoksok.remote.model.RecipeRequest
 import com.yh.fridgesoksok.remote.model.RecipeResponse
+import com.yh.fridgesoksok.remote.model.ServerStatusResponse
 import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.TokenResponse
 import com.yh.fridgesoksok.remote.model.UserProfileRequest
-import com.yh.fridgesoksok.remote.model.UserProfileRespond
+import com.yh.fridgesoksok.remote.model.UserProfileResponse
 import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
-import com.yh.fridgesoksok.remote.model.UserSettingRespond
+import com.yh.fridgesoksok.remote.model.UserSettingResponse
 import okhttp3.MultipartBody
 
 // TEST
@@ -55,7 +56,7 @@ class MockApiService(
         )
     }
 
-    override suspend fun getApiUsage(): CommonResponse<ApiUsageRespond> {
+    override suspend fun getApiUsage(): CommonResponse<ApiUsageResponse> {
         TODO("Not yet implemented")
     }
 
@@ -69,14 +70,14 @@ class MockApiService(
 
 
 
-    override suspend fun getUserSettings(): CommonResponse<UserSettingRespond> {
+    override suspend fun getUserSettings(): CommonResponse<UserSettingResponse> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun updateUser(userProfileRequest: UserProfileRequest): CommonResponse<UserProfileRespond> {
+    override suspend fun updateUser(userProfileRequest: UserProfileRequest): CommonResponse<UserProfileResponse> {
         TODO("Not yet implemented")
     }
-    override suspend fun updateUserSettings(userSettingRequest: UserSettingRequest): CommonResponse<UserSettingRespond> {
+    override suspend fun updateUserSettings(userSettingRequest: UserSettingRequest): CommonResponse<UserSettingResponse> {
         TODO("Not yet implemented")
     }
 
@@ -139,6 +140,10 @@ class MockApiService(
     }
 
     override suspend fun updateFridgeName(fridgeId: String, newName: String): CommonResponse<FridgeResponse> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getServerStatus(): CommonResponse<ServerStatusResponse> {
         TODO("Not yet implemented")
     }
 

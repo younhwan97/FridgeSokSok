@@ -3,11 +3,14 @@ package com.yh.fridgesoksok.data.remote
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.FridgeEntity
+import com.yh.fridgesoksok.data.model.ServerStatusEntity
 import com.yh.fridgesoksok.data.model.TokenEntity
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.data.model.UserSettingEntity
 
 interface RemoteUserDataSource {
+
+    suspend fun getServerStatus(): ServerStatusEntity
 
     suspend fun createUserOnChannel(channel: Channel): UserEntity
 

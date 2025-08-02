@@ -1,6 +1,6 @@
 package com.yh.fridgesoksok.remote.model
 
-data class UserProfileRespond(
+data class UserProfileResponse(
     val id: String,
     val username: String,
     val accountType: String,

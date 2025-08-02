@@ -48,7 +48,7 @@ fun FridgeScreen(
     val selectedType by viewModel.selectedType.collectAsState()
     // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val filteredFoods by viewModel.filteredFoods.collectAsState()
-    // 선택된 음식 목록 (레시피 생성에서 사용)
+    // 선택된 음식 목록 (레시피 생성 시 사용)
     val selectedFoods by viewModel.selectedFoods.collectAsState()
     // 레시피 생성 상태 (공유 뷰모델, Idle / Loading / Success / Error)
     val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()

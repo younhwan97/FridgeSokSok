@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,12 +13,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 
 @Composable
 fun OnboardingScreen(
@@ -27,6 +31,7 @@ fun OnboardingScreen(
 ) {
     val onboardingState by onboardingViewModel.state.collectAsState()
     val isInitDone by appInitializerViewModel.isInitializationCompleted.collectAsState()
+    val successServerConnect by onboardingViewModel.successServerConnect.collectAsState()
 
     // 네비게이션
     LaunchedEffect(isInitDone, onboardingState) {
@@ -70,5 +75,21 @@ fun OnboardingScreen(
             contentDescription = "AppLogo",
             contentScale = ContentScale.None,
         )
+
+        if (!successServerConnect) {
+            val context = LocalContext.current
+            ConfirmDialog(
+                message = "서버와의 연결에 실패하였습니다.",
+                confirmText = "나가기",
+                confirmTextColor = CustomErrorColor,
+                confirmTextVisibility = true,
+                confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
+                onConfirm = {
+                    (context as? Activity)?.finishAffinity()
+                },
+                dismissTextVisibility = false,
+                onDismiss = {}
+            )
+        }
     }
 }

@@ -3,7 +3,7 @@ package com.yh.fridgesoksok.remote.model
 import com.yh.fridgesoksok.common.ApiUsage
 import com.yh.fridgesoksok.data.model.ApiUsageEntity
 
-data class ApiUsageRespond(
+data class ApiUsageResponse(
     val recipeUsed: Int,
     val recipeLimit: Int,
     val recipeRemaining: Int,
@@ -13,7 +13,7 @@ data class ApiUsageRespond(
     val premium: Boolean
 )
 
-fun ApiUsageRespond.toEntity() =
+fun ApiUsageResponse.toEntity() =
     listOf(
         ApiUsageEntity(
             feature = ApiUsage.RECIPE_GENERATION.key,

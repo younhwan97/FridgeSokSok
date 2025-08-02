@@ -4,12 +4,15 @@ import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.model.Fridge
+import com.yh.fridgesoksok.domain.model.ServerStatus
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.model.UserSetting
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
+
+    fun getServerStatus(): Flow<Resource<ServerStatus>>
 
     fun loadUser(): User
 

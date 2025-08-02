@@ -8,6 +8,7 @@ import com.yh.fridgesoksok.data.model.toEntity
 import com.yh.fridgesoksok.data.remote.RemoteUserDataSource
 import com.yh.fridgesoksok.domain.model.ApiUsage
 import com.yh.fridgesoksok.domain.model.Fridge
+import com.yh.fridgesoksok.domain.model.ServerStatus
 import com.yh.fridgesoksok.domain.model.Token
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.model.UserSetting
@@ -21,6 +22,11 @@ class UserRepositoryImpl @Inject constructor(
     private val localUserDataSource: LocalUserDataSource,
     private val remoteUserDataSource: RemoteUserDataSource
 ) : UserRepository {
+
+    override fun getServerStatus(): Flow<Resource<ServerStatus>> =
+        flowWithResource {
+            remoteUserDataSource.getServerStatus().toDomain()
+        }
 
     override fun loadUser() =
         localUserDataSource.loadUser().toDomain()
