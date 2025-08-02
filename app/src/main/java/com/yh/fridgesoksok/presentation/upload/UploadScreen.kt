@@ -29,9 +29,11 @@ fun UploadScreen(
     viewModel: UploadViewModel = hiltViewModel()
 ) {
     val uploadState by viewModel.state.collectAsState()
-    val newFoods by viewModel.newFoods.collectAsState()
-    val receipt by sharedViewModel.receipt.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    // 업로드할 음식 목록
+    val newFoods by viewModel.newFoods.collectAsState()
+    // 영수증 이미지 (Camera/Gallery에서 셋팅)
+    val receipt by sharedViewModel.receipt.collectAsState()
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
