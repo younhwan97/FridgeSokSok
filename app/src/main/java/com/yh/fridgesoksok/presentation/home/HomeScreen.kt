@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
@@ -35,6 +37,7 @@ import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
 import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 
 @Composable
 fun HomeScreen(
@@ -43,6 +46,8 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val systemUiController = rememberSystemUiController()
+    val barColor = CustomGreyColor1
     var isFabExpanded by remember { mutableStateOf(false) }
     // Home 라우팅 (Fridge, Recipe, Account)
     val homeNavController = rememberNavController()
@@ -64,6 +69,11 @@ fun HomeScreen(
     val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
         selectedImageUri.value = uri
         showConfirmDialog = true
+    }
+
+    // 하단바 컬러 설정
+    SideEffect {
+        systemUiController.setNavigationBarColor(barColor)
     }
 
     // 알림 권한 요청

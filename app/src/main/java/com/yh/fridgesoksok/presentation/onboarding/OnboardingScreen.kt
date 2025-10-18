@@ -38,28 +38,30 @@ fun OnboardingScreen(
         // 앱 초기화가 끝나지 않았을 때 리턴
         if (!isInitDone) return@LaunchedEffect
 
-        when (onboardingState) {
-            // 온보딩 성공 시 홈 화면으로 이동
-            is OnboardingState.Success -> {
-                navController.navigate(Screen.HomeScreen.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        inclusive = true
+        if (successServerConnect) {
+            when (onboardingState) {
+                // 온보딩 성공 시 홈 화면으로 이동
+                is OnboardingState.Success -> {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
-                    launchSingleTop = true
                 }
-            }
 
-            // 온보딩 실패 시 로그인 화면으로 이동
-            is OnboardingState.Error -> {
-                navController.navigate(Screen.LoginScreen.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        inclusive = true
+                // 온보딩 실패 시 로그인 화면으로 이동
+                is OnboardingState.Error -> {
+                    navController.navigate(Screen.LoginScreen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
                     }
-                    launchSingleTop = true
                 }
-            }
 
-            is OnboardingState.Loading -> Unit
+                is OnboardingState.Loading -> Unit
+            }
         }
     }
 
@@ -75,11 +77,12 @@ fun OnboardingScreen(
             contentDescription = "AppLogo",
             contentScale = ContentScale.None,
         )
-
+    
+        // 서버 연결 실패 시
         if (!successServerConnect) {
             val context = LocalContext.current
             ConfirmDialog(
-                message = "서버와의 연결에 실패하였습니다.",
+                message = "서버 연결에 실패하였습니다 :(",
                 confirmText = "나가기",
                 confirmTextColor = CustomErrorColor,
                 confirmTextVisibility = true,

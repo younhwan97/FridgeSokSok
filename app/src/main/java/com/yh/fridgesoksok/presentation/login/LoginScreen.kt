@@ -10,19 +10,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.login.comp.LoginAppLogo
 import com.yh.fridgesoksok.presentation.login.comp.LoginButtons
 import com.yh.fridgesoksok.presentation.login.comp.LoginCenterContent
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -30,9 +34,17 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val systemUiController = rememberSystemUiController()
     val snackBarHostState = remember { SnackbarHostState() }
+    // 하단바 컬러
+    val barColor = CustomGreyColor1
     // 로그인 상태 (초기 Loading, 성공 Success)
     val loginState by viewModel.state.collectAsState()
+
+    // 하단바 컬러 설정
+    SideEffect {
+        systemUiController.setNavigationBarColor(barColor)
+    }
     
     // 로그인 실패 시 스낵바 메시징
     LaunchedEffect(Unit) {
