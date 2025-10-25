@@ -9,18 +9,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
-import com.yh.fridgesoksok.presentation.common.comp.*
+import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
+import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
-import com.yh.fridgesoksok.presentation.upload.comp.*
+import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
+import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
+import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
 import kotlinx.coroutines.flow.collectLatest
+
+private const val KEY_FOOD = "food"
+private const val KEY_SOURCE = "source"
+private const val KEY_EDITED_FOOD = "edited_food"
+private const val NAVIGATION_SOURCE_UPLOAD = "UPLOAD"
+private const val MIN_COUNT = 1
 
 @Composable
 fun UploadScreen(
@@ -28,14 +36,16 @@ fun UploadScreen(
     sharedViewModel: SharedViewModel,
     viewModel: UploadViewModel = hiltViewModel()
 ) {
-    val uploadState by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    // 업로드할 음식 목록
-    val newFoods by viewModel.newFoods.collectAsState()
-    // 영수증 이미지 (Camera/Gallery에서 셋팅)
-    val receipt by sharedViewModel.receipt.collectAsState()
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
+
+    // ViewModel 상태 구독
+    val uploadState by viewModel.state.collectAsState()
+    val newFoods by viewModel.newFoods.collectAsState() // 업로드할 음식 목록
+
+    // SharedViewModel 상태 구독
+    val receipt by sharedViewModel.receipt.collectAsState() // 영수증 이미지 (Camera/Gallery에서 셋팅)
 
     // Camera/Gallery -> Upload 이미지 전달 후 OCR 처리
     LaunchedEffect(receipt) {
@@ -47,27 +57,22 @@ fun UploadScreen(
         }
     }
 
-    // Edit -> Upload 편집결과 감지 및 반영
+    // EditFood 결과 처리
     LaunchedEffect(Unit) {
-        sharedViewModel.editedFood.collectLatest { food ->
-            if (food != null && food.itemName.isNotBlank()) {
-                val exists = food.id.isNotBlank() && viewModel.newFoods.value.any { it.id == food.id }
-                if (exists) {
-                    // 기존항목 업데이트
-                    viewModel.updateFood(food.id, food)
-                } else {
-                    // 신규항목 추가
-                    viewModel.addFood(food)
+        val handle = navController.currentBackStackEntry?.savedStateHandle
+
+        handle?.getStateFlow<FoodModel?>("edited_food", null)
+            ?.collect { food ->
+                if (food != null) {
+                    viewModel.addOrUpdateFood(food)
+                    handle.remove<FoodModel>("edited_food")
                 }
-                // 상태 초기화
-                sharedViewModel.clearEditedFood()
             }
-        }
     }
 
     // 식품 등록 성공 시 Home 화면으로 이동
     LaunchedEffect(Unit) {
-        viewModel.addFoodsSuccess.collectLatest {
+        viewModel.foodsAdded.collectLatest {
             navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
         }
     }
@@ -90,9 +95,10 @@ fun UploadScreen(
                     navController.popBackStack()
                 },
                 onActionClick = {
-                    sharedViewModel.clearEditFood()
-                    sharedViewModel.setEditFood(null, EditSource.UPLOAD)
-                    navController.navigate(Screen.EditFoodScreen.route)
+                    navigateToEditFood(
+                        navController = navController,
+                        food = null
+                    )
                 }
             )
         },
@@ -106,24 +112,27 @@ fun UploadScreen(
             UploadBottomButton(
                 uploadState = uploadState,
                 enabled = newFoods.isNotEmpty(),
-                onClick = { viewModel.addFoods() }
+                onClick = viewModel::addFoods
             )
         }
     ) { innerPadding ->
         UploadItemListSection(
             innerPadding = innerPadding,
             foods = newFoods,
-            onEdit = {
-                sharedViewModel.clearEditFood()
-                sharedViewModel.setEditFood(it, EditSource.UPLOAD)
-                navController.navigate(Screen.EditFoodScreen.route)
+            onEdit = { food ->
+                navigateToEditFood(
+                    navController = navController,
+                    food = food
+                )
             },
             onDelete = viewModel::deleteFood,
             onIncrease = { id ->
-                viewModel.updateCount(id) { it + 1 }
+                viewModel.updateCount(id) { count -> count + 1 }
             },
             onDecrease = { id ->
-                viewModel.updateCount(id) { if (it > 1) it - 1 else it }
+                viewModel.updateCount(id) { count ->
+                    if (count > MIN_COUNT) count - 1 else count
+                }
             }
         )
 
@@ -134,4 +143,18 @@ fun UploadScreen(
             else -> Unit
         }
     }
+}
+
+/**
+ * EditFood 화면으로 네비게이션
+ */
+private fun navigateToEditFood(
+    navController: NavController,
+    food: FoodModel?
+) {
+    navController.currentBackStackEntry?.savedStateHandle?.apply {
+        set(KEY_FOOD, food)
+        set(KEY_SOURCE, NAVIGATION_SOURCE_UPLOAD)
+    }
+    navController.navigate(Screen.EditFoodScreen.route)
 }

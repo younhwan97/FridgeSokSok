@@ -20,9 +20,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
@@ -33,45 +31,67 @@ import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodDateSelector
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodNameSuggestion
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodTopAppBar
 import com.yh.fridgesoksok.presentation.model.FoodModel
-import com.yh.fridgesoksok.presentation.model.Type
 import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+private const val NAVIGATION_SOURCE_HOME = "HOME"
+private const val KEY_FOOD = "food"
+private const val KEY_SOURCE = "source"
+private const val KEY_EDITED_FOOD = "edited_food"
+
 @Composable
 fun EditFoodScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel,
     viewModel: EditFoodViewModel = hiltViewModel()
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    // 화면상태 (초기 Success, 변경 Uploading)
-    val state by viewModel.state.collectAsState()
-    // 추천 검색어
-    val suggestions by viewModel.suggestions.collectAsState()
-    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
-    // 에러플래그 및 다이얼로그
-    var showNameError by remember { mutableStateOf(false) }
-    var showDateSelectorDialog by remember { mutableStateOf(false) }
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // 편집 대상 (공유 뷰모델)
-    // source -> HOME -> 변경
-    // source -> UPLOAD -> 추가
-    val editFoodState by sharedViewModel.editFoodState.collectAsState()
-    var editFood by remember {
-        mutableStateOf(
-            editFoodState.food ?: FoodModel(
-                id = "",
-                count = 1,
-                fridgeId = "",
-                itemName = "",
-                categoryId = Type.Ingredients.id,
-                createdAt = LocalDate.now().format(DateFormatter.yyyyMMdd),
-                expiryDate = LocalDate.now().plusWeeks(2).format(DateFormatter.yyyyMMdd)
-            )
-        )
+    // Navigation에서 전달된 데이터 가져오기
+    val food = remember { navController.previousBackStackEntry?.savedStateHandle?.get<FoodModel>(KEY_FOOD) }
+    val source = remember { navController.previousBackStackEntry?.savedStateHandle?.get<String>(KEY_SOURCE) } // "HOME" or "UPLOAD"
+
+    // ViewModel 상태
+    val currentFood by viewModel.food.collectAsState()
+    val isEditMode by viewModel.isEditMode.collectAsState()
+    val state by viewModel.state.collectAsState() // 화면 상태 (초기 Success, 변경 시 Uploading)
+    val suggestions by viewModel.suggestions.collectAsState() // 추천 검색어
+
+    // UI 상태
+    var showDateSelectorDialog by remember { mutableStateOf(false) }
+    val suggestionOffsetY = remember { mutableFloatStateOf(0f) }
+
+    // 초기화
+    LaunchedEffect(Unit) {
+        val isEdit = source == NAVIGATION_SOURCE_HOME
+        viewModel.initializeFood(food, isEdit)
+    }
+
+    // 저장 성공 시 네비게이션
+    LaunchedEffect(Unit) {
+        viewModel.foodSaved.collectLatest {
+            if (isEditMode) {
+                // 편집 모드 -> HomeScreen으로 복귀
+                navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+            } else {
+                // 추가 모드 -> 결과를 UploadScreen에 전달
+                currentFood?.let { food ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(KEY_EDITED_FOOD, food)
+                }
+                navController.popBackStack()
+            }
+        }
+    }
+
+    // 서버 처리 실패 시 스낵바 메시징
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collectLatest {
+            snackbarHostState.showSnackbar(it)
+        }
     }
 
     // 뒤로가기 처리
@@ -84,26 +104,12 @@ fun EditFoodScreen(
         }
     }
 
-    // 식품 업데이트 성공 시 Home으로 이동
-    LaunchedEffect(Unit) {
-        viewModel.successUpdateFood.collectLatest {
-            navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
-        }
-    }
-
-    // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(Unit) {
-        viewModel.errorMessage.collectLatest {
-            snackbarHostState.showSnackbar(it)
-        }
-    }
-
     // 화면
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             EditFoodTopAppBar(
-                title = if (editFoodState.source == EditSource.HOME) "변경하기" else "식품 추가하기",
+                title = if (isEditMode) "변경하기" else "식품 추가하기",
                 isNavigationEnabled = canTrigger,
                 onNavigationClick = {
                     triggerCooldown()
@@ -119,28 +125,10 @@ fun EditFoodScreen(
         },
         bottomBar = {
             EditFoodBottomButton(
-                text = if (editFoodState.source == EditSource.HOME) "변경하기" else "추가하기",
+                text = if (isEditMode) "변경하기" else "추가하기",
                 editFoodState = state,
                 enabled = canTrigger,
-                onClick = {
-                    // 입력값 유효성 검증
-                    if (editFood.itemName.isBlank()) {
-                        showNameError = true
-                        return@EditFoodBottomButton
-                    }
-                    // 소스에 따른 분기처리
-                    if (editFoodState.source == EditSource.UPLOAD) {
-                        // 중복처리 방지
-                        triggerCooldown()
-                        // SharedViewModel 편집결과 셋팅
-                        sharedViewModel.setEditedFood(editFood)
-                        navController.popBackStack()
-                    } else if (editFoodState.source == EditSource.HOME) {
-                        // Uploading 상태일 때 Blocking 화면이 존재하기 때문에, 별도 중복처리 방지 트리거는 생략
-                        // 트리거를 통한 중복제어는 일시적 제어인 반면에 Uploding은 서버응답을 기다리는 화면 고유의 상태이기 때문에 다른 방식으로 처리
-                        viewModel.updateFood(editFood)
-                    }
-                }
+                onClick = viewModel::saveFood
             )
         }
     ) { innerPadding ->
@@ -150,17 +138,19 @@ fun EditFoodScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            EditFoodContent(
-                food = editFood,
-                nameError = showNameError,
-                onFoodChange = { editFood = it },
-                onDateEditRequest = { showDateSelectorDialog = true },
-                onSuggestionUpdate = viewModel::onNameInputChanged,
-                onSuggestionClear = viewModel::clearSuggestions,
-                onSuggestionAnchorPositioned = { coordinates ->
-                    suggestionOffsetY.floatValue = coordinates.positionInRoot().y + coordinates.size.height
-                }
-            )
+            currentFood?.let { food ->
+                EditFoodContent(
+                    food = food,
+                    nameError = false,
+                    onFoodChange = viewModel::updateFoodField,
+                    onDateEditRequest = { showDateSelectorDialog = true },
+                    onSuggestionUpdate = viewModel::onNameInputChanged,
+                    onSuggestionClear = viewModel::clearSuggestions,
+                    onSuggestionAnchorPositioned = { coordinates ->
+                        suggestionOffsetY.floatValue = coordinates.positionInRoot().y + coordinates.size.height
+                    }
+                )
+            }
         }
 
         // 추천 검색어
@@ -169,13 +159,17 @@ fun EditFoodScreen(
                 suggestions = suggestions,
                 suggestionOffsetY = suggestionOffsetY.floatValue,
                 onSuggestionSelected = { suggestion ->
-                    editFood = editFood.copy(
-                        itemName = suggestion.itemName,
-                        categoryId = suggestion.categoryId,
-                        expiryDate = LocalDateTime.now()
-                            .plusHours(suggestion.hours.toLong())
-                            .format(DateFormatter.yyyyMMdd)
-                    )
+                    currentFood?.let { food ->
+                        viewModel.updateFoodField(
+                            food.copy(
+                                itemName = suggestion.itemName,
+                                categoryId = suggestion.categoryId,
+                                expiryDate = LocalDateTime.now()
+                                    .plusHours(suggestion.hours.toLong())
+                                    .format(DateFormatter.yyyyMMdd)
+                            )
+                        )
+                    }
                     viewModel.clearSuggestions()
                 }
             )
@@ -184,9 +178,15 @@ fun EditFoodScreen(
         // 날짜 선택 다이얼로그
         if (showDateSelectorDialog) {
             EditFoodDateSelector(
-                selectedDate = LocalDate.parse(editFood.expiryDate, DateFormatter.yyyyMMdd),
+                selectedDate = LocalDate.parse(currentFood?.expiryDate, DateFormatter.yyyyMMdd),
                 onDismissRequest = { showDateSelectorDialog = false },
-                onConfirm = { editFood = editFood.copy(expiryDate = it.format(DateFormatter.yyyyMMdd)) }
+                onConfirm = { date ->
+                    currentFood?.let { food ->
+                        viewModel.updateFoodField(
+                            food.copy(expiryDate = date.format(DateFormatter.yyyyMMdd))
+                        )
+                    }
+                }
             )
         }
 

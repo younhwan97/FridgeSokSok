@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Screen.EditFoodScreen.route) {
-                        EditFoodScreen(navController, activityViewModel)
+                        EditFoodScreen(navController)
                     }
 
                     composable(

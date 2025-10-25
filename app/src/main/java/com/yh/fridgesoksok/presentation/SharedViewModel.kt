@@ -23,25 +23,6 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     fun setReceipt(bitmap: Bitmap) { _receipt.value = bitmap }
     fun clearReceipt() { _receipt.value = null }
 
-    // ✅ 진입 상태 (Home / Upload → EditFoodScreen)
-    data class EditFoodState(
-        val food: FoodModel? = null,
-        val source: EditSource? = null
-    )
-
-    private val _editFoodState = MutableStateFlow(EditFoodState())
-    val editFoodState: StateFlow<EditFoodState> = _editFoodState.asStateFlow()
-
-    fun setEditFood(food: FoodModel?, source: EditSource) { _editFoodState.value = EditFoodState(food, source) }
-    fun clearEditFood() { _editFoodState.value = EditFoodState() }
-
-    // ✅ 편집 결과 전달 (EditFoodScreen → UploadScreen)
-    private val _editedFood = MutableStateFlow<FoodModel?>(null)
-    val editedFood: StateFlow<FoodModel?> = _editedFood.asStateFlow()
-
-    fun setEditedFood(food: FoodModel) { _editedFood.value = food }
-    fun clearEditedFood() { _editedFood.value = null }
-
     // ✅ 전체 선택/해제 요청 (FridgeScreen 내 일회성 트리거 용도)
     private val _selectAllFoodsRequested = MutableSharedFlow<Unit>()
     val selectAllFoodsRequested = _selectAllFoodsRequested.asSharedFlow()
@@ -72,8 +53,6 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         _recipeGenerationState.value = if (success) RecipeGenerationState.Success else RecipeGenerationState.Error(errorMessage)
     }
 }
-
-enum class EditSource { HOME, UPLOAD }
 
 sealed class RecipeGenerationState {
     data object Idle : RecipeGenerationState()

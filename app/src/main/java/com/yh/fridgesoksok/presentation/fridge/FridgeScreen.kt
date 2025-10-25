@@ -20,7 +20,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.yh.fridgesoksok.presentation.EditSource
 import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
@@ -140,7 +139,9 @@ fun FridgeScreen(
                     viewModel.toggleFoodSelected(it)
                 },
                 onClickFood = {
-                    sharedViewModel.setEditFood(it, EditSource.HOME)
+                    // sharedViewModel.setEditFood(it, EditSource.HOME)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("food", it)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("source", "HOME")
                     navController.navigate(Screen.EditFoodScreen.route)
                 },
                 onClickMinus = {
