@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.presentation.home.comp
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -13,6 +14,7 @@ import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.account.AccountScreen
 import com.yh.fridgesoksok.presentation.fridge.FridgeScreen
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
+import com.yh.fridgesoksok.presentation.home.HomeViewModel
 import com.yh.fridgesoksok.presentation.recipe.RecipeScreen
 
 @Composable
@@ -20,7 +22,8 @@ fun HomeNavGraph(
     mode: HomeUiMode,
     homeNavController: NavHostController,
     navController: NavController,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    homeViewModel: HomeViewModel
 ) {
     NavHost(
         navController = homeNavController,
@@ -34,7 +37,8 @@ fun HomeNavGraph(
                     mode = mode,
                     navController = navController,
                     homeNavController = homeNavController,
-                    sharedViewModel = sharedViewModel
+                    sharedViewModel = sharedViewModel,
+                    homeViewModel = homeViewModel
                 )
             }
         )

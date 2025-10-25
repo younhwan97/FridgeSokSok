@@ -23,25 +23,6 @@ class SharedViewModel @Inject constructor() : ViewModel() {
     fun setReceipt(bitmap: Bitmap) { _receipt.value = bitmap }
     fun clearReceipt() { _receipt.value = null }
 
-    // ✅ 전체 선택/해제 요청 (FridgeScreen 내 일회성 트리거 용도)
-    private val _selectAllFoodsRequested = MutableSharedFlow<Unit>()
-    val selectAllFoodsRequested = _selectAllFoodsRequested.asSharedFlow()
-
-    fun requestSelectAllFoods() {
-        viewModelScope.launch {
-            _selectAllFoodsRequested.emit(Unit)
-        }
-    }
-
-    private val _deselectAllFoodsRequested = MutableSharedFlow<Unit>()
-    val deselectAllFoodsRequested = _deselectAllFoodsRequested.asSharedFlow()
-
-    fun requestDeselectAllFoods() {
-        viewModelScope.launch {
-            _deselectAllFoodsRequested.emit(Unit)
-        }
-    }
-
     // ✅ 레시피 생성 요청 (FridgeScreen에서 감지 → ViewModel 호출)
     private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
     val recipeGenerationState = _recipeGenerationState.asStateFlow()

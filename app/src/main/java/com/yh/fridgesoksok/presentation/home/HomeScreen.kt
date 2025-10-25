@@ -108,8 +108,8 @@ fun HomeScreen(
                     homeViewModel.updateToDefaultUiMode()
                     sharedViewModel.resetRecipeGenerationState()
                 },
-                onClickSelectAll = { sharedViewModel.requestSelectAllFoods() },
-                onClickDeselectAll = { sharedViewModel.requestDeselectAllFoods() }
+                onClickSelectAll = { homeViewModel.triggerSelectAll() },
+                onClickDeselectAll = { homeViewModel.triggerDeselectAll() }
             )
         },
         bottomBar = {
@@ -150,6 +150,7 @@ fun HomeScreen(
                 homeNavController = homeNavController,
                 navController = navController,
                 sharedViewModel = sharedViewModel,
+                homeViewModel = homeViewModel
             )
         }
 

@@ -28,6 +28,7 @@ import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
 import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
+import com.yh.fridgesoksok.presentation.home.HomeViewModel
 import com.yh.fridgesoksok.presentation.model.Type
 
 @Composable
@@ -36,7 +37,8 @@ fun FridgeScreen(
     navController: NavController,
     homeNavController: NavController,
     sharedViewModel: SharedViewModel,
-    viewModel: FridgeViewModel = hiltViewModel()
+    viewModel: FridgeViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel
 ) {
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -61,15 +63,15 @@ fun FridgeScreen(
 
     // 전체선택 처리
     LaunchedEffect(Unit) {
-        sharedViewModel.selectAllFoodsRequested.collect {
-            viewModel.setSelectedFoods(filteredFoods.toSet())
+        homeViewModel.selectAllTrigger.collect {
+            viewModel.selectAllFoods()
         }
     }
 
     // 전체해제 처리
     LaunchedEffect(Unit) {
-        sharedViewModel.deselectAllFoodsRequested.collect {
-            viewModel.setDeselectedFoods(filteredFoods.toSet())
+        homeViewModel.deselectAllTrigger.collect {
+            viewModel.deselectAllFoods()
         }
     }
 
@@ -98,7 +100,7 @@ fun FridgeScreen(
                     launchSingleTop = true
                 }
                 sharedViewModel.resetRecipeGenerationState()
-                viewModel.setDeselectedFoods(filteredFoods.toSet())
+                viewModel.deselectAllFoods()
             }
 
             // 3. 레시피 생성 실패
@@ -139,7 +141,6 @@ fun FridgeScreen(
                     viewModel.toggleFoodSelected(it)
                 },
                 onClickFood = {
-                    // sharedViewModel.setEditFood(it, EditSource.HOME)
                     navController.currentBackStackEntry?.savedStateHandle?.set("food", it)
                     navController.currentBackStackEntry?.savedStateHandle?.set("source", "HOME")
                     navController.navigate(Screen.EditFoodScreen.route)

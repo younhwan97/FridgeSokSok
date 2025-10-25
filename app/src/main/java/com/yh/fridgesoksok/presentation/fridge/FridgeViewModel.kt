@@ -175,11 +175,15 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
-    fun setSelectedFoods(foods: Set<FoodModel>) {
-        _selectedFoods.value += foods
+    fun selectAllFoods() {
+        _selectedFoods.update { currentSelected ->
+            currentSelected + filteredFoods.value.toSet()
+        }
     }
 
-    fun setDeselectedFoods(foods: Set<FoodModel>) {
-        _selectedFoods.value -= foods
+    fun deselectAllFoods() {
+        _selectedFoods.update { currentSelected ->
+            currentSelected - filteredFoods.value.toSet()
+        }
     }
 }
