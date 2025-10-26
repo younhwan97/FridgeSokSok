@@ -20,6 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
-import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeContent
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeHeader
 import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeImage
@@ -36,8 +37,11 @@ import com.yh.fridgesoksok.presentation.recipe_detail.comp.RecipeIngredientSecti
 @Composable
 fun RecipeDetailScreen(
     navController: NavController,
-    recipe: RecipeModel?
+    sharedViewModel: com.yh.fridgesoksok.presentation.SharedViewModel
 ) {
+    // SharedViewModel에서 선택된 레시피 가져오기
+    val recipe by sharedViewModel.selectedRecipe.collectAsState()
+
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
@@ -54,6 +58,8 @@ fun RecipeDetailScreen(
             )
         }
     } else {
+        // 로컬 변수로 캡처하여 스마트 캐스트 가능하게 함
+        val currentRecipe = recipe!!
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,13 +70,13 @@ fun RecipeDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 100.dp)
             ) {
-                item { RecipeImage(recipe.recipeImageUrl) }
+                item { RecipeImage(currentRecipe.recipeImageUrl) }
                 item { Spacer(Modifier.height(8.dp)) }
-                item { RecipeHeader(recipe.recipeName, recipe.createdAt) }
+                item { RecipeHeader(currentRecipe.recipeName, currentRecipe.createdAt) }
                 item { HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), 1.dp, MaterialTheme.colorScheme.surfaceVariant) }
-                item { RecipeIngredientSection(recipe.ingredients, recipe.ingredientTypes) }
+                item { RecipeIngredientSection(currentRecipe.ingredients, currentRecipe.ingredientTypes) }
                 item { HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), 1.dp, MaterialTheme.colorScheme.surfaceVariant) }
-                item { RecipeContent(recipe.recipeContent) }
+                item { RecipeContent(currentRecipe.recipeContent) }
             }
 
             Box(

@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun RecipeScreen(
     navController: NavController,
     homeNavController: NavController,
+    sharedViewModel: com.yh.fridgesoksok.presentation.SharedViewModel,
     viewModel: RecipeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -76,10 +77,8 @@ fun RecipeScreen(
             RecipeListSection(
                 recipeState = state,
                 recipes = filteredRecipes,
-                onClickItem = {
-                    navController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("recipe", it)
+                onClickItem = { recipe ->
+                    sharedViewModel.setSelectedRecipe(recipe)
                     navController.navigate("recipeDetail")
                 },
                 onDeleteClick = {

@@ -22,7 +22,8 @@ fun HomeNavGraph(
     mode: HomeUiMode,
     homeNavController: NavHostController,
     navController: NavController,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    sharedViewModel: SharedViewModel
 ) {
     NavHost(
         navController = homeNavController,
@@ -46,7 +47,8 @@ fun HomeNavGraph(
             content = {
                 RecipeScreen(
                     navController = navController,
-                    homeNavController = homeNavController
+                    homeNavController = homeNavController,
+                    sharedViewModel = sharedViewModel
                 )
             }
         )

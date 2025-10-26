@@ -60,13 +60,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Screen.RecipeDetailScreen.route) {
-                        val recipe = remember {
-                            navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.get<RecipeModel>("recipe")
-                        }
-
-                        RecipeDetailScreen(navController, recipe)
+                        RecipeDetailScreen(navController, activityViewModel)
                     }
 
                     composable(Screen.UploadScreen.route) {

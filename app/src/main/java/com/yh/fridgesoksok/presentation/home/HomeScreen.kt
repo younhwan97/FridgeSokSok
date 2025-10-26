@@ -157,7 +157,8 @@ fun HomeScreen(
                 mode = homeUiMode,
                 homeNavController = homeNavController,
                 navController = navController,
-                homeViewModel = homeViewModel
+                homeViewModel = homeViewModel,
+                sharedViewModel = sharedViewModel
             )
         }
 
