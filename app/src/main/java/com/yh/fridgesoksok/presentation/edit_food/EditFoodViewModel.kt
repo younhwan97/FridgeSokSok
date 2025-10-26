@@ -61,6 +61,9 @@ class EditFoodViewModel @Inject constructor(
     private val _foodSaved = MutableSharedFlow<Unit>()
     val foodSaved = _foodSaved.asSharedFlow()
 
+    // 저장 중복 방지 플래그
+    private var isSaving = false
+
     /**
      * 음식 데이터 초기화
      * @param food 편집할 음식 (null이면 새 음식 추가)
@@ -79,6 +82,11 @@ class EditFoodViewModel @Inject constructor(
      * 음식 저장 (서버에 전송 또는 결과 반환)
      */
     fun saveFood() {
+        // 중복 저장 방지
+        if (isSaving) {
+            return
+        }
+
         val currentFood = _food.value ?: return
 
         // 유효성 검사
@@ -88,6 +96,8 @@ class EditFoodViewModel @Inject constructor(
             }
             return
         }
+
+        isSaving = true
 
         if (_isEditMode.value) {
             // 편집 모드: 서버 업데이트

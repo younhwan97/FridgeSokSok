@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,19 +59,6 @@ fun UploadScreen(
         }
     }
 
-    // EditFood 결과 처리
-    LaunchedEffect(Unit) {
-        val handle = navController.currentBackStackEntry?.savedStateHandle
-
-        handle?.getStateFlow<FoodModel?>("edited_food", null)
-            ?.collect { food ->
-                if (food != null) {
-                    viewModel.addOrUpdateFood(food)
-                    handle.remove<FoodModel>("edited_food")
-                }
-            }
-    }
-
     // 식품 등록 성공 시 Home 화면으로 이동
     LaunchedEffect(Unit) {
         viewModel.foodsAdded.collectLatest {
@@ -111,8 +100,10 @@ fun UploadScreen(
         bottomBar = {
             UploadBottomButton(
                 uploadState = uploadState,
-                enabled = newFoods.isNotEmpty(),
-                onClick = viewModel::addFoods
+                enabled = newFoods.isNotEmpty() && canTrigger,
+                onClick = {
+                    viewModel.addFoods()
+                }
             )
         }
     ) { innerPadding ->

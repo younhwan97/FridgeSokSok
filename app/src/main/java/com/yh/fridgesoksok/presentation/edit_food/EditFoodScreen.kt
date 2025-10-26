@@ -73,18 +73,35 @@ fun EditFoodScreen(
         savedStateHandle?.remove<String>(KEY_SOURCE)
     }
 
-    // 저장 성공 시 네비게이션
+    // UploadViewModel 가져오기 (백스택 엔트리를 통해)
+    val uploadViewModel = navController.previousBackStackEntry?.let {
+        hiltViewModel<com.yh.fridgesoksok.presentation.upload.UploadViewModel>(
+            viewModelStoreOwner = it
+        )
+    }
+
+    // 저장 성공 시 네비게이션 - 한 번만 실행되도록
+    var hasNavigated by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.foodSaved.collectLatest {
+            if (hasNavigated) {
+                return@collectLatest
+            }
+
+            hasNavigated = true
+
             if (isEditMode) {
                 // 편집 모드 -> HomeScreen으로 복귀
                 navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
             } else {
-                // 추가 모드 -> 결과를 UploadScreen에 전달
+                // 추가 모드 -> UploadViewModel에 직접 전달
                 currentFood?.let { food ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(KEY_EDITED_FOOD, food)
+                    uploadViewModel?.let { vm ->
+                        // 중복 방지를 위해 고유 키 생성
+                        val deduplicationKey = "${food.itemName}_${System.currentTimeMillis()}"
+                        vm.addOrUpdateFood(food, deduplicationKey)
+                    }
                 }
                 navController.popBackStack()
             }

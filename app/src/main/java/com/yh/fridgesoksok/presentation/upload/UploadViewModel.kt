@@ -46,6 +46,9 @@ class UploadViewModel @Inject constructor(
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     val newFoods = _newFoods.asStateFlow()
 
+    // EditFood에서 추가된 식품 큐 (중복 추가 방지)
+    private val processedFoodIds = mutableSetOf<String>()
+
     // 에러 메시지
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
@@ -59,7 +62,15 @@ class UploadViewModel @Inject constructor(
      * - ID가 있고 기존 리스트에 존재하면 → 업데이트
      * - ID가 없거나 리스트에 없으면 → 새로 추가
      */
-    fun addOrUpdateFood(food: FoodModel) {
+    fun addOrUpdateFood(food: FoodModel, deduplicationKey: String? = null) {
+        // 중복 추가 방지 (deduplicationKey가 있는 경우)
+        if (deduplicationKey != null) {
+            if (processedFoodIds.contains(deduplicationKey)) {
+                return
+            }
+            processedFoodIds.add(deduplicationKey)
+        }
+
         _newFoods.update { currentList ->
             val existingIndex = currentList.indexOfFirst {
                 it.id == food.id && food.id.isNotBlank()
