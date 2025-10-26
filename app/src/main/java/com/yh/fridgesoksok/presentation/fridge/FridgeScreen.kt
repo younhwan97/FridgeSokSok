@@ -21,7 +21,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
-import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
@@ -30,31 +29,28 @@ import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.home.HomeViewModel
 import com.yh.fridgesoksok.presentation.model.Type
 
+private const val KEY_FOOD = "food"
+private const val KEY_SOURCE = "source"
+private const val SOURCE_HOME = "HOME"
+private const val MIN_COUNT = 1
+
 @Composable
 fun FridgeScreen(
     mode: HomeUiMode,
     navController: NavController,
     homeNavController: NavController,
-    sharedViewModel: SharedViewModel,
     viewModel: FridgeViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 사용자가 입력 중인 검색어 (즉시 반영 X)
-    val typingQuery by viewModel.typingQuery.collectAsState()
-
-    // 음식 타입 필터 (냉동, 유제품 등)
-    val selectedType by viewModel.selectedType.collectAsState()
-
-    // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
-    val filteredFoods by viewModel.filteredFoods.collectAsState()
-
-    // 선택된 음식 목록 (레시피 생성 시 사용)
-    val selectedFoods by viewModel.selectedFoods.collectAsState()
+    // ViewModel 상태 구독
+    val state by viewModel.state.collectAsState()
+    val typingQuery by viewModel.typingQuery.collectAsState() // 사용자가 입력 중인 검색어 (즉시 반영 X)
+    val selectedType by viewModel.selectedType.collectAsState() // 음식 타입 필터 (냉동, 유제품 등)
+    val filteredFoods by viewModel.filteredFoods.collectAsState() // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
+    val selectedFoods by viewModel.selectedFoods.collectAsState() // 선택된 음식 목록 (레시피 생성 시 사용)
 
     // 화면 재진입 시 데이터 로드
     LaunchedEffect(lifecycleOwner) {
@@ -63,14 +59,14 @@ fun FridgeScreen(
         }
     }
 
-    // 전체선택 처리
+    // 전체 선택 처리
     LaunchedEffect(Unit) {
         homeViewModel.selectAllTrigger.collect {
             viewModel.selectAllFoods()
         }
     }
 
-    // 전체해제 처리
+    // 전체 해제 처리
     LaunchedEffect(Unit) {
         homeViewModel.deselectAllTrigger.collect {
             viewModel.deselectAllFoods()
@@ -80,14 +76,13 @@ fun FridgeScreen(
     // 레시피 생성 트리거 이벤트
     LaunchedEffect(Unit) {
         homeViewModel.generateRecipeTrigger.collect {
-            // FridgeViewModel의 generateRecipe 호출하면서
-            // 상태 변경을 HomeViewModel에 보고
+            // FridgeViewModel의 generateRecipe 호출하면서 상태 변경을 HomeViewModel에 보고
             viewModel.generateRecipe { state ->
                 homeViewModel.updateRecipeGenerationState(state)
             }
         }
     }
-    
+
     // 레시피 생성 결과 처리
     LaunchedEffect(Unit) {
         viewModel.recipeGenerationEvent.collect { event ->
@@ -103,14 +98,13 @@ fun FridgeScreen(
                         launchSingleTop = true
                     }
                 }
-
                 is RecipeGenerationEvent.Error -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
             }
         }
     }
-    
+
     // 화면
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -119,14 +113,14 @@ fun FridgeScreen(
         ) {
             FridgeSearchSection(
                 value = typingQuery,
-                onValueChange = { viewModel.updateTypingQuery(it) },
+                onValueChange = viewModel::updateTypingQuery,
                 onSearchConfirmed = { viewModel.updateFilterQuery(typingQuery) }
             )
 
             FoodTypeFilter(
                 types = Type.entries,
                 selectedType = selectedType,
-                onTypeSelected = { viewModel.updateSelectedType(it) }
+                onTypeSelected = viewModel::updateSelectedType
             )
 
             FoodListSection(
@@ -134,24 +128,24 @@ fun FridgeScreen(
                 foods = filteredFoods,
                 fridgeState = state,
                 selectedFoods = selectedFoods,
-                onFoodSelectToggle = {
-                    viewModel.toggleFoodSelected(it)
+                onFoodSelectToggle = viewModel::toggleFoodSelected,
+                onClickFood = { food ->
+                    navigateToEditFood(
+                        navController = navController,
+                        food = food
+                    )
                 },
-                onClickFood = {
-                    navController.currentBackStackEntry?.savedStateHandle?.set("food", it)
-                    navController.currentBackStackEntry?.savedStateHandle?.set("source", "HOME")
-                    navController.navigate(Screen.EditFoodScreen.route)
+                onClickMinus = { food ->
+                    if (food.count == MIN_COUNT) {
+                        viewModel.deleteFood(food)
+                    } else {
+                        viewModel.updateFood(food.copy(count = food.count - 1))
+                    }
                 },
-                onClickMinus = {
-                    if (it.count == 1) viewModel.deleteFood(it)
-                    else viewModel.updateFood(it.copy(count = it.count - 1))
+                onClickPlus = { food ->
+                    viewModel.updateFood(food.copy(count = food.count + 1))
                 },
-                onClickPlus = {
-                    viewModel.updateFood(it.copy(count = it.count + 1))
-                },
-                onRefreshClick = {
-                    viewModel.loadFoods()
-                }
+                onRefreshClick = viewModel::loadFoods
             )
         }
 
@@ -163,4 +157,18 @@ fun FridgeScreen(
             snackBarHostState = snackbarHostState
         )
     }
+}
+
+/**
+ * EditFood 화면으로 네비게이션
+ */
+private fun navigateToEditFood(
+    navController: NavController,
+    food: com.yh.fridgesoksok.presentation.model.FoodModel
+) {
+    navController.currentBackStackEntry?.savedStateHandle?.apply {
+        set(KEY_FOOD, food)
+        set(KEY_SOURCE, SOURCE_HOME)
+    }
+    navController.navigate(Screen.EditFoodScreen.route)
 }

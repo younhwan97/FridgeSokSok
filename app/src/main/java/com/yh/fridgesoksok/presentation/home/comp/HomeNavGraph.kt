@@ -22,7 +22,6 @@ fun HomeNavGraph(
     mode: HomeUiMode,
     homeNavController: NavHostController,
     navController: NavController,
-    sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel
 ) {
     NavHost(
@@ -37,7 +36,6 @@ fun HomeNavGraph(
                     mode = mode,
                     navController = navController,
                     homeNavController = homeNavController,
-                    sharedViewModel = sharedViewModel,
                     homeViewModel = homeViewModel
                 )
             }

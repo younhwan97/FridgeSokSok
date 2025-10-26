@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.presentation.home
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -31,7 +30,6 @@ import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionLauncher
 import com.yh.fridgesoksok.presentation.common.util.uriToBitmap
-import com.yh.fridgesoksok.presentation.fridge.FridgeViewModel
 import com.yh.fridgesoksok.presentation.fridge.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
@@ -40,6 +38,8 @@ import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
+
+private const val CONFIRM_DIALOG_MESSAGE = "이 사진을 사용 할까요?"
 
 @Composable
 fun HomeScreen(
@@ -50,25 +50,32 @@ fun HomeScreen(
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
     val barColor = CustomGreyColor1
-    var isFabExpanded by remember { mutableStateOf(false) }
+
     // Home 라우팅 (Fridge, Recipe, Account)
     val homeNavController = rememberNavController()
-    val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
-    // HomeUI 모드 (Default, Recipe 재료선택)
-    val homeUiMode by homeViewModel.uiMode.collectAsState()
-    // 레시피 생성 API 사용가능 여부
-    val recipeGenerationState by homeViewModel.recipeGenerationState.collectAsState()
-    val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState()
+    val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route
+        ?: Screen.FridgeTab.route
+
+    // ViewModel 상태 구독
+    val homeUiMode by homeViewModel.uiMode.collectAsState() // HomeUI 모드 (Default, Recipe 재료선택)
+    val recipeGenerationState by homeViewModel.recipeGenerationState.collectAsState() // 레시피 생성 상태
+    val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState() // 레시피 생성 API 사용 가능 여부
+
+    // UI 상태
+    var isFabExpanded by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
-    // 갤러리 이미지
-    val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
+
     // 알림, 갤러리, 카메라 런처
     val launchNotification = rememberNotificationPermissionLauncher(context) { }
-    val launchCamera = rememberCameraLauncher(context) { navController.navigate(Screen.CameraScreen.route) }
+    val launchCamera = rememberCameraLauncher(context) {
+        navController.navigate(Screen.CameraScreen.route)
+    }
     val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
-        selectedImageUri.value = uri
+        selectedImageUri = uri
         showConfirmDialog = true
     }
 
@@ -109,8 +116,8 @@ fun HomeScreen(
                     homeViewModel.updateToDefaultUiMode()
                     homeViewModel.triggerDeselectAll()
                 },
-                onClickSelectAll = { homeViewModel.triggerSelectAll() },
-                onClickDeselectAll = { homeViewModel.triggerDeselectAll() }
+                onClickSelectAll = homeViewModel::triggerSelectAll,
+                onClickDeselectAll = homeViewModel::triggerDeselectAll
             )
         },
         bottomBar = {
@@ -120,7 +127,7 @@ fun HomeScreen(
                 homeNavController = homeNavController,
                 recipeGenerationState = recipeGenerationState,
                 isRecipeGenerationAvailable = isRecipeGenerationAvailable,
-                onClickGenerateRecipe = { homeViewModel.triggerGenerateRecipe() }
+                onClickGenerateRecipe = homeViewModel::triggerGenerateRecipe
             )
         },
         floatingActionButton = {
@@ -150,7 +157,6 @@ fun HomeScreen(
                 mode = homeUiMode,
                 homeNavController = homeNavController,
                 navController = navController,
-                sharedViewModel = sharedViewModel,
                 homeViewModel = homeViewModel
             )
         }
@@ -166,14 +172,16 @@ fun HomeScreen(
         // 갤러리에서 이미지 선택 후 확인 다이얼로그
         if (showConfirmDialog) {
             ConfirmDialog(
-                message = "이 사진을 사용 할까요?",
+                message = CONFIRM_DIALOG_MESSAGE,
                 onConfirm = {
-                    val bitmap = uriToBitmap(context, selectedImageUri.value!!)
-                    if (bitmap != null) {
-                        // 공유 뷰모델 영수증 이미지 셋팅
-                        sharedViewModel.setReceipt(bitmap)
-                        // Upload 화면으로 이동
-                        navController.navigate(Screen.UploadScreen.route)
+                    selectedImageUri?.let { uri ->
+                        val bitmap = uriToBitmap(context, uri)
+                        if (bitmap != null) {
+                            // 공유 뷰모델 영수증 이미지 셋팅
+                            sharedViewModel.setReceipt(bitmap)
+                            // Upload 화면으로 이동
+                            navController.navigate(Screen.UploadScreen.route)
+                        }
                     }
                     showConfirmDialog = false
                 },
