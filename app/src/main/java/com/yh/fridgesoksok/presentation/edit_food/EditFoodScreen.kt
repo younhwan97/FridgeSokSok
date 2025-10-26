@@ -49,10 +49,6 @@ fun EditFoodScreen(
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 1400)
 
-    // Navigation에서 전달된 데이터 가져오기
-    val food = remember { navController.previousBackStackEntry?.savedStateHandle?.get<FoodModel>(KEY_FOOD) }
-    val source = remember { navController.previousBackStackEntry?.savedStateHandle?.get<String>(KEY_SOURCE) } // "HOME" or "UPLOAD"
-
     // ViewModel 상태
     val currentFood by viewModel.food.collectAsState()
     val isEditMode by viewModel.isEditMode.collectAsState()
@@ -65,8 +61,16 @@ fun EditFoodScreen(
 
     // 초기화
     LaunchedEffect(Unit) {
+        val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
+        val food = savedStateHandle?.get<FoodModel>(KEY_FOOD)
+        val source = savedStateHandle?.get<String>(KEY_SOURCE)
+
         val isEdit = source == NAVIGATION_SOURCE_HOME
         viewModel.initializeFood(food, isEdit)
+
+        // 사용 후 즉시 제거! (재사용 방지)
+        savedStateHandle?.remove<FoodModel>(KEY_FOOD)
+        savedStateHandle?.remove<String>(KEY_SOURCE)
     }
 
     // 저장 성공 시 네비게이션

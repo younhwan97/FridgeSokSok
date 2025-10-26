@@ -244,7 +244,13 @@ class FridgeViewModel @Inject constructor(
      */
     fun toggleFoodSelected(food: FoodModel) {
         _selectedFoods.update { selected ->
-            if (selected.contains(food)) selected - food else selected + food
+            // id로만 비교
+            val existing = selected.find { it.id == food.id }
+            if (existing != null) {
+                selected - existing
+            } else {
+                selected + food
+            }
         }
     }
 
@@ -253,7 +259,11 @@ class FridgeViewModel @Inject constructor(
      */
     fun selectAllFoods() {
         _selectedFoods.update { currentSelected ->
-            currentSelected + filteredFoods.value.toSet()
+            val filteredIds = filteredFoods.value.map { it.id }.toSet()
+            val newSelections = filteredFoods.value.filter { food ->
+                currentSelected.none { it.id == food.id }
+            }
+            currentSelected + newSelections.toSet()
         }
     }
 
@@ -262,7 +272,8 @@ class FridgeViewModel @Inject constructor(
      */
     fun deselectAllFoods() {
         _selectedFoods.update { currentSelected ->
-            currentSelected - filteredFoods.value.toSet()
+            val filteredIds = filteredFoods.value.map { it.id }.toSet()
+            currentSelected.filter { it.id !in filteredIds }.toSet()
         }
     }
 
