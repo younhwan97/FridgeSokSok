@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.DeleteRecipeUseCase
 import com.yh.fridgesoksok.domain.usecase.GetRecipesUseCase
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECIPE_DELETE_FAILED
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -88,7 +89,7 @@ class RecipeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.emit("레시피 삭제에 실패했어요.")
+                    _errorMessage.emit(RECIPE_DELETE_FAILED)
                 }
 
                 is Resource.Loading -> Unit

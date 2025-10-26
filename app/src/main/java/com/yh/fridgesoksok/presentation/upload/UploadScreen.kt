@@ -19,18 +19,16 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_UPLOAD
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
 import kotlinx.coroutines.flow.collectLatest
-
-private const val KEY_FOOD = "food"
-private const val KEY_SOURCE = "source"
-private const val KEY_EDITED_FOOD = "edited_food"
-private const val NAVIGATION_SOURCE_UPLOAD = "UPLOAD"
-private const val MIN_COUNT = 1
 
 @Composable
 fun UploadScreen(
@@ -145,7 +143,7 @@ private fun navigateToEditFood(
 ) {
     navController.currentBackStackEntry?.savedStateHandle?.apply {
         set(KEY_FOOD, food)
-        set(KEY_SOURCE, NAVIGATION_SOURCE_UPLOAD)
+        set(KEY_SOURCE, SOURCE_UPLOAD)
     }
     navController.navigate(Screen.EditFoodScreen.route)
 }

@@ -22,17 +22,16 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_HOME
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
 import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.home.HomeViewModel
 import com.yh.fridgesoksok.presentation.model.Type
-
-private const val KEY_FOOD = "food"
-private const val KEY_SOURCE = "source"
-private const val SOURCE_HOME = "HOME"
-private const val MIN_COUNT = 1
 
 @Composable
 fun FridgeScreen(

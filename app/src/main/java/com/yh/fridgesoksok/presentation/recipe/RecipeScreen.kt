@@ -24,6 +24,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ButtonText.DELETE
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.DialogMessages.DELETE_RECIPE_CONFIRM
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeListSection
 import com.yh.fridgesoksok.presentation.recipe.comp.RecipeSearchSection
@@ -100,8 +102,8 @@ fun RecipeScreen(
         // 삭제 확인 다이얼로그
         selectedRecipeForDelete?.let { recipe ->
             ConfirmDialog(
-                message = "정말 이 레시피를 삭제하시겠습니까?",
-                confirmText = "삭제",
+                message = DELETE_RECIPE_CONFIRM,
+                confirmText = DELETE,
                 confirmTextColor = CustomErrorColor,
                 confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
                 onConfirm = {

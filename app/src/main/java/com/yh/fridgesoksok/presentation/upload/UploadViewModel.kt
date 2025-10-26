@@ -8,6 +8,10 @@ import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.usecase.AddFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UploadReceiptImageUseCase
+import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_ADD_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECEIPT_QUOTA_EXCEEDED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECEIPT_RECOGNITION_FAILED
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
@@ -26,10 +30,6 @@ import java.util.UUID
 import javax.inject.Inject
 
 private const val DATE_FORMAT = "yyyyMMdd"
-private const val ERROR_OCR_FAILED = "영수증을 인식하지 못했어요 :("
-private const val ERROR_OCR_LIMIT = "영수증 인식 횟수를 모두 소진하였습니다."
-private const val ERROR_ADD_FOODS_FAILED = "식픔 추가에 실패했어요. 다시 시도해주세요."
-private const val HTTP_TOO_MANY_REQUESTS = 429
 
 @HiltViewModel
 class UploadViewModel @Inject constructor(
@@ -105,7 +105,7 @@ class UploadViewModel @Inject constructor(
                         val mappedFoods = mapReceiptToFoodModels(receiptList)
                         _newFoods.update { it + mappedFoods }
                     } else {
-                        _errorMessage.emit(ERROR_OCR_FAILED)
+                        _errorMessage.emit(RECEIPT_RECOGNITION_FAILED)
                     }
                     _state.value = UploadState.Success
                 }
@@ -116,9 +116,9 @@ class UploadViewModel @Inject constructor(
 
                 is Resource.Error -> {
                     val errorMsg = if (result.status == HTTP_TOO_MANY_REQUESTS) {
-                        ERROR_OCR_LIMIT
+                        RECEIPT_QUOTA_EXCEEDED
                     } else {
-                        ERROR_OCR_FAILED
+                        RECEIPT_RECOGNITION_FAILED
                     }
                     _errorMessage.emit(errorMsg)
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
@@ -143,7 +143,7 @@ class UploadViewModel @Inject constructor(
                             _foodsAdded.emit(Unit)
                         }
                     } else {
-                        _errorMessage.emit(ERROR_ADD_FOODS_FAILED)
+                        _errorMessage.emit(FOOD_ADD_FAILED)
                         _state.value = UploadState.Success
                     }
                 }
@@ -153,7 +153,7 @@ class UploadViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _errorMessage.emit(ERROR_ADD_FOODS_FAILED)
+                    _errorMessage.emit(FOOD_ADD_FAILED)
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
                     _state.value = UploadState.Success
                 }

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.usecase.SearchLocalFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateFoodUseCase
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_NAME_REQUIRED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_UPDATE_FAILED
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.LocalFoodModel
@@ -27,8 +29,6 @@ private const val MIN_SEARCH_LENGTH = 2
 private const val DEFAULT_EXPIRY_WEEKS = 2L
 private const val KEY_FOOD = "food"
 private const val KEY_IS_EDIT_MODE = "isEditMode"
-private const val ERROR_EMPTY_NAME = "식품 이름을 입력해주세요"
-private const val ERROR_UPDATE_FAILED = "변경에 실패했어요. 다시 시도해주세요."
 
 @HiltViewModel
 class EditFoodViewModel @Inject constructor(
@@ -92,7 +92,7 @@ class EditFoodViewModel @Inject constructor(
         // 유효성 검사
         if (currentFood.itemName.isBlank()) {
             viewModelScope.launch {
-                _errorMessage.emit(ERROR_EMPTY_NAME)
+                _errorMessage.emit(FOOD_NAME_REQUIRED)
             }
             return
         }
@@ -174,7 +174,7 @@ class EditFoodViewModel @Inject constructor(
                     _state.value = EditFoodState.Uploading
                 }
                 is Resource.Error -> {
-                    _errorMessage.emit(ERROR_UPDATE_FAILED)
+                    _errorMessage.emit(FOOD_UPDATE_FAILED)
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
                     _state.value = EditFoodState.Success
                 }

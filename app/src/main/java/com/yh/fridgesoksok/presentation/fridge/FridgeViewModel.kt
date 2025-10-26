@@ -9,6 +9,10 @@ import com.yh.fridgesoksok.domain.usecase.DeleteFoodUseCase
 import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateFoodUseCase
+import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECIPE_GENERATION_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECIPE_GENERATION_QUOTA_EXCEEDED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.SELECT_INGREDIENTS
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.model.toDomain
@@ -27,11 +31,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Collections
 import javax.inject.Inject
-
-private const val ERROR_EMPTY_SELECTION = "재료를 선택해주세요"
-private const val ERROR_RECIPE_LIMIT = "AI 레시피 생성 횟수를 모두 소진하였습니다."
-private const val ERROR_RECIPE_FAILED = "레시피 생성에 실패했습니다."
-private const val HTTP_TOO_MANY_REQUESTS = 429
 
 @HiltViewModel
 class FridgeViewModel @Inject constructor(
@@ -94,7 +93,7 @@ class FridgeViewModel @Inject constructor(
         if (selectedItems.isEmpty()) {
             viewModelScope.launch {
                 _recipeGenerationEvent.emit(
-                    RecipeGenerationEvent.Error(ERROR_EMPTY_SELECTION)
+                    RecipeGenerationEvent.Error(SELECT_INGREDIENTS)
                 )
             }
             return
@@ -122,8 +121,8 @@ class FridgeViewModel @Inject constructor(
                         onStateChange(RecipeGenerationState.Idle)
 
                         val errorMessage = when (result.status) {
-                            HTTP_TOO_MANY_REQUESTS -> ERROR_RECIPE_LIMIT
-                            else -> result.message ?: ERROR_RECIPE_FAILED
+                            HTTP_TOO_MANY_REQUESTS -> RECIPE_GENERATION_QUOTA_EXCEEDED
+                            else -> result.message ?: RECIPE_GENERATION_FAILED
                         }
 
                         viewModelScope.launch {

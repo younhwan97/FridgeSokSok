@@ -25,6 +25,7 @@ import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.DialogMessages.USE_THIS_PHOTO
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
@@ -38,8 +39,6 @@ import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
-
-private const val CONFIRM_DIALOG_MESSAGE = "이 사진을 사용 할까요?"
 
 @Composable
 fun HomeScreen(
@@ -173,7 +172,7 @@ fun HomeScreen(
         // 갤러리에서 이미지 선택 후 확인 다이얼로그
         if (showConfirmDialog) {
             ConfirmDialog(
-                message = CONFIRM_DIALOG_MESSAGE,
+                message = USE_THIS_PHOTO,
                 onConfirm = {
                     selectedImageUri?.let { uri ->
                         val bitmap = uriToBitmap(context, uri)

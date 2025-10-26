@@ -23,6 +23,9 @@ import androidx.navigation.NavController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_HOME
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodBottomButton
@@ -34,11 +37,6 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import kotlinx.coroutines.flow.collectLatest
 import java.time.LocalDate
 import java.time.LocalDateTime
-
-private const val NAVIGATION_SOURCE_HOME = "HOME"
-private const val KEY_FOOD = "food"
-private const val KEY_SOURCE = "source"
-private const val KEY_EDITED_FOOD = "edited_food"
 
 @Composable
 fun EditFoodScreen(
@@ -65,7 +63,7 @@ fun EditFoodScreen(
         val food = savedStateHandle?.get<FoodModel>(KEY_FOOD)
         val source = savedStateHandle?.get<String>(KEY_SOURCE)
 
-        val isEdit = source == NAVIGATION_SOURCE_HOME
+        val isEdit = source == SOURCE_HOME
         viewModel.initializeFood(food, isEdit)
 
         // 사용 후 즉시 제거! (재사용 방지)
