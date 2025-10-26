@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.fridge
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
@@ -13,14 +14,17 @@ import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.Collections
 import javax.inject.Inject
 
@@ -42,6 +46,9 @@ class FridgeViewModel @Inject constructor(
     private val _selectedFoods = MutableStateFlow<Set<FoodModel>>(emptySet())
     val selectedFoods = _selectedFoods.asStateFlow()
 
+    private val _recipeGenerationEvent = MutableSharedFlow<RecipeGenerationEvent>()
+    val recipeGenerationEvent = _recipeGenerationEvent.asSharedFlow()
+
     private val _filterQuery = MutableStateFlow("")
 
     private val _typingQuery = MutableStateFlow("")
@@ -61,6 +68,63 @@ class FridgeViewModel @Inject constructor(
     )
 
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>()) // 중복처리 방지
+
+    /**
+     * 레시피 생성
+     * @param onStateChange 상태 변경 시 HomeViewModel에 알림
+     */
+    fun generateRecipe(onStateChange: (RecipeGenerationState) -> Unit) {
+        val selectedItems = _selectedFoods.value
+
+        if (selectedItems.isEmpty()) {
+            viewModelScope.launch {
+                _recipeGenerationEvent.emit(
+                    RecipeGenerationEvent.Error("재료를 선택해주세요")
+                )
+            }
+            return
+        }
+
+        // ✅ Loading 상태 알림
+        onStateChange(RecipeGenerationState.Loading)
+
+        createRecipeUseCase(selectedItems.map { it.toDomain() })
+            .onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        // ✅ Idle 상태로 복귀 알림
+                        onStateChange(RecipeGenerationState.Idle)
+
+                        _selectedFoods.value = emptySet()  // 선택 초기화
+
+                        viewModelScope.launch {
+                            _recipeGenerationEvent.emit(RecipeGenerationEvent.Success)
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        // ✅ Idle 상태로 복귀 알림
+                        onStateChange(RecipeGenerationState.Idle)
+
+                        val errorMessage = when (result.status) {
+                            429 -> "AI 레시피 생성 횟수를 모두 소진하였습니다."
+                            else -> result.message ?: "레시피 생성에 실패했습니다."
+                        }
+
+                        viewModelScope.launch {
+                            _recipeGenerationEvent.emit(
+                                RecipeGenerationEvent.Error(errorMessage)
+                            )
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        // ✅ Loading 상태 유지 알림
+                        onStateChange(RecipeGenerationState.Loading)
+                    }
+                }
+            }.launchIn(viewModelScope)
+    }
 
     fun loadFoods() {
         val fridgeId = loadUserUseCase().defaultFridgeId
@@ -124,29 +188,6 @@ class FridgeViewModel @Inject constructor(
         }
     }
 
-    fun createRecipe(foods: Collection<FoodModel>, onResult: (Boolean, String?) -> Unit) {
-        if (foods.isEmpty()) {
-            onResult(false, "재료 미선택")
-            return
-        }
-
-        createRecipeUseCase(foods.map { it.toDomain() }).onEach { result ->
-            when (result) {
-                is Resource.Success -> onResult(true, null)
-
-                is Resource.Error -> {
-                    if (result.status == 429) {
-                        onResult(false, "AI 레시피 생성 횟수를 모두 소진하였습니다.")
-                    } else {
-                        onResult(false, result.message ?: "레시피 생성 실패")
-                    }
-                }
-
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
-    }
-
     private fun executeSingleAction(id: String, block: () -> kotlinx.coroutines.flow.Flow<Resource<*>>) {
         if (!_pendingActions.add(id)) return
         block().onEach {
@@ -186,4 +227,16 @@ class FridgeViewModel @Inject constructor(
             currentSelected - filteredFoods.value.toSet()
         }
     }
+}
+
+sealed class RecipeGenerationState {
+    data object Idle : RecipeGenerationState()
+    data object Loading : RecipeGenerationState()
+    data object Success : RecipeGenerationState()
+    data class Error(val message: String? = null) : RecipeGenerationState()
+}
+
+sealed class RecipeGenerationEvent {
+    data object Success : RecipeGenerationEvent()
+    data class Error(val message: String) : RecipeGenerationEvent()
 }

@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.home
 
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -21,7 +22,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
@@ -31,6 +31,8 @@ import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberNotificationPermissionLauncher
 import com.yh.fridgesoksok.presentation.common.util.uriToBitmap
+import com.yh.fridgesoksok.presentation.fridge.FridgeViewModel
+import com.yh.fridgesoksok.presentation.fridge.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.home.comp.HomeBottomBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabBar
 import com.yh.fridgesoksok.presentation.home.comp.HomeFabOverlay
@@ -54,9 +56,8 @@ fun HomeScreen(
     val currentRoute = homeNavController.currentBackStackEntryAsState().value?.destination?.route ?: Screen.FridgeTab.route
     // HomeUI 모드 (Default, Recipe 재료선택)
     val homeUiMode by homeViewModel.uiMode.collectAsState()
-    // 레시피 생성 상태 (공유 뷰모델)
-    val recipeState by sharedViewModel.recipeGenerationState.collectAsState()
     // 레시피 생성 API 사용가능 여부
+    val recipeGenerationState by homeViewModel.recipeGenerationState.collectAsState()
     val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState()
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
@@ -102,11 +103,11 @@ fun HomeScreen(
             HomeTopAppBar(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
-                recipeGenerationState = recipeState,
+                recipeGenerationState = recipeGenerationState,
                 onClickAiRecipeBtn = { homeViewModel.updateToRecipeUiMode() },
                 onClickNavigationBtn = {
                     homeViewModel.updateToDefaultUiMode()
-                    sharedViewModel.resetRecipeGenerationState()
+                    homeViewModel.triggerDeselectAll()
                 },
                 onClickSelectAll = { homeViewModel.triggerSelectAll() },
                 onClickDeselectAll = { homeViewModel.triggerDeselectAll() }
@@ -117,9 +118,9 @@ fun HomeScreen(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
                 homeNavController = homeNavController,
-                recipeGenerationState = recipeState,
+                recipeGenerationState = recipeGenerationState,
                 isRecipeGenerationAvailable = isRecipeGenerationAvailable,
-                onClickGenerateRecipe = { sharedViewModel.startRecipeGeneration() }
+                onClickGenerateRecipe = { homeViewModel.triggerGenerateRecipe() }
             )
         },
         floatingActionButton = {
@@ -180,14 +181,14 @@ fun HomeScreen(
             )
         }
 
+        // 레시피 생성 오버레이
+        if (recipeGenerationState == RecipeGenerationState.Loading) {
+            HomeGeneratingRecipe()
+        }
+
         // Blocking 화면을 이용해 터치 제어
         if (!canTrigger) {
             BlockingLoadingOverlay(showLoading = false)
-        }
-
-        // 레시피 생성 시 로딩
-        if (recipeState == RecipeGenerationState.Loading) {
-            HomeGeneratingRecipe()
         }
     }
 }

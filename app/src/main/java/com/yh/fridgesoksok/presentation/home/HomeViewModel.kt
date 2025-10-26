@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.ApiUsage
 import com.yh.fridgesoksok.domain.usecase.GetLocalApiUsageUseCase
+import com.yh.fridgesoksok.presentation.fridge.RecipeGenerationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,14 @@ class HomeViewModel @Inject constructor(
 
     private val _deselectAllTrigger = MutableSharedFlow<Unit>()
     val deselectAllTrigger = _deselectAllTrigger.asSharedFlow()
+    
+    // 레시피 생성 트리거
+    private val _generateRecipeTrigger = MutableSharedFlow<Unit>()
+    val generateRecipeTrigger = _generateRecipeTrigger.asSharedFlow()
+
+    // 레시피 생성 상태(FridgeViewModel에서 보고받음)
+    private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
+    val recipeGenerationState = _recipeGenerationState.asStateFlow()
 
     init {
         // 레시피 생성 API 사용가능여부 셋팅
@@ -58,5 +67,18 @@ class HomeViewModel @Inject constructor(
 
     fun resetUiMode() {
         _uiMode.value = HomeUiMode.DEFAULT
+    }
+
+
+    // 레시피 생성 트리거 (FridgeViewModel에게 전달)
+    fun triggerGenerateRecipe() {
+        viewModelScope.launch {
+            _generateRecipeTrigger.emit(Unit)
+        }
+    }
+
+    // FridgeViewModel이 상태를 보고하는 메서드
+    fun updateRecipeGenerationState(state: RecipeGenerationState) {
+        _recipeGenerationState.value = state
     }
 }

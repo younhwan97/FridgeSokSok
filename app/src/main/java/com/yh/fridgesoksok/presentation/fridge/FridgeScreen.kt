@@ -20,7 +20,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
@@ -40,19 +39,22 @@ fun FridgeScreen(
     viewModel: FridgeViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
-    val snackbarHostState = remember { SnackbarHostState() }
+
     // 사용자가 입력 중인 검색어 (즉시 반영 X)
     val typingQuery by viewModel.typingQuery.collectAsState()
+
     // 음식 타입 필터 (냉동, 유제품 등)
     val selectedType by viewModel.selectedType.collectAsState()
+
     // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val filteredFoods by viewModel.filteredFoods.collectAsState()
+
     // 선택된 음식 목록 (레시피 생성 시 사용)
     val selectedFoods by viewModel.selectedFoods.collectAsState()
-    // 레시피 생성 상태 (공유 뷰모델, Idle / Loading / Success / Error)
-    val recipeGenerationState by sharedViewModel.recipeGenerationState.collectAsState()
 
     // 화면 재진입 시 데이터 로드
     LaunchedEffect(lifecycleOwner) {
@@ -75,45 +77,40 @@ fun FridgeScreen(
         }
     }
 
-    // 공유 뷰모델 레시피 생성 상태 감지 및 처리
-    LaunchedEffect(recipeGenerationState) {
-        when (recipeGenerationState) {
-            // 1. 레피시 생성 요청
-            is RecipeGenerationState.Loading ->
-                // Home 화면에서 레시피 생성 상태가 Idle → Loading으로 전환되면 이를 감지해 즉시 레시피 생성 API를 호출함
-                viewModel.createRecipe(selectedFoods) { success, errorMsg ->
-                    // 성공/실패 상태를 SharedViewModel에 반영
-                    // 성공 시 "2. 레시피 생성 성공" 수행
-                    // 실패 시 "3. 레시피 생성 실패" 수행
-                    sharedViewModel.completeRecipeGeneration(success = success, errorMessage = errorMsg)
-                }
-
-            // 2. 레시피 생성 성공
-            is RecipeGenerationState.Success -> {
-                // RecipeTab으로 이동
-                homeNavController.navigate(Screen.RecipeTab.route) {
-                    popUpTo(homeNavController.graph.findStartDestination().id) {
-                        saveState = true
-                        inclusive = false
-                    }
-                    restoreState = true
-                    launchSingleTop = true
-                }
-                sharedViewModel.resetRecipeGenerationState()
-                viewModel.deselectAllFoods()
+    // 레시피 생성 트리거 이벤트
+    LaunchedEffect(Unit) {
+        homeViewModel.generateRecipeTrigger.collect {
+            // FridgeViewModel의 generateRecipe 호출하면서
+            // 상태 변경을 HomeViewModel에 보고
+            viewModel.generateRecipe { state ->
+                homeViewModel.updateRecipeGenerationState(state)
             }
-
-            // 3. 레시피 생성 실패
-            is RecipeGenerationState.Error -> {
-                snackbarHostState.showSnackbar(message = (recipeGenerationState as RecipeGenerationState.Error).message.toString())
-                sharedViewModel.resetRecipeGenerationState()
-            }
-
-            // 0. 대기 상태
-            is RecipeGenerationState.Idle -> Unit
         }
     }
+    
+    // 레시피 생성 결과 처리
+    LaunchedEffect(Unit) {
+        viewModel.recipeGenerationEvent.collect { event ->
+            when (event) {
+                is RecipeGenerationEvent.Success -> {
+                    // RecipeTab으로 이동
+                    homeNavController.navigate(Screen.RecipeTab.route) {
+                        popUpTo(homeNavController.graph.findStartDestination().id) {
+                            saveState = true
+                            inclusive = false
+                        }
+                        restoreState = true
+                        launchSingleTop = true
+                    }
+                }
 
+                is RecipeGenerationEvent.Error -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+            }
+        }
+    }
+    
     // 화면
     Box(modifier = Modifier.fillMaxSize()) {
         Column(

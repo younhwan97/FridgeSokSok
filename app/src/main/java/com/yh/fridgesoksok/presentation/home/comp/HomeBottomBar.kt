@@ -34,10 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import com.yh.fridgesoksok.presentation.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.fridge.RecipeGenerationState
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
 
@@ -146,23 +145,29 @@ private fun GenerateRecipeBar(
             disabledContentColor = Color.White.copy(alpha = 0.8f)
         )
     ) {
-        if (recipeGenerationState == RecipeGenerationState.Loading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-            )
-        } else if (!isRecipeGenerationAvailable) {
-            Text(
-                text = "오늘의 생성한도 초과",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-        } else {
-            Text(
-                text = "레시피 생성하기",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
+        when {
+            recipeGenerationState == RecipeGenerationState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                )
+            }
+
+            !isRecipeGenerationAvailable -> {
+                Text(
+                    text = "오늘의 생성한도 초과",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+
+            else -> {
+                Text(
+                    text = "레시피 생성하기",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
     }
 }
