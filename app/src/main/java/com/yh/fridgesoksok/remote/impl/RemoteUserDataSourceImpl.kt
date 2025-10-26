@@ -181,7 +181,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
             val data = response.data?.fcmToken ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
             data
         } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateUseAllIngredientsEnabled 실패", e)
+            Logger.e("RemoteUserData", "updateUserFcmToken 실패", e)
             throw e
         }
     }
