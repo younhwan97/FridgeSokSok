@@ -29,6 +29,7 @@ import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun UploadScreen(
@@ -57,17 +58,20 @@ fun UploadScreen(
         }
     }
 
-    // 식품 등록 성공 시 Home 화면으로 이동
+    // ViewModel 이벤트 구독 (병렬 처리)
     LaunchedEffect(Unit) {
-        viewModel.foodsAdded.collectLatest {
-            navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+        // 식품 등록 성공 시 Home 화면으로 이동
+        launch {
+            viewModel.foodsAdded.collectLatest {
+                navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+            }
         }
-    }
 
-    // 서버처리 실패 시 스낵바 메시징
-    LaunchedEffect(Unit) {
-        viewModel.errorMessage.collectLatest {
-            snackbarHostState.showSnackbar(it)
+        // 서버처리 실패 시 스낵바 메시징
+        launch {
+            viewModel.errorMessage.collectLatest {
+                snackbarHostState.showSnackbar(it)
+            }
         }
     }
 

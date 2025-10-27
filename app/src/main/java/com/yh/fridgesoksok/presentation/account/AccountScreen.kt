@@ -36,6 +36,7 @@ import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun AccountScreen(
@@ -57,22 +58,25 @@ fun AccountScreen(
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown(delayMillis = 800)
 
-    // 서버처리 실패 시 스낵바 메시징
+    // ViewModel 이벤트 구독 (병렬 처리)
     LaunchedEffect(Unit) {
-        viewModel.errorMessage.collectLatest {
-            snackbarHostState.showSnackbar(it)
+        // 서버처리 실패 시 스낵바 메시징
+        launch {
+            viewModel.errorMessage.collectLatest {
+                snackbarHostState.showSnackbar(it)
+            }
         }
-    }
 
-    // 로그아웃, 회원탈퇴 성공 시 로그인 화면으로 이동
-    LaunchedEffect(Unit) {
-        viewModel.successServerRequest.collectLatest {
-            navController.navigate(Screen.LoginScreen.route) {
-                // 백스택 전체 제거
-                popUpTo(0) {
-                    inclusive = true // (의미X)
+        // 로그아웃, 회원탈퇴 성공 시 로그인 화면으로 이동
+        launch {
+            viewModel.successServerRequest.collectLatest {
+                navController.navigate(Screen.LoginScreen.route) {
+                    // 백스택 전체 제거
+                    popUpTo(0) {
+                        inclusive = true // (의미X)
+                    }
+                    launchSingleTop = true
                 }
-                launchSingleTop = true
             }
         }
     }

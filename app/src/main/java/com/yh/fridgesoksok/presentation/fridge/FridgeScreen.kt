@@ -32,6 +32,7 @@ import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.home.HomeViewModel
 import com.yh.fridgesoksok.presentation.model.Type
+import kotlinx.coroutines.launch
 
 @Composable
 fun FridgeScreen(
@@ -58,47 +59,50 @@ fun FridgeScreen(
         }
     }
 
-    // 전체 선택 처리
+    // HomeViewModel 트리거 및 이벤트 구독 (병렬 처리)
     LaunchedEffect(Unit) {
-        homeViewModel.selectAllTrigger.collect {
-            viewModel.selectAllFoods()
-        }
-    }
-
-    // 전체 해제 처리
-    LaunchedEffect(Unit) {
-        homeViewModel.deselectAllTrigger.collect {
-            viewModel.deselectAllFoods()
-        }
-    }
-
-    // 레시피 생성 트리거 이벤트
-    LaunchedEffect(Unit) {
-        homeViewModel.generateRecipeTrigger.collect {
-            // FridgeViewModel의 generateRecipe 호출하면서 상태 변경을 HomeViewModel에 보고
-            viewModel.generateRecipe { state ->
-                homeViewModel.updateRecipeGenerationState(state)
+        // 전체 선택 트리거
+        launch {
+            homeViewModel.selectAllTrigger.collect {
+                viewModel.selectAllFoods()
             }
         }
-    }
 
-    // 레시피 생성 결과 처리
-    LaunchedEffect(Unit) {
-        viewModel.recipeGenerationEvent.collect { event ->
-            when (event) {
-                is RecipeGenerationEvent.Success -> {
-                    // RecipeTab으로 이동
-                    homeNavController.navigate(Screen.RecipeTab.route) {
-                        popUpTo(homeNavController.graph.findStartDestination().id) {
-                            saveState = true
-                            inclusive = false
-                        }
-                        restoreState = true
-                        launchSingleTop = true
-                    }
+        // 전체 해제 트리거
+        launch {
+            homeViewModel.deselectAllTrigger.collect {
+                viewModel.deselectAllFoods()
+            }
+        }
+
+        // 레시피 생성 트리거
+        launch {
+            homeViewModel.generateRecipeTrigger.collect {
+                // FridgeViewModel의 generateRecipe 호출하면서 상태 변경을 HomeViewModel에 보고
+                viewModel.generateRecipe { state ->
+                    homeViewModel.updateRecipeGenerationState(state)
                 }
-                is RecipeGenerationEvent.Error -> {
-                    snackbarHostState.showSnackbar(event.message)
+            }
+        }
+
+        // 레시피 생성 결과 처리
+        launch {
+            viewModel.recipeGenerationEvent.collect { event ->
+                when (event) {
+                    is RecipeGenerationEvent.Success -> {
+                        // RecipeTab으로 이동
+                        homeNavController.navigate(Screen.RecipeTab.route) {
+                            popUpTo(homeNavController.graph.findStartDestination().id) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            restoreState = true
+                            launchSingleTop = true
+                        }
+                    }
+                    is RecipeGenerationEvent.Error -> {
+                        snackbarHostState.showSnackbar(event.message)
+                    }
                 }
             }
         }

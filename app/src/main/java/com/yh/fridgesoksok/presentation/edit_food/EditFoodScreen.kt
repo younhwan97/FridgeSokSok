@@ -35,6 +35,7 @@ import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodNameSuggestion
 import com.yh.fridgesoksok.presentation.edit_food.comp.EditFoodTopAppBar
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -81,35 +82,39 @@ fun EditFoodScreen(
     // 저장 성공 시 네비게이션 - 한 번만 실행되도록
     var hasNavigated by remember { mutableStateOf(false) }
 
+    // ViewModel 이벤트 구독 (병렬 처리)
     LaunchedEffect(Unit) {
-        viewModel.foodSaved.collectLatest {
-            if (hasNavigated) {
-                return@collectLatest
-            }
-
-            hasNavigated = true
-
-            if (isEditMode) {
-                // 편집 모드 -> HomeScreen으로 복귀
-                navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
-            } else {
-                // 추가 모드 -> UploadViewModel에 직접 전달
-                currentFood?.let { food ->
-                    uploadViewModel?.let { vm ->
-                        // 중복 방지를 위해 고유 키 생성
-                        val deduplicationKey = "${food.itemName}_${System.currentTimeMillis()}"
-                        vm.addOrUpdateFood(food, deduplicationKey)
-                    }
+        // 저장 성공 시 네비게이션
+        launch {
+            viewModel.foodSaved.collectLatest {
+                if (hasNavigated) {
+                    return@collectLatest
                 }
-                navController.popBackStack()
+
+                hasNavigated = true
+
+                if (isEditMode) {
+                    // 편집 모드 -> HomeScreen으로 복귀
+                    navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
+                } else {
+                    // 추가 모드 -> UploadViewModel에 직접 전달
+                    currentFood?.let { food ->
+                        uploadViewModel?.let { vm ->
+                            // 중복 방지를 위해 고유 키 생성
+                            val deduplicationKey = "${food.itemName}_${System.currentTimeMillis()}"
+                            vm.addOrUpdateFood(food, deduplicationKey)
+                        }
+                    }
+                    navController.popBackStack()
+                }
             }
         }
-    }
 
-    // 서버 처리 실패 시 스낵바 메시징
-    LaunchedEffect(Unit) {
-        viewModel.errorMessage.collectLatest {
-            snackbarHostState.showSnackbar(it)
+        // 서버 처리 실패 시 스낵바 메시징
+        launch {
+            viewModel.errorMessage.collectLatest {
+                snackbarHostState.showSnackbar(it)
+            }
         }
     }
 
