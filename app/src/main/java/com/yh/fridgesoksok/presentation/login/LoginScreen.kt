@@ -36,51 +36,48 @@ fun LoginScreen(
 ) {
     val systemUiController = rememberSystemUiController()
     val snackBarHostState = remember { SnackbarHostState() }
-    // 하단바 컬러
-    val barColor = CustomGreyColor1
-    // 로그인 상태 (초기 Loading, 성공 Success)
     val loginState by viewModel.state.collectAsState()
 
-    // 하단바 컬러 설정
+    // 시스템 네비게이션 바 색상 설정
     SideEffect {
-        systemUiController.setNavigationBarColor(barColor)
+        systemUiController.setNavigationBarColor(CustomGreyColor1)
     }
-    
-    // 로그인 실패 시 스낵바 메시징
+
+    // 에러 메시지를 스낵바로 표시
     LaunchedEffect(Unit) {
-        viewModel.errorMessage.collectLatest {
-            snackBarHostState.showSnackbar(it)
+        viewModel.errorMessage.collectLatest { message ->
+            snackBarHostState.showSnackbar(message)
         }
     }
 
-    // 로그인 선공 시 Home 화면으로 이동
+    // 로그인 성공 시 홈 화면으로 이동
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
             navController.navigate(Screen.HomeScreen.route) {
-                // 백스택 전체 제거
-                popUpTo(0) {
-                    inclusive = true
-                }
+                popUpTo(0) { inclusive = true }
                 launchSingleTop = true
             }
         }
     }
 
-    // 화면
+    // UI
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp)
     ) {
+        // 상단 앱 로고
         LoginAppLogo(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
         )
 
+        // 중앙 컨텐츠 (냉장고 이미지 및 텍스트)
         LoginCenterContent()
 
+        // 하단 로그인 버튼들 (카카오, 네이버, 게스트)
         LoginButtons(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -88,6 +85,7 @@ fun LoginScreen(
             onLogin = viewModel::createUserOnChannel
         )
 
+        // 에러 메시지 스낵바
         Snackbar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

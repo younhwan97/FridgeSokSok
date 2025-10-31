@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-const val screenName = "Login"
+private const val TAG = "Login"
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -47,20 +47,24 @@ class LoginViewModel @Inject constructor(
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
 
-    // (네이버, 카카오 등의) 채널로 부터 유저 생성
+    /**
+     * 소셜 로그인 (카카오, 네이버) 또는 게스트 로그인
+     */
     fun createUserOnChannel(channel: Channel) {
-        Logger.i(screenName, "로그인 시도 $channel")
+        Logger.i(TAG, "로그인 시도: $channel")
 
         createUserOnChannelUseCase(channel).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val userModel = result.data?.let(UserModel::fromLocal)
                     if (userModel == null || !userModel.isValid()) {
-                        fail("채널 응답 데이터가 유효하지 않음")
+                        fail("로그인 정보를 가져올 수 없습니다")
                         return@onEach
                     }
 
-                    Logger.d(screenName, "채널 로그인 성공 $userModel")
+                    Logger.d(TAG, "채널 로그인 성공: $userModel")
+
+                    // 게스트 계정은 서버 생성 단계를 건너뛰고 바로 냉장고 조회
                     if (userModel.accountType == "temp") {
                         getUserDefaultFridge(userModel)
                     } else {
@@ -68,24 +72,28 @@ class LoginViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Error -> fail("채널 로그인 실패 (${result.message})")
+                is Resource.Error -> fail("${channel.name} 로그인 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // (채널에서 생성한 토큰을 활용해 서버에서) 유저 생성
+    /**
+     * 서버에 사용자 정보 생성 및 토큰 발급
+     */
     private fun createUserOnServer(user: UserModel) {
         createUserOnServerUseCase(user = user.toDomain()).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val userModel = result.data?.let(UserModel::fromLocal)
                     if (userModel == null || !userModel.isValid()) {
-                        fail("서버 응답 데이터가 유효하지 않음")
+                        fail("서버 인증 실패")
                         return@onEach
                     }
 
-                    Logger.d(screenName, "서버 유저 생성 성공 $userModel")
+                    Logger.d(TAG, "서버 유저 생성 성공: $userModel")
+
+                    // 서버로부터 받은 토큰 정보로 업데이트
                     val updatedUser = user.withUpdatedUserInfo(
                         newAccess = userModel.accessToken,
                         newRefresh = userModel.refreshToken,
@@ -95,132 +103,153 @@ class LoginViewModel @Inject constructor(
                     getUserDefaultFridge(updatedUser)
                 }
 
-                is Resource.Error -> fail("서버 유저 생성 실패 (${result.message})")
+                is Resource.Error -> fail("서버 인증 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // 유저 기본냉장고 추출
+    /**
+     * 사용자의 기본 냉장고 정보 조회
+     */
     private fun getUserDefaultFridge(user: UserModel) {
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val fridgeModel = result.data?.toPresentation()
                     if (fridgeModel == null || !fridgeModel.isValid()) {
-                        fail("기본 냉장고ID 추출 실패")
+                        fail("냉장고 정보를 가져올 수 없습니다")
                         return@onEach
                     }
+
+                    Logger.d(TAG, "기본 냉장고 조회 성공: ${fridgeModel.id}")
 
                     val updatedUser = user.withDefaultFridgeId(fridgeModel.id)
                     saveUser(updatedUser)
                 }
 
-                is Resource.Error -> fail("기본 냉장고ID 조회 실패 (${result.message})")
+                is Resource.Error -> fail("냉장고 정보 조회 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // 유저 저장
+    /**
+     * 로컬에 사용자 정보 저장
+     */
     private fun saveUser(user: UserModel) {
         saveUserUseCase(user.toDomain()).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val isUserSaved = result.data ?: false
                     if (!isUserSaved) {
-                        fail("유저 저장 실패")
+                        fail("사용자 정보 저장 실패")
                         return@onEach
                     }
 
-                    Logger.d(screenName, "유저 저장 성공 $user")
+                    Logger.d(TAG, "유저 로컬 저장 성공: ${user.username}")
                     getApiUsage()
                 }
 
-                is Resource.Error -> fail("유저 저장 실패 (${result.message})")
+                is Resource.Error -> fail("사용자 정보 저장 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // API 사용량 및 호출제한 확인
+    /**
+     * API 사용량 및 호출 제한 정보 조회
+     */
     private fun getApiUsage() {
         getApiUsageUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val usages = result.data
                     if (usages.isNullOrEmpty()) {
-                        fail("유저 API 정보 확인 실패")
+                        fail("API 정보를 가져올 수 없습니다")
                         return@onEach
                     }
 
-                    Logger.d(screenName, "API 정보 확인 성공")
+                    Logger.d(TAG, "API 사용량 정보 조회 성공")
                     updateApiUsage(usages)
                 }
 
-                is Resource.Error -> fail("API 정보 확인 실패 (${result.message})")
+                is Resource.Error -> fail("API 정보 조회 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // API 사용량 및 호출제한 정보 저장
+    /**
+     * API 사용량 및 호출 제한 정보를 로컬에 저장
+     */
     private fun updateApiUsage(usages: List<ApiUsage>) {
         updateApiUsageUseCase(usages).onEach { result ->
             when (result) {
                 is Resource.Success -> {
                     val success = result.data ?: false
                     if (!success) {
-                        fail("유저 API 정보 저장 실패")
+                        fail("API 정보 저장 실패")
                         return@onEach
                     }
 
-                    Logger.d(screenName, "API 정보 저장 성공")
+                    Logger.d(TAG, "API 사용량 정보 저장 성공")
                     updateUserFcmToken()
                 }
 
-                is Resource.Error -> fail("API 정보 저장 실패 (${result.message})")
+                is Resource.Error -> fail("API 정보 저장 실패: ${result.message}")
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
-    // FCM 토큰 갱신
+    /**
+     * FCM 토큰 갱신 (필수)
+     */
     private fun updateUserFcmToken() {
         val fcmToken = getLocalUserFcmTokenUseCase()
 
-        if (fcmToken.isNotBlank()) {
-            updateUserFcmTokenUseCase(fcmToken).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val isUserUpdated = result.data == fcmToken
-                        if (!isUserUpdated) {
-                            fail("FCM 토큰 갱신 실패")
-                            return@onEach
-                        }
+        if (fcmToken.isBlank()) {
+            fail("FCM 토큰이 없습니다")
+            return
+        }
 
-                        Logger.d(screenName, "FCM 토큰 갱신 성공")
-                        Logger.i(screenName, "로그인 성공")
-                        _state.value = LoginState.Success
+        updateUserFcmTokenUseCase(fcmToken).onEach { result ->
+            when (result) {
+                is Resource.Success -> {
+                    val updatedToken = result.data
+                    if (updatedToken.isNullOrBlank() || updatedToken != fcmToken) {
+                        fail("FCM 토큰 갱신 실패")
+                        return@onEach
                     }
 
-                    is Resource.Error -> fail("FCM 토큰 갱신 실패 ${result.message}")
-                    is Resource.Loading -> Unit
+                    Logger.d(TAG, "FCM 토큰 갱신 성공")
+                    success()
                 }
-            }.launchIn(viewModelScope)
-        } else {
-            Logger.d(screenName, "FCM 토큰 갱신 성공")
-            Logger.i(screenName, "로그인 성공")
-            _state.value = LoginState.Success
-        }
+
+                is Resource.Error -> fail("FCM 토큰 갱신 실패: ${result.message}")
+                is Resource.Loading -> Unit
+            }
+        }.launchIn(viewModelScope)
     }
 
+    /**
+     * 로그인 프로세스 성공 처리
+     */
+    private fun success() {
+        Logger.i(TAG, "로그인 성공")
+        _state.value = LoginState.Success
+    }
+
+    /**
+     * 로그인 프로세스 실패 처리
+     */
     private fun fail(reason: String) {
-        Logger.e(screenName, "$reason → 로그인 실패")
+        Logger.e(TAG, "$reason → 로그인 실패")
         _state.value = LoginState.Error
 
         viewModelScope.launch {
-            _errorMessage.emit("로그인 실패")
+            _errorMessage.emit(reason)
         }
     }
 }
