@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +38,9 @@ fun OnboardingScreen(
     val onboardingState by onboardingViewModel.state.collectAsState()
     val isInitDone by appInitializerViewModel.isInitializationCompleted.collectAsState()
     val isServerConnected by onboardingViewModel.isServerConnected.collectAsState()
+    val initProgress by appInitializerViewModel.initializationProgress.collectAsState()
+    val onboardingProgress by onboardingViewModel.onboardingProgress.collectAsState()
+    val processingStatus by appInitializerViewModel.processingStatus.collectAsState()
 
     // 온보딩 완료 후 네비게이션 처리
     LaunchedEffect(isInitDone, isServerConnected, onboardingState) {
@@ -81,15 +86,39 @@ fun OnboardingScreen(
 
         // 로딩 상태 표시
         if (isServerConnected && (!isInitDone || onboardingState is OnboardingState.Loading)) {
-            Box(
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 128.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp, vertical = 128.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // 진행 상태 텍스트
                 Text(
-                    text = if (!isInitDone) "앱 초기화 중..." else "로그인 확인 중...",
+                    text = if (!isInitDone) {
+                        "앱 초기화 중..."
+                    } else {
+                        "로그인 확인 중..."
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimary
+                )
+
+                // 진행률 바
+                val currentProgress = if (!isInitDone) initProgress else onboardingProgress
+                LinearProgressIndicator(
+                    progress = { currentProgress / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                )
+
+                // 퍼센티지
+                Text(
+                    text = "$currentProgress%",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                 )
             }
         }

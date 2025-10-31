@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.di
 
+import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateLocalUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import dagger.hilt.EntryPoint
@@ -12,4 +13,6 @@ interface FcmServiceEntryPoint {
     fun updateUserFcmTokenUseCase(): UpdateUserFcmTokenUseCase
 
     fun updateLocalUserFcmTokenUseCase(): UpdateLocalUserFcmTokenUseCase
+
+    fun loadUserUseCase(): LoadUserUseCase
 }

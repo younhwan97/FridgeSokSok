@@ -10,10 +10,13 @@ import com.yh.fridgesoksok.domain.usecase.GetCountLocalFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.InitializeLocalFoodsFromCsvUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -35,8 +38,15 @@ class AppInitializerViewModel @Inject constructor(
     private val _isInitializationCompleted = MutableStateFlow(false)
     val isInitializationCompleted = _isInitializationCompleted.asStateFlow()
 
+    private val _initializationProgress = MutableStateFlow(0)
+    val initializationProgress = _initializationProgress.asStateFlow()
+
+    private val _processingStatus = MutableStateFlow("")
+    val processingStatus = _processingStatus.asStateFlow()
+
     init {
         Logger.i(TAG, "로컬 데이터 초기화 시작")
+        _initializationProgress.value = 0
         checkAndInitialize()
     }
 
@@ -44,67 +54,107 @@ class AppInitializerViewModel @Inject constructor(
      * 로컬 DB의 데이터 개수를 확인하여 초기화 필요 여부 판단
      */
     private fun checkAndInitialize() {
-        getCountLocalFoodsUseCase().onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    val currentCount = result.data ?: 0
-                    val expectedCount = getLineCountFromAssets(INITIAL_CSV_FILE)
+        viewModelScope.launch {
+            try {
+                _initializationProgress.value = 10
 
-                    val difference = abs(currentCount - expectedCount)
-                    Logger.d(TAG, "DB 데이터 수: $currentCount, CSV 데이터 수: $expectedCount, 차이: $difference")
-
-                    // 데이터 개수 차이가 임계값을 초과하면 재초기화
-                    if (difference > MAX_DATA_DIFFERENCE_THRESHOLD) {
-                        Logger.i(TAG, "데이터 차이가 크므로 재초기화 수행")
-                        initializeFoodsFromCsv()
-                    } else {
-                        Logger.d(TAG, "로컬 데이터 초기화 스킵")
-                        completeInitialization()
+                // DB 개수 확인
+                var dbCount = 0
+                getCountLocalFoodsUseCase().collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            dbCount = result.data ?: 0
+                        }
+                        is Resource.Error -> {
+                            Logger.e(TAG, "로컬 데이터 개수 조회 실패: ${result.message}")
+                        }
+                        is Resource.Loading -> Unit
                     }
                 }
 
-                is Resource.Error -> {
-                    Logger.e(TAG, "로컬 데이터 개수 조회 실패: ${result.message}")
-                    completeInitialization()
+                _initializationProgress.value = 30
+
+                // CSV 개수 확인
+                val expectedCount = withContext(Dispatchers.IO) {
+                    getLineCountFromAssets(INITIAL_CSV_FILE)
                 }
 
-                is Resource.Loading -> Unit
+                _initializationProgress.value = 40
+
+                val difference = abs(dbCount - expectedCount)
+                Logger.d(TAG, "DB 데이터 수: $dbCount, CSV 데이터 수: $expectedCount, 차이: $difference")
+
+                // 데이터 개수 차이가 임계값을 초과하면 재초기화
+                if (difference > MAX_DATA_DIFFERENCE_THRESHOLD) {
+                    Logger.i(TAG, "데이터 차이가 크므로 재초기화 수행")
+                    initializeFoodsFromCsv()
+                } else {
+                    Logger.d(TAG, "로컬 데이터 초기화 스킵")
+                    _initializationProgress.value = 100
+                    completeInitialization()
+                }
+            } catch (e: Exception) {
+                Logger.e(TAG, "초기화 확인 중 예외 발생: ${e.message}", e)
+                _initializationProgress.value = 100
+                completeInitialization()
             }
-        }.launchIn(viewModelScope)
+        }
     }
 
     /**
      * CSV 파일에서 음식 데이터를 읽어 DB에 초기화
      */
     private fun initializeFoodsFromCsv() {
-        try {
-            val parsedFoods = parseCsvFromAssets()
-            if (parsedFoods.isEmpty()) {
-                Logger.e(TAG, "CSV 파싱 결과가 비어있음")
-                completeInitialization()
-                return
-            }
-
-            Logger.d(TAG, "CSV에서 ${parsedFoods.size}개 항목 파싱 완료")
-
-            initializeLocalFoodsFromCsvUseCase(parsedFoods).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        Logger.i(TAG, "로컬 데이터 초기화 완료")
-                        completeInitialization()
-                    }
-
-                    is Resource.Error -> {
-                        Logger.e(TAG, "로컬 데이터 초기화 실패: ${result.message}")
-                        completeInitialization()
-                    }
-
-                    is Resource.Loading -> Unit
+        viewModelScope.launch {
+            try {
+                val parsedFoods = withContext(Dispatchers.IO) {
+                    parseCsvFromAssets()
                 }
-            }.launchIn(viewModelScope)
-        } catch (e: Exception) {
-            Logger.e(TAG, "CSV 파싱 중 예외 발생: ${e.message}", e)
-            completeInitialization()
+                _initializationProgress.value = 50
+
+                if (parsedFoods.isEmpty()) {
+                    Logger.e(TAG, "CSV 파싱 결과가 비어있음")
+                    _initializationProgress.value = 100
+                    completeInitialization()
+                    return@launch
+                }
+
+                Logger.d(TAG, "CSV에서 ${parsedFoods.size}개 항목 파싱 완료")
+
+                // 배치 단위로 삽입하면서 진행률 업데이트
+                val batchSize = 100
+                val totalCount = parsedFoods.size
+                var processedCount = 0
+
+                parsedFoods.chunked(batchSize).forEach { batch ->
+                    initializeLocalFoodsFromCsvUseCase(batch).collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                processedCount += batch.size
+                                // 50%부터 100%까지 매핑 (파싱이 50%까지 차지)
+                                val progress = 50 + (processedCount * 50 / totalCount)
+                                _initializationProgress.value = progress
+                                _processingStatus.value = "$processedCount / $totalCount"
+                            }
+                            is Resource.Error -> {
+                                Logger.e(TAG, "배치 삽입 실패: ${result.message}")
+                            }
+                            is Resource.Loading -> Unit
+                        }
+                    }
+                }
+
+                _processingStatus.value = ""
+
+                Logger.i(TAG, "로컬 데이터 초기화 완료")
+                _initializationProgress.value = 100
+                completeInitialization()
+
+            } catch (e: Exception) {
+                Logger.e(TAG, "CSV 파싱 중 예외 발생: ${e.message}", e)
+                _initializationProgress.value = 100
+                completeInitialization()
+            }
         }
     }
 

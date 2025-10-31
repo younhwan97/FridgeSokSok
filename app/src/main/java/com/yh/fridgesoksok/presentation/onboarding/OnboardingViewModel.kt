@@ -61,6 +61,9 @@ class OnboardingViewModel @Inject constructor(
     private val _isServerConnected = MutableStateFlow(true)
     val isServerConnected = _isServerConnected.asStateFlow()
 
+    private val _onboardingProgress = MutableStateFlow(0)
+    val onboardingProgress = _onboardingProgress.asStateFlow()
+
     init {
         startOnboarding()
     }
@@ -72,6 +75,7 @@ class OnboardingViewModel @Inject constructor(
         Logger.i(TAG, "온보딩 시작")
         _state.value = OnboardingState.Loading
         _isServerConnected.value = true
+        _onboardingProgress.value = 0
         proceedToNextStep(OnboardingStep.CheckServerStatus)
     }
 
@@ -120,6 +124,7 @@ class OnboardingViewModel @Inject constructor(
      * 1단계: 서버 상태 확인
      */
     private fun checkServerStatus() {
+        _onboardingProgress.value = 12
         getServerStatusUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -155,6 +160,7 @@ class OnboardingViewModel @Inject constructor(
      * 2단계: 리프레시 토큰 유효성 확인
      */
     private fun validateToken(user: UserModel) {
+        _onboardingProgress.value = 25
         validateUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -177,6 +183,7 @@ class OnboardingViewModel @Inject constructor(
      * 3단계: 액세스 토큰 및 리프레시 토큰 재발급
      */
     private fun reissueToken(user: UserModel) {
+        _onboardingProgress.value = 37
         reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -201,6 +208,7 @@ class OnboardingViewModel @Inject constructor(
      * 4단계: 사용자 기본 냉장고 ID 조회
      */
     private fun getDefaultFridge(user: UserModel) {
+        _onboardingProgress.value = 50
         getUserDefaultFridgeUseCase(user.accessToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -225,6 +233,7 @@ class OnboardingViewModel @Inject constructor(
      * 5단계: 사용자 정보 로컬 저장
      */
     private fun updateUser(user: UserModel) {
+        _onboardingProgress.value = 62
         updateUserUseCase(user.toDomain()).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -247,6 +256,7 @@ class OnboardingViewModel @Inject constructor(
      * 6단계: API 사용량 정보 조회
      */
     private fun getApiUsage() {
+        _onboardingProgress.value = 75
         getApiUsageUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -270,6 +280,7 @@ class OnboardingViewModel @Inject constructor(
      * 7단계: API 사용량 정보 로컬 저장
      */
     private fun updateApiUsage(usages: List<ApiUsage>) {
+        _onboardingProgress.value = 87
         updateApiUsageUseCase(usages).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -293,10 +304,12 @@ class OnboardingViewModel @Inject constructor(
      * FCM 토큰이 없거나 업데이트에 실패해도 온보딩은 성공으로 처리
      */
     private fun updateUserFcmToken() {
+        _onboardingProgress.value = 95
         val fcmToken = getLocalUserFcmTokenUseCase()
 
         if (fcmToken.isBlank()) {
             Logger.d(TAG, "FCM 토큰 없음 (선택적 단계 스킵)")
+            _onboardingProgress.value = 100
             complete()
             return
         }
@@ -305,11 +318,13 @@ class OnboardingViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     Logger.d(TAG, "FCM 토큰 동기화 완료")
+                    _onboardingProgress.value = 100
                     complete()
                 }
 
                 is Resource.Error -> {
                     Logger.d(TAG, "FCM 토큰 동기화 실패 (선택적 단계): ${result.message}")
+                    _onboardingProgress.value = 100
                     complete()
                 }
 
