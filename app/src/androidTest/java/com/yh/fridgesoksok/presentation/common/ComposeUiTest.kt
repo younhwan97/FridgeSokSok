@@ -27,8 +27,7 @@ class ComposeUiTest {
         // When
         composeTestRule.setContent {
             ConfirmDialog(
-                showDialog = true,
-                title = title,
+title = title,
                 message = message,
                 onConfirm = {},
                 onDismiss = {}
@@ -48,8 +47,7 @@ class ComposeUiTest {
         // When
         composeTestRule.setContent {
             ConfirmDialog(
-                showDialog = true,
-                title = "테스트",
+title = "테스트",
                 message = "메시지",
                 onConfirm = { confirmCalled = true },
                 onDismiss = {}
@@ -70,7 +68,7 @@ class ComposeUiTest {
         composeTestRule.setContent {
             ErrorScreen(
                 message = errorMessage,
-                onRetry = {}
+                onRefreshClick = {}
             )
         }
 
@@ -84,7 +82,7 @@ class ComposeUiTest {
         composeTestRule.setContent {
             ErrorScreen(
                 message = "에러",
-                onRetry = {}
+                onRefreshClick = {}
             )
         }
 
@@ -101,7 +99,7 @@ class ComposeUiTest {
         composeTestRule.setContent {
             ErrorScreen(
                 message = "에러",
-                onRetry = { retryCalled = true }
+                onRefreshClick = { retryCalled = true }
             )
         }
 

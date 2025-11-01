@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yh.fridgesoksok.local.model.FoodLocal
+import com.yh.fridgesoksok.local.room.dao.FoodDao
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -38,13 +39,13 @@ class FoodDaoTest {
     fun insertFoods_성공적으로_저장되어야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("사과", 1),
-            FoodLocal("바나나", 2),
-            FoodLocal("오렌지", 3)
+            FoodLocal(0, "사과", 1, 24),
+            FoodLocal(0, "바나나", 2, 12),
+            FoodLocal(0, "오렌지", 3, 36)
         )
 
         // When
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
         val count = foodDao.getCount()
 
         // Then
@@ -64,15 +65,15 @@ class FoodDaoTest {
     fun searchFoods_키워드로_검색해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("사과", 1),
-            FoodLocal("사과주스", 1),
-            FoodLocal("바나나", 2),
-            FoodLocal("오렌지", 3)
+            FoodLocal(0, "사과", 1, 24),
+            FoodLocal(0, "사과주스", 1, 48),
+            FoodLocal(0, "바나나", 2, 12),
+            FoodLocal(0, "오렌지", 3, 36)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
-        val result = foodDao.searchFoods("사과")
+        val result = foodDao.searchFoodByKeyword("사과")
 
         // Then
         assertEquals(2, result.size)
@@ -83,15 +84,15 @@ class FoodDaoTest {
     fun searchFoods_대소문자_구분없이_검색해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("Apple", 1),
-            FoodLocal("APPLE", 1),
-            FoodLocal("apple", 1),
-            FoodLocal("Banana", 2)
+            FoodLocal(0, "Apple", 1, 24),
+            FoodLocal(0, "APPLE", 1, 24),
+            FoodLocal(0, "apple", 1, 24),
+            FoodLocal(0, "Banana", 2, 12)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
-        val result = foodDao.searchFoods("apple")
+        val result = foodDao.searchFoodByKeyword("apple")
 
         // Then
         assertEquals(3, result.size)
@@ -101,11 +102,11 @@ class FoodDaoTest {
     fun deleteFoods_모든_데이터를_삭제해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("사과", 1),
-            FoodLocal("바나나", 2),
-            FoodLocal("오렌지", 3)
+            FoodLocal(0, "사과", 1, 24),
+            FoodLocal(0, "바나나", 2, 12),
+            FoodLocal(0, "오렌지", 3, 36)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
         val deletedCount = foodDao.deleteFoods()
@@ -119,12 +120,12 @@ class FoodDaoTest {
     @Test
     fun insertFoods_중복된_데이터는_교체되어야_한다() = runBlocking {
         // Given
-        val food1 = FoodLocal("사과", 1)
-        val food2 = FoodLocal("사과", 2) // 같은 이름, 다른 카테고리
+        val food1 = FoodLocal(0, "사과", 1, 24)
+        val food2 = FoodLocal(0, "사과", 2, 36) // 같은 이름, 다른 카테고리
 
         // When
-        foodDao.insertFoods(listOf(food1))
-        foodDao.insertFoods(listOf(food2))
+        foodDao.insertAll(listOf(food1))
+        foodDao.insertAll(listOf(food2))
         val count = foodDao.getCount()
 
         // Then
@@ -136,14 +137,14 @@ class FoodDaoTest {
     fun searchFoods_빈_검색어는_모든_결과를_반환해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("사과", 1),
-            FoodLocal("바나나", 2),
-            FoodLocal("오렌지", 3)
+            FoodLocal(0, "사과", 1, 24),
+            FoodLocal(0, "바나나", 2, 12),
+            FoodLocal(0, "오렌지", 3, 36)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
-        val result = foodDao.searchFoods("")
+        val result = foodDao.searchFoodByKeyword("")
 
         // Then
         assertEquals(3, result.size)
@@ -153,13 +154,13 @@ class FoodDaoTest {
     fun searchFoods_일치하는_결과가_없으면_빈_리스트를_반환해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("사과", 1),
-            FoodLocal("바나나", 2)
+            FoodLocal(0, "사과", 1, 24),
+            FoodLocal(0, "바나나", 2, 12)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
-        val result = foodDao.searchFoods("포도")
+        val result = foodDao.searchFoodByKeyword("포도")
 
         // Then
         assertTrue(result.isEmpty())
@@ -169,11 +170,11 @@ class FoodDaoTest {
     fun insertFoods_대량_데이터를_처리해야_한다() = runBlocking {
         // Given
         val foods = (1..1000).map {
-            FoodLocal("식품$it", it % 10)
+            FoodLocal(0, "식품$it", it % 10, it % 100)
         }
 
         // When
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
         val count = foodDao.getCount()
 
         // Then
@@ -184,16 +185,16 @@ class FoodDaoTest {
     fun searchFoods_부분_일치로_검색해야_한다() = runBlocking {
         // Given
         val foods = listOf(
-            FoodLocal("딸기우유", 1),
-            FoodLocal("바나나우유", 1),
-            FoodLocal("초코우유", 1),
-            FoodLocal("우유", 1),
-            FoodLocal("딸기", 2)
+            FoodLocal(0, "딸기우유", 1, 48),
+            FoodLocal(0, "바나나우유", 1, 48),
+            FoodLocal(0, "초코우유", 1, 48),
+            FoodLocal(0, "우유", 1, 72),
+            FoodLocal(0, "딸기", 2, 24)
         )
-        foodDao.insertFoods(foods)
+        foodDao.insertAll(foods)
 
         // When
-        val result = foodDao.searchFoods("우유")
+        val result = foodDao.searchFoodByKeyword("우유")
 
         // Then
         assertEquals(4, result.size)
