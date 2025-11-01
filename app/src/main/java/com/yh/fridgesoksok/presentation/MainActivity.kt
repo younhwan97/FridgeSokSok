@@ -4,17 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.camera.CameraScreen
 import com.yh.fridgesoksok.presentation.edit_food.EditFoodScreen
 import com.yh.fridgesoksok.presentation.home.HomeScreen
@@ -36,16 +35,12 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 // 전역 뷰모델 (Activity-Scoped ViewModel)
                 val activityViewModel: SharedViewModel = hiltViewModel()
-                // 하단 바 색상 설정
-                val systemUiController = rememberSystemUiController()
-                val barColor = MaterialTheme.colorScheme.primary
-                SideEffect {
-                    systemUiController.setNavigationBarColor(barColor)
-                }
 
                 NavHost(
                     navController = navController,
                     startDestination = Screen.OnboardingScreen.route,
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None }
                 ) {
                     composable(Screen.OnboardingScreen.route) {
                         OnboardingScreen(navController)

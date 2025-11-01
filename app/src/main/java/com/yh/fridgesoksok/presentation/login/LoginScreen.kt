@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -38,7 +37,7 @@ fun LoginScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val loginState by viewModel.state.collectAsState()
 
-    // 시스템 네비게이션 바 색상 설정
+    // 하단 바 색상 설정
     SideEffect {
         systemUiController.setNavigationBarColor(CustomGreyColor1)
     }

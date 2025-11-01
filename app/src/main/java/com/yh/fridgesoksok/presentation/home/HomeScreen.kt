@@ -48,7 +48,11 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
-    val barColor = CustomGreyColor1
+
+    // 하단 바 색상 설정
+    SideEffect {
+        systemUiController.setNavigationBarColor(CustomGreyColor1)
+    }
 
     // Home 라우팅 (Fridge, Recipe, Account)
     val homeNavController = rememberNavController()
@@ -76,11 +80,6 @@ fun HomeScreen(
     val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
         selectedImageUri = uri
         showConfirmDialog = true
-    }
-
-    // 하단바 컬러 설정
-    SideEffect {
-        systemUiController.setNavigationBarColor(barColor)
     }
 
     // 알림 권한 요청

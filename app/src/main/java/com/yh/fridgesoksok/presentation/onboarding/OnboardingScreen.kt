@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.R
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
@@ -35,12 +37,19 @@ fun OnboardingScreen(
     onboardingViewModel: OnboardingViewModel = hiltViewModel(),
     appInitializerViewModel: AppInitializerViewModel = hiltViewModel(),
 ) {
+    val systemUiController = rememberSystemUiController()
+    val barColor = MaterialTheme.colorScheme.primary
     val onboardingState by onboardingViewModel.state.collectAsState()
     val isInitDone by appInitializerViewModel.isInitializationCompleted.collectAsState()
     val isServerConnected by onboardingViewModel.isServerConnected.collectAsState()
     val initProgress by appInitializerViewModel.initializationProgress.collectAsState()
     val onboardingProgress by onboardingViewModel.onboardingProgress.collectAsState()
     val processingStatus by appInitializerViewModel.processingStatus.collectAsState()
+
+    // 하단 바 색상 설정
+    SideEffect {
+        systemUiController.setNavigationBarColor(barColor)
+    }
 
     // 온보딩 완료 후 네비게이션 처리
     LaunchedEffect(isInitDone, isServerConnected, onboardingState) {
