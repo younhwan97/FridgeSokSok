@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Collections
 import java.util.UUID
 import javax.inject.Inject
 
@@ -46,8 +47,8 @@ class UploadViewModel @Inject constructor(
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     val newFoods = _newFoods.asStateFlow()
 
-    // EditFood에서 추가된 식품 큐 (중복 추가 방지)
-    private val processedFoodIds = mutableSetOf<String>()
+    // EditFood에서 추가된 식품 큐 (중복 추가 방지, Thread-safe)
+    private val processedFoodIds = Collections.synchronizedSet(mutableSetOf<String>())
 
     // 에러 메시지
     private val _errorMessage = MutableSharedFlow<String>()

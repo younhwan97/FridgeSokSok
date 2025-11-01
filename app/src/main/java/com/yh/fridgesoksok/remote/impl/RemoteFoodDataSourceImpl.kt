@@ -90,6 +90,8 @@ class RemoteFoodDataSourceImpl @Inject constructor(
             Logger.d("RemoteFoodData", "uploadReceipt INPUT $img")
             val resized = resizeBitmap(img, 1080, 1080)
             val part = bitmapToMultipart(resized)
+            // 리사이즈된 Bitmap은 파일로 저장 후 더 이상 필요 없으므로 메모리 해제
+            resized.recycle()
             val response = fridgeApiService.uploadReceiptImage(part)
             val data = response.data ?: throw IllegalStateException("uploadReceipt data(=null)")
             data.map { it.toEntity() }
@@ -102,13 +104,22 @@ class RemoteFoodDataSourceImpl @Inject constructor(
 
 private fun bitmapToMultipart(bitmap: Bitmap, name: String = "image.jpg"): MultipartBody.Part {
     val file = File.createTempFile("temp", ".jpg")
-    val outputStream = FileOutputStream(file)
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-    outputStream.flush()
-    outputStream.close()
 
-    val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-    return MultipartBody.Part.createFormData("file", name, requestFile)
+    try {
+        // use 블록으로 자동 close 보장
+        FileOutputStream(file).use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            outputStream.flush()
+        }
+
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("file", name, requestFile)
+    } catch (e: Exception) {
+        // 오류 발생 시 임시 파일 정리
+        file.delete()
+        throw e
+    }
+    // TODO: 업로드 완료 후 임시 파일 삭제 필요 (현재는 앱 재시작 시 OS가 정리)
 }
 
 private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {

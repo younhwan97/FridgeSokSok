@@ -23,4 +23,11 @@ class SharedViewModel @Inject constructor() : ViewModel() {
 
     fun setSelectedRecipe(recipe: RecipeModel) { _selectedRecipe.value = recipe }
     fun clearSelectedRecipe() { _selectedRecipe.value = null }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Bitmap 메모리 해제 (메모리 누수 방지)
+        _receipt.value?.recycle()
+        _receipt.value = null
+    }
 }

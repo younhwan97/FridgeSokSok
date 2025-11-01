@@ -61,8 +61,8 @@ class EditFoodViewModel @Inject constructor(
     private val _foodSaved = MutableSharedFlow<Unit>()
     val foodSaved = _foodSaved.asSharedFlow()
 
-    // 저장 중복 방지 플래그
-    private var isSaving = false
+    // 저장 중복 방지 플래그 (Thread-safe)
+    private val _isSaving = MutableStateFlow(false)
 
     /**
      * 음식 데이터 초기화
@@ -83,7 +83,7 @@ class EditFoodViewModel @Inject constructor(
      */
     fun saveFood() {
         // 중복 저장 방지
-        if (isSaving) {
+        if (_isSaving.value) {
             return
         }
 
@@ -97,7 +97,7 @@ class EditFoodViewModel @Inject constructor(
             return
         }
 
-        isSaving = true
+        _isSaving.value = true
 
         if (_isEditMode.value) {
             // 편집 모드: 서버 업데이트
@@ -106,6 +106,7 @@ class EditFoodViewModel @Inject constructor(
             // 추가 모드: 결과만 반환
             viewModelScope.launch {
                 _foodSaved.emit(Unit)
+                _isSaving.value = false
             }
         }
     }
@@ -168,6 +169,7 @@ class EditFoodViewModel @Inject constructor(
             when (result) {
                 is Resource.Success -> {
                     _state.value = EditFoodState.Success
+                    _isSaving.value = false
                     _foodSaved.emit(Unit)
                 }
                 is Resource.Loading -> {
@@ -175,6 +177,7 @@ class EditFoodViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     _errorMessage.emit(FOOD_UPDATE_FAILED)
+                    _isSaving.value = false
                     // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
                     _state.value = EditFoodState.Success
                 }
