@@ -59,7 +59,7 @@ class RecipeViewModel @Inject constructor(
         getRecipesUseCase().onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    _recipes.value = result.data!!.map { it.toPresentation() }.sortedByDescending { it.createdAt }
+                    _recipes.value = result.data?.map { it.toPresentation() }?.sortedByDescending { it.createdAt } ?: emptyList()
                     _state.value = RecipeState.Success
                 }
 

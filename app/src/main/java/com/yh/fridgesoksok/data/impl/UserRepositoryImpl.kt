@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.data.impl
 
 import com.yh.fridgesoksok.common.Channel
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.common.flowWithResource
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
@@ -14,8 +15,6 @@ import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.model.UserSetting
 import com.yh.fridgesoksok.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -125,20 +124,5 @@ class UserRepositoryImpl @Inject constructor(
     override fun updateApiUsage(apiUsages: List<ApiUsage>): Flow<Resource<Boolean>> =
         flowWithResource {
             localUserDataSource.updateApiUsage(apiUsages.map { it.toEntity() })
-        }
-
-    private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
-        flow {
-            emit(Resource.Loading())
-            try {
-                emit(Resource.Success(block()))
-            } catch (exception: Exception) {
-                val statusCode = if (exception is HttpException) {
-                    exception.code()
-                } else {
-                    null
-                }
-                emit(Resource.Error(message = exception.localizedMessage ?: "Unknown Error", status = statusCode))
-            }
         }
 }

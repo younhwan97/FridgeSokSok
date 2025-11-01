@@ -94,12 +94,14 @@ fun CameraScreen(
         ) {
             when {
                 capturedImageBitmap != null -> {
-                    CapturedImageView(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center),
-                        previewImage = capturedImageBitmap!!
-                    )
+                    capturedImageBitmap?.let { bitmap ->
+                        CapturedImageView(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.Center),
+                            previewImage = bitmap
+                        )
+                    }
                 }
 
                 else -> {

@@ -12,12 +12,14 @@ import com.yh.fridgesoksok.domain.usecase.UpdateUseAllIngredientsUseCase
 import com.yh.fridgesoksok.presentation.model.UserSettingModel
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,53 +63,46 @@ class AccountViewModel @Inject constructor(
     }
 
     fun updateReceiveNotification(enabled: Boolean?) {
-        if (enabled == null) return
-
-        updateReceiveNotificationUseCase(!enabled).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    val data = result.data
-                    if (data != null) {
-                        _userSetting.value = _userSetting.value?.copy(receiveNotification = data)
-                    }
-                }
-
-                is Resource.Loading -> Unit
-                is Resource.Error -> Unit
-            }
-        }.launchIn(viewModelScope)
+        updateUserSettingToggle(
+            enabled = enabled,
+            useCase = { updateReceiveNotificationUseCase(it) },
+            updateState = { data -> _userSetting.value?.copy(receiveNotification = data) }
+        )
     }
 
     fun updateAutoDeleteExpired(enabled: Boolean?) {
-        if (enabled == null) return
-
-        updateAutoDeleteExpiredUseCase(!enabled).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    val data = result.data
-                    if (data != null) {
-                        _userSetting.value = _userSetting.value?.copy(autoDeleteExpiredFoods = data)
-                    }
-                }
-
-                is Resource.Loading -> Unit
-                is Resource.Error -> Unit
-            }
-        }.launchIn(viewModelScope)
+        updateUserSettingToggle(
+            enabled = enabled,
+            useCase = { updateAutoDeleteExpiredUseCase(it) },
+            updateState = { data -> _userSetting.value?.copy(autoDeleteExpiredFoods = data) }
+        )
     }
 
     fun updateUseAllIngredients(enabled: Boolean?) {
+        updateUserSettingToggle(
+            enabled = enabled,
+            useCase = { updateUseAllIngredientsUseCase(it) },
+            updateState = { data -> _userSetting.value?.copy(useAllIngredients = data) }
+        )
+    }
+
+    /**
+     * 유저 설정 토글을 업데이트하는 공통 헬퍼 함수
+     */
+    private fun updateUserSettingToggle(
+        enabled: Boolean?,
+        useCase: (Boolean) -> Flow<Resource<Boolean>>,
+        updateState: (Boolean) -> UserSettingModel?
+    ) {
         if (enabled == null) return
 
-        updateUseAllIngredientsUseCase(!enabled).onEach { result ->
+        useCase(!enabled).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    val data = result.data
-                    if (data != null) {
-                        _userSetting.value = _userSetting.value?.copy(useAllIngredients = data)
+                    result.data?.let { data ->
+                        _userSetting.value = updateState(data)
                     }
                 }
-
                 is Resource.Loading -> Unit
                 is Resource.Error -> Unit
             }
@@ -132,22 +127,27 @@ class AccountViewModel @Inject constructor(
     }
 
     fun deleteUser() {
-        deleteUserUseCase().onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    if (result.data == true) {
-                        clearUserUseCase().onEach {
-                            // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
-                            _successServerRequest.emit(Unit)
-                        }.launchIn(viewModelScope)
-                    } else {
-                        _errorMessage.emit("회원탈퇴에 실패했어요 :(")
+        viewModelScope.launch {
+            deleteUserUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        if (result.data == true) {
+                            // 회원탈퇴 성공 후 순차적으로 로그아웃 처리
+                            clearUserUseCase().collect {
+                                // 로그아웃 성공여부와 상관없이, 서버에서 회원탈퇴 처리가 완료됐다면 true 셋팅
+                                if (it !is Resource.Loading) {
+                                    _successServerRequest.emit(Unit)
+                                }
+                            }
+                        } else {
+                            _errorMessage.emit("회원탈퇴에 실패했어요 :(")
+                        }
                     }
-                }
 
-                is Resource.Error -> _errorMessage.emit("회월탈퇴에 실패했어요 :(")
-                is Resource.Loading -> Unit
+                    is Resource.Error -> _errorMessage.emit("회원탈퇴에 실패했어요 :(")
+                    is Resource.Loading -> Unit
+                }
             }
-        }.launchIn(viewModelScope)
+        }
     }
 }

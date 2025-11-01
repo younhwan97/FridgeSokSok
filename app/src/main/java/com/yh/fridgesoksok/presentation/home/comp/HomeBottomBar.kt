@@ -106,9 +106,10 @@ private fun BottomNavigationBar(
                     .padding(vertical = 8.dp, horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                screen.selectedIcon?.let {
+                val iconRes = if (selected) screen.selectedIcon else screen.unselectedIcon
+                iconRes?.let {
                     Image(
-                        painter = painterResource(if (selected) screen.selectedIcon else screen.unselectedIcon!!),
+                        painter = painterResource(it),
                         contentDescription = null,
                         contentScale = ContentScale.None
                     )

@@ -45,21 +45,7 @@ fun RecipeDetailScreen(
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
 
-    if (recipe == null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "레시피를 읽어올 수 없습니다 :(",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    } else {
-        // 로컬 변수로 캡처하여 스마트 캐스트 가능하게 함
-        val currentRecipe = recipe!!
+    recipe?.let { currentRecipe ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,6 +91,18 @@ fun RecipeDetailScreen(
                     tint = Color.White
                 )
             }
+        }
+    } ?: run {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "레시피를 읽어올 수 없습니다 :(",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }

@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.data.impl
 
 import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.common.flowWithResource
 import com.yh.fridgesoksok.data.local.LocalFoodDataSource
 import com.yh.fridgesoksok.data.model.toDomain
 import com.yh.fridgesoksok.data.model.toEntity
@@ -11,8 +12,6 @@ import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import retrofit2.HttpException
 import javax.inject.Inject
 
 class FoodRepositoryImpl @Inject constructor(
@@ -63,20 +62,5 @@ class FoodRepositoryImpl @Inject constructor(
     override fun searchLocalFoods(keyword: String): Flow<Resource<List<LocalFood>>> =
         flowWithResource {
             localFoodDataSource.searchFoods(keyword).map { it.toDomain() }
-        }
-
-    private inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resource<T>> =
-        flow {
-            emit(Resource.Loading())
-            try {
-                emit(Resource.Success(block()))
-            } catch (exception: Exception) {
-                val statusCode = if (exception is HttpException) {
-                    exception.code()
-                } else {
-                    null
-                }
-                emit(Resource.Error(message = exception.localizedMessage ?: "Unknown Error", status = statusCode))
-            }
         }
 }
