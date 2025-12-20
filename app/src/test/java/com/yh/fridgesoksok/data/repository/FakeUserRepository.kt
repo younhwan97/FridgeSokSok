@@ -22,13 +22,24 @@ class FakeUserRepository : UserRepository {
         autoDeleteExpiredFoods = false
     )
     private var fcmToken: String = ""
-    private val apiUsages = mutableListOf<ApiUsage>()
+    private val apiUsages = mutableListOf(
+        ApiUsage(
+            feature = "KAKAO",
+            max = 100,
+            used = 10
+        ),
+        ApiUsage(
+            feature = "NAVER",
+            max = 50,
+            used = 5
+        )
+    )
     private val messages = mutableListOf<String>()
 
     override fun getServerStatus(): Flow<Resource<ServerStatus>> {
         val status = ServerStatus(
             version = "1.0.0",
-            status = "running",
+            status = "UP",
             time = "2025-01-01T00:00:00",
             startTime = "2025-01-01T00:00:00"
         )
@@ -36,33 +47,53 @@ class FakeUserRepository : UserRepository {
     }
 
     override fun loadUser(): User {
-        return currentUser ?: User(
-            id = "",
-            accessToken = "",
-            refreshToken = "",
-            username = "",
-            accountType = "",
-            defaultFridgeId = ""
-        )
+        // If no user is set, return a default test user for OnboardingViewModel
+        // If user was explicitly cleared, currentUser will be null and we return empty user
+        return currentUser ?: if (wasCleared) {
+            User(
+                id = "",
+                accessToken = "",
+                refreshToken = "",
+                username = "",
+                accountType = "",
+                defaultFridgeId = ""
+            )
+        } else {
+            // Default test user for OnboardingViewModel
+            User(
+                id = "test-user-id",
+                accessToken = "test-access-token",
+                refreshToken = "test-refresh-token",
+                username = "Test User",
+                accountType = "GUEST",
+                defaultFridgeId = "test-fridge-id"
+            )
+        }
     }
+
+    private var wasCleared = false
 
     override fun saveUser(user: User): Flow<Resource<Boolean>> {
         currentUser = user
+        wasCleared = false
         return flow { emit(Resource.Success(true)) }
     }
 
     override fun updateUser(user: User): Flow<Resource<Boolean>> {
         currentUser = user
+        wasCleared = false
         return flow { emit(Resource.Success(true)) }
     }
 
     override fun clearUser(): Flow<Resource<Boolean>> {
         currentUser = null
+        wasCleared = true
         return flow { emit(Resource.Success(true)) }
     }
 
     override fun deleteUser(): Flow<Resource<Boolean>> {
         currentUser = null
+        wasCleared = true
         return flow { emit(Resource.Success(true)) }
     }
 

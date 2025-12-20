@@ -29,6 +29,6 @@ class GetServerStatusUseCaseTest {
         val status = (result as Resource.Success).data
         assertNotNull(status)
         assertEquals("1.0.0", status?.version)
-        assertEquals("running", status?.status)
+        assertEquals("UP", status?.status)
     }
 }

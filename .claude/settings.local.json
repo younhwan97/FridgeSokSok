@@ -5,7 +5,15 @@
       "Bash(./gradlew build:*)",
       "Bash(./gradlew assembleDebug:*)",
       "Bash(./gradlew.bat:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(adb devices:*)",
+      "Bash(ls:*)",
+      "Bash(for:*)",
+      "Bash(do grep -o 'tests=\"\"[0-9]*\"\"' \"$file\")",
+      "Bash(done)",
+      "Bash(./gradlew testDebugUnitTest:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

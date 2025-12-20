@@ -15,9 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
@@ -43,7 +40,6 @@ fun FridgeScreen(
     homeViewModel: HomeViewModel
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     // ViewModel 상태 구독
     val state by viewModel.state.collectAsState()
@@ -52,11 +48,9 @@ fun FridgeScreen(
     val filteredFoods by viewModel.filteredFoods.collectAsState() // 필터링된 음식 목록 (검색어 + 타입 필터 기준)
     val selectedFoods by viewModel.selectedFoods.collectAsState() // 선택된 음식 목록 (레시피 생성 시 사용)
 
-    // 화면 재진입 시 데이터 로드
-    LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.loadFoods()
-        }
+    // 화면 최초 진입 시 데이터 로드
+    LaunchedEffect(Unit) {
+        viewModel.loadFoods()
     }
 
     // HomeViewModel 트리거 및 이벤트 구독 (병렬 처리)

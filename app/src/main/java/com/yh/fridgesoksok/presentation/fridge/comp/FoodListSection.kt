@@ -91,32 +91,41 @@ private fun FoodListContent(
     onClickMinus: (FoodModel) -> Unit,
     onClickPlus: (FoodModel) -> Unit
 ) {
-    LazyVerticalGrid(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 28.dp, start = 16.dp, end = 16.dp)
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 60.dp)
-    ) {
-        items(
-            items = foods,
-            key = { it.id }
-        ) { food ->
-            FoodListItem(
-                modifier = Modifier,
-                mode = mode,
-                food = food,
-                isSelected = selectedFoods.contains(food),
-                onClick = {
-                    if (mode == HomeUiMode.RECIPE_SELECT) onFoodSelectToggle(food)
-                    else onClickFood(food)
-                },
-                onClickMinus = onClickMinus,
-                onClickPlus = onClickPlus,
-            )
+    // Empty State 표시
+    if (foods.isEmpty()) {
+        FridgeEmptyState(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 28.dp, start = 16.dp, end = 16.dp)
+        )
+    } else {
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 28.dp, start = 16.dp, end = 16.dp)
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(bottom = 60.dp)
+        ) {
+            items(
+                items = foods,
+                key = { it.id }
+            ) { food ->
+                FoodListItem(
+                    modifier = Modifier,
+                    mode = mode,
+                    food = food,
+                    isSelected = selectedFoods.contains(food),
+                    onClick = {
+                        if (mode == HomeUiMode.RECIPE_SELECT) onFoodSelectToggle(food)
+                        else onClickFood(food)
+                    },
+                    onClickMinus = onClickMinus,
+                    onClickPlus = onClickPlus,
+                )
+            }
         }
     }
 }
