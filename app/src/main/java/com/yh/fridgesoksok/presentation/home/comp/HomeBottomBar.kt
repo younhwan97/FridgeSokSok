@@ -147,7 +147,7 @@ private fun GenerateRecipeBar(
             .padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 자동으로 생성하기 버튼
+        // 알아서 생성 버튼
         Button(
             modifier = Modifier.weight(1f),
             onClick = onClickGenerateRecipeFromFridge,
@@ -178,7 +178,7 @@ private fun GenerateRecipeBar(
 
                 else -> {
                     Text(
-                        text = "자동으로 생성",
+                        text = "알아서 생성",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -186,7 +186,7 @@ private fun GenerateRecipeBar(
             }
         }
 
-        // 레시피 생성하기 버튼
+        // 골라서 생성 버튼
         Button(
             modifier = Modifier.weight(1f),
             onClick = onClickGenerateRecipe,
@@ -217,7 +217,7 @@ private fun GenerateRecipeBar(
 
                 else -> {
                     Text(
-                        text = "레시피 생성",
+                        text = "골라서 생성",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                     )

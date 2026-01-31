@@ -139,6 +139,18 @@ class RecipeViewModelTest {
             return flow { emit(Resource.Success(recipes.first())) }
         }
 
+        override fun createRecipeFromFridge(): Flow<Resource<Recipe>> {
+            return flow { emit(Resource.Success(recipes.firstOrNull() ?: Recipe(
+                id = "auto-id",
+                recipeImageUrl = "",
+                recipeName = "자동 생성 레시피",
+                recipeContent = "내용",
+                ingredients = emptyList(),
+                ingredientTypes = emptyList(),
+                createdAt = "2025-01-01"
+            ))) }
+        }
+
         override fun getRecipes(): Flow<Resource<List<Recipe>>> {
             return flow {
                 if (shouldReturnError) {
