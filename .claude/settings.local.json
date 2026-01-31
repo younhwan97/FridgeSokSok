@@ -13,7 +13,9 @@
       "Bash(do grep -o 'tests=\"\"[0-9]*\"\"' \"$file\")",
       "Bash(done)",
       "Bash(./gradlew testDebugUnitTest:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(.gradlew build:*)",
+      "Bash(gradlew.bat build:*)"
     ],
     "deny": [],
     "ask": []

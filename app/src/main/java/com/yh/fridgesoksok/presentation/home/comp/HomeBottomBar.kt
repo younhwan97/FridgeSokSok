@@ -48,6 +48,7 @@ fun HomeBottomBar(
     recipeGenerationState: RecipeGenerationState,
     isRecipeGenerationAvailable: Boolean = false,
     onClickGenerateRecipe: () -> Unit = {},
+    onClickGenerateRecipeFromFridge: () -> Unit = {},
 ) {
     Surface(
         Modifier
@@ -64,7 +65,12 @@ fun HomeBottomBar(
                 BottomNavigationBar(currentRoute, homeNavController)
 
             currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT ->
-                GenerateRecipeBar(onClickGenerateRecipe, recipeGenerationState, isRecipeGenerationAvailable)
+                GenerateRecipeBar(
+                    onClickGenerateRecipe = onClickGenerateRecipe,
+                    onClickGenerateRecipeFromFridge = onClickGenerateRecipeFromFridge,
+                    recipeGenerationState = recipeGenerationState,
+                    isRecipeGenerationAvailable = isRecipeGenerationAvailable
+                )
 
             currentRoute == Screen.RecipeTab.route ->
                 BottomNavigationBar(currentRoute, homeNavController)
@@ -131,43 +137,91 @@ private fun BottomNavigationBar(
 @Composable
 private fun GenerateRecipeBar(
     onClickGenerateRecipe: () -> Unit,
+    onClickGenerateRecipeFromFridge: () -> Unit,
     recipeGenerationState: RecipeGenerationState,
     isRecipeGenerationAvailable: Boolean
 ) {
-    Button(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        onClick = onClickGenerateRecipe,
-        shape = RoundedCornerShape(12.dp),
-        enabled = recipeGenerationState != RecipeGenerationState.Loading && isRecipeGenerationAvailable,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = Color.White,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.66f),
-            disabledContentColor = Color.White.copy(alpha = 0.8f)
-        )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        when {
-            recipeGenerationState == RecipeGenerationState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp,
-                )
-            }
+        // 자동으로 생성하기 버튼
+        Button(
+            modifier = Modifier.weight(1f),
+            onClick = onClickGenerateRecipeFromFridge,
+            shape = RoundedCornerShape(12.dp),
+            enabled = recipeGenerationState != RecipeGenerationState.Loading && isRecipeGenerationAvailable,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.66f),
+                disabledContentColor = Color.White.copy(alpha = 0.8f)
+            )
+        ) {
+            when {
+                recipeGenerationState == RecipeGenerationState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
 
-            !isRecipeGenerationAvailable -> {
-                Text(
-                    text = "오늘의 생성한도 초과",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
+                !isRecipeGenerationAvailable -> {
+                    Text(
+                        text = "한도 초과",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
 
-            else -> {
-                Text(
-                    text = "레시피 생성하기",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                else -> {
+                    Text(
+                        text = "자동으로 생성",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
+
+        // 레시피 생성하기 버튼
+        Button(
+            modifier = Modifier.weight(1f),
+            onClick = onClickGenerateRecipe,
+            shape = RoundedCornerShape(12.dp),
+            enabled = recipeGenerationState != RecipeGenerationState.Loading && isRecipeGenerationAvailable,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.66f),
+                disabledContentColor = Color.White.copy(alpha = 0.8f)
+            )
+        ) {
+            when {
+                recipeGenerationState == RecipeGenerationState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+
+                !isRecipeGenerationAvailable -> {
+                    Text(
+                        text = "한도 초과",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                else -> {
+                    Text(
+                        text = "레시피 생성",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }

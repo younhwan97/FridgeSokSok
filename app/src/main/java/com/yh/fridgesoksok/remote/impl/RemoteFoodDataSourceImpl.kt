@@ -86,10 +86,11 @@ class RemoteFoodDataSourceImpl @Inject constructor(
     }
 
     override suspend fun uploadReceiptImage(img: Bitmap): List<ReceiptEntity> {
+        val tempFile = File.createTempFile("receipt_", ".jpg")
         return try {
             Logger.d("RemoteFoodData", "uploadReceipt INPUT $img")
             val resized = resizeBitmap(img, 1080, 1080)
-            val part = bitmapToMultipart(resized)
+            val part = bitmapToMultipart(resized, tempFile)
             // 리사이즈된 Bitmap은 파일로 저장 후 더 이상 필요 없으므로 메모리 해제
             resized.recycle()
             val response = fridgeApiService.uploadReceiptImage(part)
@@ -98,13 +99,14 @@ class RemoteFoodDataSourceImpl @Inject constructor(
         } catch (e: Exception) {
             Logger.e("RemoteFoodData", "uploadReceipt 실패", e)
             throw e
+        } finally {
+            // 업로드 성공/실패 여부와 관계없이 임시 파일 삭제
+            tempFile.delete()
         }
     }
 }
 
-private fun bitmapToMultipart(bitmap: Bitmap, name: String = "image.jpg"): MultipartBody.Part {
-    val file = File.createTempFile("temp", ".jpg")
-
+private fun bitmapToMultipart(bitmap: Bitmap, file: File, name: String = "image.jpg"): MultipartBody.Part {
     try {
         // use 블록으로 자동 close 보장
         FileOutputStream(file).use { outputStream ->
@@ -119,7 +121,6 @@ private fun bitmapToMultipart(bitmap: Bitmap, name: String = "image.jpg"): Multi
         file.delete()
         throw e
     }
-    // TODO: 업로드 완료 후 임시 파일 삭제 필요 (현재는 앱 재시작 시 OS가 정리)
 }
 
 private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {

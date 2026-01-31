@@ -93,6 +93,10 @@ class MockApiService(
         TODO("Not yet implemented")
     }
 
+    override suspend fun createRecipeFromFridge(): CommonResponse<RecipeResponse> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getFoods(fridgeId: String): CommonResponse<List<FoodResponse>> {
         val gson = GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")

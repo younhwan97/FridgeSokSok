@@ -125,7 +125,8 @@ fun HomeScreen(
                 homeNavController = homeNavController,
                 recipeGenerationState = recipeGenerationState,
                 isRecipeGenerationAvailable = isRecipeGenerationAvailable,
-                onClickGenerateRecipe = homeViewModel::triggerGenerateRecipe
+                onClickGenerateRecipe = homeViewModel::triggerGenerateRecipe,
+                onClickGenerateRecipeFromFridge = homeViewModel::triggerGenerateRecipeFromFridge
             )
         },
         floatingActionButton = {

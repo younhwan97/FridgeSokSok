@@ -28,6 +28,18 @@ class RemoteRecipeDataSourceImpl @Inject constructor(
         }
     }
 
+    override suspend fun createRecipeFromFridge(): RecipeEntity {
+        return try {
+            Logger.d("RemoteRecipeData", "createRecipeFromFridge")
+            val response = fridgeApiService.createRecipeFromFridge()
+            val data = response.data ?: throw IllegalStateException("createRecipeFromFridge data(=null)")
+            data.toEntity()
+        } catch (e: Exception) {
+            Logger.e("RemoteRecipeData", "createRecipeFromFridge 실패", e)
+            throw e
+        }
+    }
+
     override suspend fun getRecipes(): List<RecipeEntity> {
         return try {
             Logger.d("RemoteRecipeData", "getRecipes")

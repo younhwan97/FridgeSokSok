@@ -152,6 +152,10 @@ interface FridgeApiService {
         @Body recipeRequest: RecipeRequest
     ): CommonResponse<RecipeResponse>
 
+    @Headers("Content-Type: application/json")
+    @POST("recipes/from-fridge")
+    suspend fun createRecipeFromFridge(): CommonResponse<RecipeResponse>
+
     @GET("recipes")
     suspend fun getRecipes(): CommonResponse<List<RecipeResponse>>
 

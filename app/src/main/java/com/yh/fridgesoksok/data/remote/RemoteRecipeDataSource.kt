@@ -7,6 +7,8 @@ interface RemoteRecipeDataSource {
 
     suspend fun createRecipe(foods: Collection<FoodEntity>): RecipeEntity
 
+    suspend fun createRecipeFromFridge(): RecipeEntity
+
     suspend fun getRecipes(): List<RecipeEntity>
 
     suspend fun deleteRecipe(recipeId: String): Boolean

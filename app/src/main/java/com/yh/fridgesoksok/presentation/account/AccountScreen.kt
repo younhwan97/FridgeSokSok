@@ -114,6 +114,7 @@ fun AccountScreen(
             }
 
             // 레시피 섹션
+            /*
             SettingSection(Constants.RECIPE) {
                 SettingSwitchRow(
                     label = "레시피 생성시 모든재료 사용",
@@ -123,6 +124,7 @@ fun AccountScreen(
                     viewModel.updateUseAllIngredients(userSetting?.useAllIngredients)
                 }
             }
+            */
 
             // 서비스 섹션
             SettingSection(Constants.SERVICE) {

@@ -38,6 +38,10 @@ class HomeViewModel @Inject constructor(
     private val _generateRecipeTrigger = MutableSharedFlow<Unit>()
     val generateRecipeTrigger = _generateRecipeTrigger.asSharedFlow()
 
+    // 자동 레시피 생성 트리거 (FridgeViewModel에게 전달)
+    private val _generateRecipeFromFridgeTrigger = MutableSharedFlow<Unit>()
+    val generateRecipeFromFridgeTrigger = _generateRecipeFromFridgeTrigger.asSharedFlow()
+
     // 레시피 생성 상태 (FridgeViewModel에서 보고받음)
     private val _recipeGenerationState = MutableStateFlow<RecipeGenerationState>(RecipeGenerationState.Idle)
     val recipeGenerationState = _recipeGenerationState.asStateFlow()
@@ -91,6 +95,15 @@ class HomeViewModel @Inject constructor(
     fun triggerGenerateRecipe() {
         viewModelScope.launch {
             _generateRecipeTrigger.emit(Unit)
+        }
+    }
+
+    /**
+     * 자동 레시피 생성 트리거 (FridgeViewModel에게 전달)
+     */
+    fun triggerGenerateRecipeFromFridge() {
+        viewModelScope.launch {
+            _generateRecipeFromFridgeTrigger.emit(Unit)
         }
     }
 

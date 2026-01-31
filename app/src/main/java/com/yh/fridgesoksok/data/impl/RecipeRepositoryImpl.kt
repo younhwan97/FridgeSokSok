@@ -20,6 +20,11 @@ class RecipeRepositoryImpl @Inject constructor(
             remoteRecipeDataSource.createRecipe(foods.map { it.toEntity() }).toDomain()
         }
 
+    override fun createRecipeFromFridge(): Flow<Resource<Recipe>> =
+        flowWithResource {
+            remoteRecipeDataSource.createRecipeFromFridge().toDomain()
+        }
+
     override fun getRecipes(): Flow<Resource<List<Recipe>>> =
         flowWithResource {
             remoteRecipeDataSource.getRecipes().map { it.toDomain() }

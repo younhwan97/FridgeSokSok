@@ -79,6 +79,16 @@ fun FridgeScreen(
             }
         }
 
+        // 자동 레시피 생성 트리거
+        launch {
+            homeViewModel.generateRecipeFromFridgeTrigger.collect {
+                // FridgeViewModel의 generateRecipeFromFridge 호출하면서 상태 변경을 HomeViewModel에 보고
+                viewModel.generateRecipeFromFridge { state ->
+                    homeViewModel.updateRecipeGenerationState(state)
+                }
+            }
+        }
+
         // 레시피 생성 결과 처리
         launch {
             viewModel.recipeGenerationEvent.collect { event ->

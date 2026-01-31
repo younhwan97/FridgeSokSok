@@ -9,6 +9,8 @@ interface RecipeRepository {
 
     fun createRecipe(foods: Collection<Food>): Flow<Resource<Recipe>>
 
+    fun createRecipeFromFridge(): Flow<Resource<Recipe>>
+
     fun getRecipes(): Flow<Resource<List<Recipe>>>
 
     fun deleteRecipe(recipeId: String): Flow<Resource<Boolean>>

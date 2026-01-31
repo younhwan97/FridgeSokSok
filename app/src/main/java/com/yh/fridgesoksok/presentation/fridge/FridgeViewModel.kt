@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.CreateRecipeFromFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateRecipeUseCase
 import com.yh.fridgesoksok.domain.usecase.DeleteFoodUseCase
 import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
@@ -38,7 +39,8 @@ class FridgeViewModel @Inject constructor(
     private val updateFoodUseCase: UpdateFoodUseCase,
     private val deleteFoodUseCase: DeleteFoodUseCase,
     private val loadUserUseCase: LoadUserUseCase,
-    private val createRecipeUseCase: CreateRecipeUseCase
+    private val createRecipeUseCase: CreateRecipeUseCase,
+    private val createRecipeFromFridgeUseCase: CreateRecipeFromFridgeUseCase
 ) : ViewModel() {
 
     // 화면 상태
@@ -110,6 +112,50 @@ class FridgeViewModel @Inject constructor(
                         onStateChange(RecipeGenerationState.Idle)
                         // 선택 초기화
                         _selectedFoods.value = emptySet()
+
+                        viewModelScope.launch {
+                            _recipeGenerationEvent.emit(RecipeGenerationEvent.Success)
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        // Idle 상태로 복귀 알림
+                        onStateChange(RecipeGenerationState.Idle)
+
+                        val errorMessage = when (result.status) {
+                            HTTP_TOO_MANY_REQUESTS -> RECIPE_GENERATION_QUOTA_EXCEEDED
+                            else -> result.message ?: RECIPE_GENERATION_FAILED
+                        }
+
+                        viewModelScope.launch {
+                            _recipeGenerationEvent.emit(
+                                RecipeGenerationEvent.Error(errorMessage)
+                            )
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        // Loading 상태 유지 알림
+                        onStateChange(RecipeGenerationState.Loading)
+                    }
+                }
+            }.launchIn(viewModelScope)
+    }
+
+    /**
+     * 냉장고 재료 자동 선택 레시피 생성
+     * @param onStateChange 상태 변경 시 HomeViewModel에 알림
+     */
+    fun generateRecipeFromFridge(onStateChange: (RecipeGenerationState) -> Unit) {
+        // Loading 상태 알림
+        onStateChange(RecipeGenerationState.Loading)
+
+        createRecipeFromFridgeUseCase()
+            .onEach { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        // Idle 상태로 복귀 알림
+                        onStateChange(RecipeGenerationState.Idle)
 
                         viewModelScope.launch {
                             _recipeGenerationEvent.emit(RecipeGenerationEvent.Success)
