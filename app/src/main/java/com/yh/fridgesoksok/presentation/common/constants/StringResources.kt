@@ -15,6 +15,7 @@ object StringResources {
         const val RECEIPT_RECOGNITION_FAILED = "영수증을 인식하지 못했어요 :("
         const val RECEIPT_QUOTA_EXCEEDED = "영수증 인식 횟수를 모두 소진하였습니다."
         const val FOOD_ADD_FAILED = "식품 추가에 실패했어요. 다시 시도해주세요."
+        const val EXPIRY_INPUT_REQUIRED = "소비기한을 찾지 못한 식품이 있어요. 눌러서 직접 입력해주세요."
 
         const val FOOD_NAME_REQUIRED = "식품 이름을 입력해주세요"
         const val FOOD_UPDATE_FAILED = "변경에 실패했어요. 다시 시도해주세요."

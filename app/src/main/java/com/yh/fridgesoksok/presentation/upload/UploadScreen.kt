@@ -102,7 +102,8 @@ fun UploadScreen(
         bottomBar = {
             UploadBottomButton(
                 uploadState = uploadState,
-                enabled = newFoods.isNotEmpty() && canTrigger,
+                // 소비기한 확인이 필요한 항목이 남아 있으면 추가 불가
+                enabled = newFoods.isNotEmpty() && newFoods.none { it.needsExpiryInput } && canTrigger,
                 onClick = {
                     viewModel.addFoods()
                 }
@@ -150,4 +151,4 @@ private fun navigateToEditFood(
         set(KEY_SOURCE, SOURCE_UPLOAD)
     }
     navController.navigate(Screen.EditFoodScreen.route)
-}
+}

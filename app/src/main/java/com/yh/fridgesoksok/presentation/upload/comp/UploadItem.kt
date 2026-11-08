@@ -34,6 +34,7 @@ import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import com.yh.fridgesoksok.presentation.common.extension.toFormattedDate
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
+import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor2
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor7
@@ -113,10 +114,14 @@ fun UploadItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "소비기한 ${food.expiryDate.toFormattedDate(DateFormatter.yyyyMMddDot)}",
+                        text = if (food.needsExpiryInput) {
+                            "소비기한 입력 필요"
+                        } else {
+                            "소비기한 ${food.expiryDate.toFormattedDate(DateFormatter.yyyyMMddDot)}"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Normal,
-                        color = CustomGreyColor5,
+                        color = if (food.needsExpiryInput) CustomErrorColor else CustomGreyColor5,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -178,4 +183,4 @@ fun UploadItem(
             )
         }
     }
-}
+}

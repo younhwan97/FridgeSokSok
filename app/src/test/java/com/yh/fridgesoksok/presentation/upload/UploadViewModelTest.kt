@@ -10,6 +10,7 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 
@@ -71,5 +72,29 @@ class UploadViewModelTest {
 
         assertEquals(1, viewModel.newFoods.value.size)
         assertEquals("사과", viewModel.newFoods.value.first().itemName)
+    }
+
+    @Test
+    fun `편집 화면을 거친 항목은 소비기한 입력 필요 표시가 해제되어야 한다`() {
+        // Given: 미매칭 항목이 목록에 있음
+        val unmatched = FoodModel(
+            id = "receipt-1",
+            itemName = "삼다수",
+            count = 2,
+            expiryDate = "20261108",
+            categoryId = 1,
+            fridgeId = "",
+            createdAt = "20261108",
+            needsExpiryInput = true
+        )
+        viewModel.addOrUpdateFood(unmatched)
+
+        // When: 편집 화면에서 날짜를 정하고 돌아옴
+        viewModel.addOrUpdateFood(unmatched.copy(expiryDate = "20271108"))
+
+        // Then
+        val food = viewModel.newFoods.value.single()
+        assertEquals("20271108", food.expiryDate)
+        assertFalse(food.needsExpiryInput)
     }
 }
