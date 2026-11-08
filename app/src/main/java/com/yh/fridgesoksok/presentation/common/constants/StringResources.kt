@@ -23,6 +23,11 @@ object StringResources {
         const val FOOD_LOAD_FAILED = "식품을 불러오는데 실패했어요."
 
         const val RECIPE_LOAD_FAILED = "레시피를 읽어올 수 없습니다 :("
+
+        const val LOGIN_FAILED = "로그인에 실패했어요. 잠시 후 다시 시도해주세요."
+        const val LOGIN_TOO_MANY_REQUESTS = "로그인 요청이 너무 많아요. 잠시 후 다시 시도하거나 카카오·네이버로 로그인해주세요."
+        const val NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해주세요."
+        const val SERVER_ERROR = "서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요."
     }
 
     // 확인 다이얼로그 메시지

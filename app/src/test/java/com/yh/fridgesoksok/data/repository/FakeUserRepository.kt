@@ -36,6 +36,16 @@ class FakeUserRepository : UserRepository {
     )
     private val messages = mutableListOf<String>()
 
+    // 테스트용 실패 주입 및 호출 횟수 기록
+    var channelLoginError: Resource.Error<User>? = null
+    var reissueError: Resource.Error<Token>? = null
+    var validateCallCount = 0
+        private set
+    var reissueCallCount = 0
+        private set
+    var defaultFridgeCallCount = 0
+        private set
+
     override fun getServerStatus(): Flow<Resource<ServerStatus>> {
         val status = ServerStatus(
             version = "1.0.0",
@@ -98,6 +108,7 @@ class FakeUserRepository : UserRepository {
     }
 
     override fun createUserOnChannel(channel: Channel): Flow<Resource<User>> {
+        channelLoginError?.let { error -> return flow { emit(error) } }
         val user = User(
             id = UUID.randomUUID().toString(),
             accessToken = "test-access-token",
@@ -116,11 +127,14 @@ class FakeUserRepository : UserRepository {
     }
 
     override fun validateUserToken(refreshToken: String): Flow<Resource<Boolean>> {
+        validateCallCount++
         val isValid = refreshToken.isNotEmpty()
         return flow { emit(Resource.Success(isValid)) }
     }
 
     override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> {
+        reissueCallCount++
+        reissueError?.let { error -> return flow { emit(error) } }
         val token = Token(
             accessToken = "new-access-token",
             refreshToken = "new-refresh-token"
@@ -129,6 +143,7 @@ class FakeUserRepository : UserRepository {
     }
 
     override fun getUserDefaultFridge(accessToken: String): Flow<Resource<Fridge>> {
+        defaultFridgeCallCount++
         val fridge = Fridge(
             id = "fridge-1",
             fridgeName = "My Fridge",

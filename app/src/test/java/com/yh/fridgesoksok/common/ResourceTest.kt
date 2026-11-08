@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 import retrofit2.HttpException
 import retrofit2.Response
 
@@ -177,5 +178,14 @@ class ResourceTest {
         // Then
         assertEquals(cachedData, resourceWithData.data)
         assertEquals(null, resourceWithoutData.data)
+    }
+
+    @Test
+    fun `flowWithResource는 네트워크 오류와 사용자 취소를 상태값으로 구분해야 한다`() = runBlocking {
+        val network = flowWithResource<String> { throw IOException("timeout") }.toList().last()
+        val cancelled = flowWithResource<String> { throw UserCancelledException() }.toList().last()
+
+        assertEquals(Resource.STATUS_NETWORK_ERROR, (network as Resource.Error).status)
+        assertEquals(Resource.STATUS_CANCELLED, (cancelled as Resource.Error).status)
     }
 }
