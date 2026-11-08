@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.presentation
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
+import com.yh.fridgesoksok.common.SessionEvents
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class SharedViewModel @Inject constructor() : ViewModel() {
+class SharedViewModel @Inject constructor(
+    sessionEvents: SessionEvents
+) : ViewModel() {
+    // ✅ 세션 만료 이벤트 (리프레시 토큰 만료 → 로그인 화면 이동)
+    val sessionExpired = sessionEvents.expired
+
     // ✅ Receipt 이미지 관리 (Camera -> Upload)
     private val _receipt = MutableStateFlow<Bitmap?>(null)
     val receipt = _receipt.asStateFlow()
@@ -30,4 +36,4 @@ class SharedViewModel @Inject constructor() : ViewModel() {
         _receipt.value?.recycle()
         _receipt.value = null
     }
-}
+}

@@ -9,6 +9,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -35,6 +36,17 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 // 전역 뷰모델 (Activity-Scoped ViewModel)
                 val activityViewModel: SharedViewModel = hiltViewModel()
+
+                // 세션 만료 시 백스택을 비우고 로그인 화면으로 이동
+                LaunchedEffect(Unit) {
+                    activityViewModel.sessionExpired.collect {
+                        if (navController.currentDestination?.route == Screen.LoginScreen.route) return@collect
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -77,4 +89,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
+}

@@ -1,14 +1,21 @@
 package com.yh.fridgesoksok.remote.api
 
-import com.yh.fridgesoksok.data.local.LocalUserDataSource
-import com.yh.fridgesoksok.data.model.ApiUsageEntity
+import com.yh.fridgesoksok.common.SessionEvents
 import com.yh.fridgesoksok.data.model.UserEntity
 import com.yh.fridgesoksok.remote.model.CommonResponse
 import com.yh.fridgesoksok.remote.model.TokenResponse
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Timeout
+import java.io.IOException
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -19,13 +26,15 @@ class TokenAuthenticatorTest {
 
     private lateinit var localUserDataSource: FakeLocalUserDataSource
     private lateinit var authApiService: FakeAuthApiService
+    private lateinit var sessionEvents: SessionEvents
     private lateinit var authenticator: TokenAuthenticator
 
     @Before
     fun setUp() {
         localUserDataSource = FakeLocalUserDataSource()
         authApiService = FakeAuthApiService()
-        authenticator = TokenAuthenticator(localUserDataSource, authApiService)
+        sessionEvents = SessionEvents()
+        authenticator = TokenAuthenticator(localUserDataSource, authApiService, sessionEvents)
     }
 
     @Test
@@ -110,6 +119,62 @@ class TokenAuthenticatorTest {
         assertNull(retry)
     }
 
+    @Test
+    fun `리프레시 토큰이 거부되면 토큰을 지우고 세션 만료 이벤트를 발행해야 한다`() = runBlocking {
+        // Given
+        localUserDataSource.user = userWith(accessToken = "old-access", refreshToken = "expired-refresh")
+        authApiService.errorCode = 400
+        val expired = async(start = CoroutineStart.UNDISPATCHED) {
+            withTimeoutOrNull(1000) { sessionEvents.expired.first() }
+        }
+
+        // When
+        val retry = authenticator.authenticate(null, unauthorized(request("foods/fridge/1", "old-access")))
+
+        // Then
+        assertNull(retry)
+        assertEquals("", localUserDataSource.user.accessToken)
+        assertEquals("", localUserDataSource.user.refreshToken)
+        assertNotNull(expired.await())
+    }
+
+    @Test
+    fun `재발급 요청 중 다른 경로에서 토큰이 회전되었다면 세션을 종료하지 않아야 한다`() {
+        // Given: 재발급 요청 도중 온보딩이 새 토큰을 저장한 상황
+        localUserDataSource.user = userWith(accessToken = "old-access", refreshToken = "old-refresh")
+        authApiService.errorCode = 400
+        authApiService.onCall = {
+            localUserDataSource.user = userWith(accessToken = "rotated-access", refreshToken = "rotated-refresh")
+        }
+
+        // When
+        val retry = authenticator.authenticate(null, unauthorized(request("foods/fridge/1", "old-access")))
+
+        // Then
+        assertEquals("Bearer rotated-access", retry?.header("Authorization"))
+        assertEquals("rotated-refresh", localUserDataSource.user.refreshToken)
+    }
+
+    @Test
+    fun `네트워크 오류나 서버 오류는 세션을 종료하지 않아야 한다`() {
+        // Given
+        localUserDataSource.user = userWith(accessToken = "old-access", refreshToken = "refresh")
+
+        // When: 네트워크 오류
+        authApiService.networkError = IOException("timeout")
+        val networkRetry = authenticator.authenticate(null, unauthorized(request("foods/fridge/1", "old-access")))
+
+        // When: 서버 오류
+        authApiService.networkError = null
+        authApiService.errorCode = 500
+        val serverRetry = authenticator.authenticate(null, unauthorized(request("foods/fridge/1", "old-access")))
+
+        // Then
+        assertNull(networkRetry)
+        assertNull(serverRetry)
+        assertEquals("refresh", localUserDataSource.user.refreshToken)
+    }
+
     private fun request(path: String, token: String): Request =
         Request.Builder()
             .url("https://soksok.io/api/$path")
@@ -134,42 +199,33 @@ class TokenAuthenticatorTest {
         defaultFridgeId = "fridge-1"
     )
 
-    private class FakeLocalUserDataSource : LocalUserDataSource {
-        var user = UserEntity("", "", "", "", "", "")
-
-        override fun loadUser(): UserEntity = user
-        override suspend fun saveUser(userEntity: UserEntity): Boolean = true.also { user = userEntity }
-        override suspend fun updateUser(userEntity: UserEntity): Boolean = true.also { user = userEntity }
-        override suspend fun clearUser(): Boolean = true
-        override fun updateTokens(accessToken: String, refreshToken: String): Boolean {
-            user = user.copy(accessToken = accessToken, refreshToken = refreshToken)
-            return true
-        }
-        override suspend fun updateUserFcmToken(fcmToken: String): Boolean = true
-        override fun getUserFcmToken(): String = ""
-        override suspend fun updateApiUsage(apiUsages: List<ApiUsageEntity>): Boolean = true
-        override fun getApiUsage(feature: String): ApiUsageEntity = ApiUsageEntity(feature, 0, 0)
-    }
-
     private class FakeAuthApiService : AuthApiService {
         var token: TokenResponse? = null
+        var errorCode: Int? = null
+        var networkError: IOException? = null
+        var onCall: () -> Unit = {}
         var lastRefreshHeader: String? = null
         var callCount = 0
 
         override fun reissueToken(refreshToken: String): Call<CommonResponse<TokenResponse>> {
             callCount++
             lastRefreshHeader = refreshToken
-            return FakeCall(CommonResponse(message = "", data = token, status = 200))
+            onCall()
+            networkError?.let { error -> return FakeCall { throw error } }
+            errorCode?.let { code ->
+                return FakeCall { retrofit2.Response.error(code, "{}".toResponseBody("application/json".toMediaType())) }
+            }
+            return FakeCall { retrofit2.Response.success(CommonResponse(message = "", data = token, status = 200)) }
         }
     }
 
-    private class FakeCall<T>(private val body: T) : Call<T> {
-        override fun execute(): retrofit2.Response<T> = retrofit2.Response.success(body)
+    private class FakeCall<T>(private val result: () -> retrofit2.Response<T>) : Call<T> {
+        override fun execute(): retrofit2.Response<T> = result()
         override fun enqueue(callback: Callback<T>) = callback.onResponse(this, execute())
         override fun isExecuted(): Boolean = false
         override fun cancel() = Unit
         override fun isCanceled(): Boolean = false
-        override fun clone(): Call<T> = FakeCall(body)
+        override fun clone(): Call<T> = FakeCall(result)
         override fun request(): Request = Request.Builder().url("https://soksok.io/api/auth/refresh").build()
         override fun timeout(): Timeout = Timeout.NONE
     }

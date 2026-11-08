@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation
 
+import com.yh.fridgesoksok.common.SessionEvents
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -18,7 +19,7 @@ class SharedViewModelTest {
 
     @Before
     fun setUp() {
-        viewModel = SharedViewModel()
+        viewModel = SharedViewModel(SessionEvents())
     }
 
     @Test
