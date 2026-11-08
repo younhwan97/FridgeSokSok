@@ -5,7 +5,6 @@ import com.yh.fridgesoksok.BuildConfig
 import com.yh.fridgesoksok.remote.api.AuthApiService
 import com.yh.fridgesoksok.remote.api.FridgeApiService
 import com.yh.fridgesoksok.remote.api.KakaoApiService
-import com.yh.fridgesoksok.remote.api.MockApiService
 import com.yh.fridgesoksok.remote.api.NaverApiService
 import com.yh.fridgesoksok.remote.api.RequestHeaderInterceptor
 import com.yh.fridgesoksok.remote.api.TokenAuthenticator
@@ -70,14 +69,14 @@ internal object NetworkModule {
         createRetrofit(baseClientBuilder().addInterceptor(loggingInterceptor).build())
             .create(AuthApiService::class.java)
 
-    // Api SERVER (local.properties 의 USE_MOCK_API=true 이면 Mock 서버 사용)
+    // Api SERVER (debug 빌드에서 local.properties 의 USE_MOCK_API=true 이면 Mock 서버 사용)
     @Provides
     @Singleton
     fun provideFridgeApiService(
         retrofit: Retrofit,
         @ApplicationContext context: Context
     ): FridgeApiService =
-        if (BuildConfig.USE_MOCK_API) MockApiService(context)
+        if (BuildConfig.USE_MOCK_API) mockFridgeApiService(context)
         else retrofit.create(FridgeApiService::class.java)
 
     // Kakao Api SERVER
