@@ -58,11 +58,12 @@ KAKAO_API_KEY_NO_QUOTES=actual_key
 NAVER_CLIENT_ID="client_id"
 NAVER_CLIENT_SECRET="secret"
 NAVER_CLIENT_APP_NAME="app_name"
-# Optional: use bundled MockApiService instead of the real server
+# Optional (debug builds only): use the in-memory MockApiService instead of the real server
 USE_MOCK_API=true
 ```
 
 Base URL is defined as `BuildConfig.BASE_URL` in `app/build.gradle.kts`.
+`MockApiService` lives in `app/src/debug` (provided via `mockFridgeApiService()`; `app/src/release` has a stub) and `USE_MOCK_API` is forced to `false` for release builds. Guest login works offline with the mock; Kakao/Naver still go through the real SDKs.
 `BuildConfig.EXTENDED_CATEGORIES` (default `false`) exposes categories 18–22 (`Type.isExtended`) in filter/edit selectors; turn it on together with the server's `app.categories.extended`. `Type.fromId` always recognizes them.
 
 ## Architecture Overview
@@ -94,7 +95,7 @@ presentation/ → domain/ → data/ → (remote/ + local/)
 - Repository implementations bridge domain and data sources
 - Entity models (e.g., `FoodEntity`) with bidirectional mapping: `toDomain()` and `toEntity()`
 - Repository methods return `Flow<Resource<T>>` for reactive async handling (exception: synchronous local reads such as `UserRepository.loadUser()`, `getLocalUserFcmToken()`, `getLocalApiUsage()`)
-- Helper: `flowWithResource { }` wraps operations with Loading/Success/Error states
+- Helper: `flowWithResource { }` wraps operations with Loading/Success/Error states. `Resource.Error.status` is the HTTP code, `Resource.STATUS_NETWORK_ERROR` (IOException), `Resource.STATUS_CANCELLED` (`UserCancelledException`, e.g. social login cancelled), or null; `CancellationException` is rethrown
 
 #### **Remote Layer** (`remote/`)
 - Retrofit API services: `FridgeApiService`, `KakaoApiService`, `NaverApiService`

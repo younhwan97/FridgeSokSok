@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
 import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,14 @@ fun OnboardingScreen(
     val initProgress by appInitializerViewModel.initializationProgress.collectAsState()
     val onboardingProgress by onboardingViewModel.onboardingProgress.collectAsState()
     val processingStatus by appInitializerViewModel.processingStatus.collectAsState()
+
+    // 온보딩/초기화 시작 (종료 중인 Activity 에서는 시작하지 않아 중복 실행 방지)
+    val activity = LocalActivity.current
+    LaunchedEffect(Unit) {
+        if (activity?.isFinishing == true) return@LaunchedEffect
+        appInitializerViewModel.start()
+        onboardingViewModel.start()
+    }
 
     // 하단 바 색상 설정
     SideEffect {
@@ -152,4 +161,4 @@ fun OnboardingScreen(
             }
         )
     }
-}
+}

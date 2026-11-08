@@ -29,7 +29,11 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // 프로세스가 종료된 뒤 복원되는 경우 저장된 화면 상태를 버리고 온보딩부터 다시 시작
+        // (토큰 확인 전에 홈 화면이 복원되어 API 를 호출하는 것을 방지)
+        val restoredAfterProcessDeath = savedInstanceState != null && !hasBeenCreatedInProcess
+        hasBeenCreatedInProcess = true
+        super.onCreate(if (restoredAfterProcessDeath) null else savedInstanceState)
         enableEdgeToEdge()
         setContent {
             FridgeSokSokTheme {
@@ -89,4 +93,9 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
+
+    companion object {
+        // 현재 프로세스에서 MainActivity 가 생성된 적이 있는지 (구성 변경과 프로세스 복원을 구분)
+        private var hasBeenCreatedInProcess = false
+    }
+}
