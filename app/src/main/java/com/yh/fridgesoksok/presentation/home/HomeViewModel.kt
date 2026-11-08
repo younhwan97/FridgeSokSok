@@ -3,19 +3,26 @@ package com.yh.fridgesoksok.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.ApiUsage
+import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalApiUsageUseCase
+import com.yh.fridgesoksok.domain.usecase.UpdateApiUsageUseCase
 import com.yh.fridgesoksok.presentation.fridge.RecipeGenerationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getLocalApiUsageUseCase: GetLocalApiUsageUseCase
+    private val getLocalApiUsageUseCase: GetLocalApiUsageUseCase,
+    private val getApiUsageUseCase: GetApiUsageUseCase,
+    private val updateApiUsageUseCase: UpdateApiUsageUseCase
 ) : ViewModel() {
 
     // 홈 UI 모드 (기본 / 레시피 재료 선택)
@@ -111,7 +118,29 @@ class HomeViewModel @Inject constructor(
      * 레시피 생성 상태 업데이트 (FridgeViewModel이 호출)
      */
     fun updateRecipeGenerationState(state: RecipeGenerationState) {
+        val wasLoading = _recipeGenerationState.value == RecipeGenerationState.Loading
         _recipeGenerationState.value = state
+
+        // 레시피 생성 API 호출이 끝나면 (성공/실패 무관) 남은 사용 횟수 갱신
+        if (wasLoading && state != RecipeGenerationState.Loading) {
+            refreshRecipeGenerationAvailability()
+        }
+    }
+
+    /**
+     * 서버에서 API 사용량을 다시 조회해 로컬 저장 및 사용 가능 여부 갱신
+     * 조회 실패 시 기존 값을 유지
+     */
+    private fun refreshRecipeGenerationAvailability() {
+        getApiUsageUseCase().onEach { result ->
+            if (result !is Resource.Success) return@onEach
+            val usages = result.data.orEmpty()
+
+            usages.find { it.feature == ApiUsage.RECIPE_GENERATION.key }?.let { usage ->
+                _isRecipeGenerationAvailable.value = usage.used < usage.max
+            }
+            updateApiUsageUseCase(usages).launchIn(viewModelScope)
+        }.launchIn(viewModelScope)
     }
 
     /**
@@ -121,4 +150,4 @@ class HomeViewModel @Inject constructor(
         val usage = getLocalApiUsageUseCase(ApiUsage.RECIPE_GENERATION.key)
         _isRecipeGenerationAvailable.value = usage.used < usage.max
     }
-}
+}
