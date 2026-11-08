@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FridgeSokSok is an Android application for managing fridge inventory and generating recipes. Built with Kotlin and Jetpack Compose, it follows Clean Architecture principles with MVVM presentation layer.
 
+- `compileSdk`/`targetSdk` 36 (Android 16), `minSdk` 26. Current release: versionCode 8 / versionName 1.7 (bump versionCode for every Play upload).
+- Work history and open tasks: `docs/WORKLOG-2026-11-08.md`.
+
 ## Build Commands
 
 ### Standard Build Tasks
@@ -32,11 +35,23 @@ FridgeSokSok is an Android application for managing fridge inventory and generat
 ./gradlew testDebugUnitTest
 
 # Run instrumented tests (requires connected device/emulator)
+# NOTE: uninstalls the app afterwards (login/data on the emulator is lost)
 ./gradlew connectedDebugAndroidTest
 
-# Run all checks (lint + tests)
+# Instrumented tests while keeping app data
+./gradlew assembleDebug assembleDebugAndroidTest
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -r com.yh.fridgesoksok.test/androidx.test.runner.AndroidJUnitRunner
+
+# Run all checks (lint + debug/release unit tests)
 ./gradlew check
 ```
+
+Test layout:
+- Unit tests (`app/src/test`): one test per UseCase (`domain/usecase`), ViewModels with fakes in `data/repository/Fake*Repository.kt` (failure injection: `FakeFoodRepository.shouldFail`, `FakeUserRepository.channelLoginError`/`reissueError`), `remote/api` (TokenAuthenticator, RequestHeaderInterceptor), `remote/model` (response parsing from server examples).
+- ViewModel tests use `MainDispatcherRule` (StandardTestDispatcher); call `mainDispatcherRule.advance()` to run pending coroutines. One-shot events (SharedFlow) are collected with `backgroundScope.launch(UnconfinedTestDispatcher(testScheduler))` before acting.
+- Instrumented tests (`app/src/androidTest`): Room DAO, repository + in-memory Room, Compose components, E2E. `flowWithResource` emits `Loading` first, so await the final result (`first { it !is Resource.Loading }`, see `result()` helper) instead of `.first()`.
 
 ### Linting
 ```bash
@@ -65,6 +80,22 @@ USE_MOCK_API=true
 Base URL is defined as `BuildConfig.BASE_URL` in `app/build.gradle.kts`.
 `MockApiService` lives in `app/src/debug` (provided via `mockFridgeApiService()`; `app/src/release` has a stub) and `USE_MOCK_API` is forced to `false` for release builds. Guest login works offline with the mock; Kakao/Naver still go through the real SDKs.
 `BuildConfig.EXTENDED_CATEGORIES` (default `false`) exposes categories 18–22 (`Type.isExtended`) in filter/edit selectors; turn it on together with the server's `app.categories.extended`. `Type.fromId` always recognizes them.
+
+### App Startup Flow
+- `MainActivity.onCreate` drops saved state when restored after process death (`hasBeenCreatedInProcess`), so the app always re-enters through Onboarding before Home APIs run.
+- `OnboardingScreen` calls `OnboardingViewModel.start()` / `AppInitializerViewModel.start()` once (not from `init`) and skips when the Activity is finishing (the system can create two MainActivity instances briefly).
+- Onboarding: server status → token reissue (no separate validation; reissue failure = invalid session) → default fridge only if not stored → save user → API usage → FCM sync (optional; failure does not block). Login treats FCM sync as optional too.
+- `AppInitializerViewModel` seeds the Room food dictionary from `assets/initial.csv`; runs under a process-wide `Mutex` and deletes existing rows before re-inserting.
+
+### Server Behavior Notes
+- Invalid access token → 401 (handled by `TokenAuthenticator`); invalid/expired refresh token on `auth/refresh` → 400.
+- Guest account creation (`users/create`) is rate-limited per IP (429 for 24h). Use Kakao/Naver login or `USE_MOCK_API=true` (debug) when blocked.
+- `receipts/upload` items are either matched (`id` may be negative for fresh food, `shelfLifeHours`, `dateBasis`) or unmatched `{"name","count"}`; see `ReceiptResponse` and `presentation/upload/ReceiptMapper.kt`.
+
+### Troubleshooting
+- Kakao login: `KOE008` = wrong key type (use the **Native app key**, 32 hex chars), `KOE101` = key does not exist (e.g. a key hash pasted as the app key), `Android keyHash validation failed` = register the debug/release key hash in the Kakao console (each PC's `~/.android/debug.keystore` differs; get it with `Utility.getKeyHash(context)` or `./gradlew signingReport` + Base64).
+- Android Studio "Missing Android platform(s)": Studio's global SDK location must point to the same SDK as `local.properties` `sdk.dir`; do not click "Install missing platform" into a different SDK path.
+- Avoid drag-and-drop moves in the Project view: moving a package folder outside `src/main/java` breaks KSP/Hilt with `error.NonExistentClass`.
 
 ## Architecture Overview
 
@@ -167,8 +198,8 @@ Found in: `common/Resource.kt`
 - **Navigation Data**: Objects that cannot be route args (Bitmap, RecipeModel) are passed via `SharedViewModel`
 - **Activity-Scoped State**: `SharedViewModel` holds receipt bitmap, selected recipe, and exposes the session-expired event
 
-### Recent Refactoring Pattern
-Recent commits show intentional removal of shared ViewModels in favor of trigger-based communication:
+### Cross-Screen Trigger Pattern
+Shared ViewModels were intentionally removed in favor of trigger-based communication:
 - Recipe creation no longer relies on `SharedViewModel`
 - Select/deselect operations use SharedFlow triggers
 - Pattern: Pub-Sub via SharedFlow instead of shared ViewModel reference
@@ -282,6 +313,7 @@ When working with features, follow these patterns:
 ## Code Modification Guidelines
 
 ### When Modifying ViewModels
+- Show user-facing messages from `StringResources`, never raw `Resource.Error.message` (e.g. `loginErrorMessage(status)` in `LoginViewModel`). Do not log tokens or whole user models.
 - Use private mutable backing properties: `private val _state = MutableStateFlow(...)`
 - Expose immutable public properties: `val state = _state.asStateFlow()`
 - For cross-component events, prefer SharedFlow triggers over shared ViewModels
@@ -289,7 +321,7 @@ When working with features, follow these patterns:
 - Wrap repository calls with Resource handling
 
 ### When Modifying Repositories
-- All methods must return `Flow<Resource<T>>`
+- Methods return `Flow<Resource<T>>` (only synchronous local reads are exempt, see Data Layer)
 - Use `flowWithResource { }` helper to wrap data source calls
 - Implement both interface (in domain) and implementation (in data)
 - Add DI binding in `data/di/RepositoryModule.kt`
@@ -347,7 +379,7 @@ com.yh.fridgesoksok/
 ├── data/              # Data layer (repository implementations, entities)
 ├── remote/            # Remote API (Retrofit services, implementations)
 ├── local/             # Local storage (Room database, DAOs)
-├── common/            # Shared utilities (Resource, Logger, Constants)
+├── common/            # Shared utilities (Resource, Logger, Constants, SessionEvents, UserCancelledException)
 ├── service/           # Background services (FCM)
 └── di/                # Global Hilt modules
 ```
