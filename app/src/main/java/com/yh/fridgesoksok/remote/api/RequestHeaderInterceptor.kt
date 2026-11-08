@@ -1,39 +1,37 @@
 package com.yh.fridgesoksok.remote.api
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
+import com.yh.fridgesoksok.data.local.LocalUserDataSource
 import okhttp3.Interceptor
+import okhttp3.Request
 import okhttp3.Response
 import javax.inject.Inject
 
+internal const val HEADER_AUTHORIZATION = "Authorization"
+internal const val BEARER_PREFIX = "Bearer "
+
+internal fun Request.withBearerToken(token: String): Request =
+    newBuilder().header(HEADER_AUTHORIZATION, "$BEARER_PREFIX$token").build()
+
+internal fun Request.isAuthRequest(): Boolean =
+    url.encodedPath.contains("/auth/")
+
 class RequestHeaderInterceptor @Inject constructor(
-    private val context: Context
+    private val localUserDataSource: LocalUserDataSource
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
 
-        val prefs = context.getSharedPreferences("user_info", Context.MODE_PRIVATE)
-        val accessToken = prefs.getString("accessToken", null)
-        val refreshToken = prefs.getString("refreshToken", null)
-
-        val url = originalRequest.url.toString()
-
-        val token = when {
-            url.contains("auth/") -> refreshToken
-            else -> accessToken
+        // 호출부에서 직접 헤더를 지정한 경우 그대로 사용
+        if (originalRequest.header(HEADER_AUTHORIZATION) != null) {
+            return chain.proceed(originalRequest)
         }
 
-        val hasAuthHeader = originalRequest.header("Authorization") != null
-        val requestWithHeaders = if (!hasAuthHeader && token != null) {
-            originalRequest.newBuilder()
-                .header("Authorization", "Bearer $token")
-                .build()
-        } else {
-            originalRequest
-        }
+        val user = localUserDataSource.loadUser()
+        // 인증(auth/) API는 리프레시 토큰, 그 외는 액세스 토큰 사용
+        val token = if (originalRequest.isAuthRequest()) user.refreshToken else user.accessToken
 
-        return chain.proceed(requestWithHeaders)
+        val request = if (token.isNotBlank()) originalRequest.withBearerToken(token) else originalRequest
+        return chain.proceed(request)
     }
 }

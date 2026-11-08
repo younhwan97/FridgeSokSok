@@ -38,6 +38,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // API SERVER
+        buildConfigField("String", "BASE_URL", "\"https://soksok.io/api/\"")
+        // local.properties 에 USE_MOCK_API=true 지정 시 MockApiService 사용
+        buildConfigField("boolean", "USE_MOCK_API", properties.getProperty("USE_MOCK_API") ?: "false")
+
         // KAKAO API KEY
         buildConfigField("String", "KAKAO_API_KEY", properties.getProperty("KAKAO_API_KEY"))
         manifestPlaceholders["KAKAO_API_KEY"] = properties.getProperty("KAKAO_API_KEY_NO_QUOTES")
