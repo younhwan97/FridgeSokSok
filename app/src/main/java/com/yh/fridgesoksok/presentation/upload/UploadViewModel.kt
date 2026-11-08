@@ -8,6 +8,7 @@ import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.usecase.AddFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UploadReceiptImageUseCase
+import com.yh.fridgesoksok.presentation.common.extension.toResizedJpegBytes
 import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_ADD_FAILED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECEIPT_QUOTA_EXCEEDED
@@ -16,6 +17,7 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Collections
@@ -98,35 +101,40 @@ class UploadViewModel @Inject constructor(
      * 영수증 이미지 업로드 및 OCR 처리
      */
     fun uploadReceiptImage(bitmap: Bitmap) {
-        uploadReceiptImageUseCase(bitmap).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    val receiptList = result.data
-                    if (!receiptList.isNullOrEmpty()) {
-                        val mappedFoods = mapReceiptToFoodModels(receiptList)
-                        _newFoods.update { it + mappedFoods }
-                    } else {
-                        _errorMessage.emit(RECEIPT_RECOGNITION_FAILED)
+        viewModelScope.launch {
+            _state.value = UploadState.Loading
+            // 리사이즈/인코딩은 메인 스레드를 막지 않도록 Default 디스패처에서 수행
+            val image = withContext(Dispatchers.Default) { bitmap.toResizedJpegBytes() }
+            uploadReceiptImageUseCase(image).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val receiptList = result.data
+                        if (!receiptList.isNullOrEmpty()) {
+                            val mappedFoods = mapReceiptToFoodModels(receiptList)
+                            _newFoods.update { it + mappedFoods }
+                        } else {
+                            _errorMessage.emit(RECEIPT_RECOGNITION_FAILED)
+                        }
+                        _state.value = UploadState.Success
                     }
-                    _state.value = UploadState.Success
-                }
 
-                is Resource.Loading -> {
-                    _state.value = UploadState.Loading
-                }
-
-                is Resource.Error -> {
-                    val errorMsg = if (result.status == HTTP_TOO_MANY_REQUESTS) {
-                        RECEIPT_QUOTA_EXCEEDED
-                    } else {
-                        RECEIPT_RECOGNITION_FAILED
+                    is Resource.Loading -> {
+                        _state.value = UploadState.Loading
                     }
-                    _errorMessage.emit(errorMsg)
-                    // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
-                    _state.value = UploadState.Success
+
+                    is Resource.Error -> {
+                        val errorMsg = if (result.status == HTTP_TOO_MANY_REQUESTS) {
+                            RECEIPT_QUOTA_EXCEEDED
+                        } else {
+                            RECEIPT_RECOGNITION_FAILED
+                        }
+                        _errorMessage.emit(errorMsg)
+                        // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
+                        _state.value = UploadState.Success
+                    }
                 }
             }
-        }.launchIn(viewModelScope)
+        }
     }
 
     /**

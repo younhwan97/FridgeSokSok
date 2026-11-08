@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.data.repository
 
-import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.domain.model.LocalFood
@@ -14,6 +13,15 @@ class FakeFoodRepository : FoodRepository {
     private val foodMap = mutableMapOf<String, MutableList<Food>>()
     private val localFoods = mutableListOf<LocalFood>()
     private val receipts = mutableListOf<Receipt>()
+
+    // 마지막으로 업로드된 영수증 이미지 (테스트 검증용)
+    var lastUploadedImage: ByteArray? = null
+        private set
+
+    fun setReceipts(items: List<Receipt>) {
+        receipts.clear()
+        receipts.addAll(items)
+    }
 
     override fun addFoods(fridgeId: String, foods: List<Food>): Flow<Resource<List<Food>>> {
         val list = foodMap.getOrPut(fridgeId) { mutableListOf() }
@@ -49,7 +57,8 @@ class FakeFoodRepository : FoodRepository {
         return flow { emit(Resource.Success(deleted)) }
     }
 
-    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> {
+    override fun uploadReceiptImage(image: ByteArray): Flow<Resource<List<Receipt>>> {
+        lastUploadedImage = image
         return flow { emit(Resource.Success(receipts.toList())) }
     }
 
@@ -73,4 +82,4 @@ class FakeFoodRepository : FoodRepository {
         val results = localFoods.filter { it.itemName.contains(keyword, ignoreCase = true) }
         return flow { emit(Resource.Success(results)) }
     }
-}
+}

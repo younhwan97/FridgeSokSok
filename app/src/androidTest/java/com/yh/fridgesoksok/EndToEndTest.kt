@@ -319,6 +319,6 @@ class zEndToEndTest {
         override suspend fun getFoods(fridgeId: String) = emptyList<com.yh.fridgesoksok.data.model.FoodEntity>()
         override suspend fun updateFood(food: com.yh.fridgesoksok.data.model.FoodEntity) = food
         override suspend fun deleteFood(foodId: String) = true
-        override suspend fun uploadReceiptImage(img: android.graphics.Bitmap) = emptyList<com.yh.fridgesoksok.data.model.ReceiptEntity>()
+        override suspend fun uploadReceiptImage(image: ByteArray) = emptyList<com.yh.fridgesoksok.data.model.ReceiptEntity>()
     }
 }

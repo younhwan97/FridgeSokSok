@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.domain.repository
 
-import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.domain.model.LocalFood
@@ -17,7 +16,7 @@ interface FoodRepository {
 
     fun deleteFood(foodId: String): Flow<Resource<Boolean>>
 
-    fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>>
+    fun uploadReceiptImage(image: ByteArray): Flow<Resource<List<Receipt>>>
 
     fun initializeLocalFoods(foods: List<LocalFood>): Flow<Resource<Boolean>>
 
@@ -27,4 +26,4 @@ interface FoodRepository {
 
     fun searchLocalFoods(keyword: String): Flow<Resource<List<LocalFood>>>
 
-}
+}
