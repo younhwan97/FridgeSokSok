@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.remote.impl
 
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.remote.model.CommonResponse
+import kotlinx.coroutines.CancellationException
 
 /**
  * API 호출 공통 처리 (요청 로그 + 실패 로그 후 예외 전파)
@@ -16,6 +17,8 @@ internal suspend inline fun <T> apiCall(
     try {
         Logger.d(tag, if (input == null) name else "$name INPUT $input")
         block()
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Logger.e(tag, "$name 실패", e)
         throw e

@@ -62,7 +62,7 @@ class LoginViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    Logger.d(TAG, "채널 로그인 성공: $userModel")
+                    Logger.d(TAG, "채널 로그인 성공: ${userModel.accountType}")
 
                     // 게스트 계정은 서버 생성 단계를 건너뛰고 바로 냉장고 조회
                     if (userModel.accountType == "temp") {
@@ -91,7 +91,7 @@ class LoginViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    Logger.d(TAG, "서버 유저 생성 성공: $userModel")
+                    Logger.d(TAG, "서버 유저 생성 성공: ${userModel.username}")
 
                     // 서버로부터 받은 토큰 정보로 업데이트
                     val updatedUser = user.withUpdatedUserInfo(
@@ -252,4 +252,4 @@ class LoginViewModel @Inject constructor(
             _errorMessage.emit(reason)
         }
     }
-}
+}

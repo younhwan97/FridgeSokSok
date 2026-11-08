@@ -24,6 +24,10 @@ data class UserModel private constructor(
     val accountType: String,
     val defaultFridgeId: String
 ) {
+    // 로그 출력 시 토큰이 노출되지 않도록 마스킹
+    override fun toString(): String =
+        "UserModel(id=$id, username=$username, accountType=$accountType, defaultFridgeId=$defaultFridgeId, accessToken=***, refreshToken=***)"
+
     companion object {
         fun fromLocal(user: User): UserModel {
             return UserModel(
@@ -55,4 +59,4 @@ fun User.toPresentation() =
     UserModel.fromLocal(this)
 
 fun UserModel.toDomain() =
-    User(id, accessToken, refreshToken, username, accountType, defaultFridgeId)
+    User(id, accessToken, refreshToken, username, accountType, defaultFridgeId)

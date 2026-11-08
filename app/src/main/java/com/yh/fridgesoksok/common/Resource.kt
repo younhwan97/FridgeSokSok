@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.common
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
@@ -21,6 +22,9 @@ inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resour
         emit(Resource.Loading())
         try {
             emit(Resource.Success(block()))
+        } catch (exception: CancellationException) {
+            // 취소는 실패가 아니므로 그대로 전파
+            throw exception
         } catch (exception: Exception) {
             val statusCode = if (exception is HttpException) {
                 exception.code()
@@ -32,4 +36,4 @@ inline fun <T> flowWithResource(crossinline block: suspend () -> T): Flow<Resour
                 status = statusCode
             ))
         }
-    }
+    }
