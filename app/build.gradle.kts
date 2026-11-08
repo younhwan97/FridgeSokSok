@@ -27,12 +27,12 @@ properties.load(project.rootProject.file("local.properties").inputStream())
 
 android {
     namespace = "com.yh.fridgesoksok"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.yh.fridgesoksok"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 7
         versionName = "1.6"
 
