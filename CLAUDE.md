@@ -101,7 +101,8 @@ presentation/ → domain/ → data/ → (remote/ + local/)
 - RemoteDataSource implementations wrap calls with `apiCall(TAG, name, input) { ... }` and `CommonResponse.requireData(name)` (`remote/impl/ApiCall.kt`). Never pass tokens as `input`.
 - Networking (`remote/di/NetworkModule.kt`):
   - `RequestHeaderInterceptor` - Adds `Bearer` header from `LocalUserDataSource` (refresh token for `auth/` URLs, access token otherwise)
-  - `TokenAuthenticator` - On 401, reissues tokens via `AuthApiService` (separate OkHttpClient to avoid DI cycle), saves them, and retries once
+  - `TokenAuthenticator` - On 401, reissues tokens via `AuthApiService` (separate OkHttpClient to avoid DI cycle), saves them, and retries once. If the refresh token is rejected (400/401/403), clears tokens and emits `SessionEvents.expired`; `MainActivity` then navigates to Login
+  - `AuthTokenLock` - Serializes `auth/` API calls and token refresh; rotated tokens from `auth/refresh` are saved inside the lock by `RequestHeaderInterceptor`
   - `HttpLoggingInterceptor` - BODY level in debug only, `Authorization` header redacted
 
 #### **Local Layer** (`local/`)
@@ -162,7 +163,7 @@ Found in: `common/Resource.kt`
   - Example in `HomeViewModel`: `_selectAllTrigger`, `_generateRecipeTrigger`
   - Subscribing Screens collect triggers (`LaunchedEffect`) and report results back via callbacks
 - **Navigation Data**: Objects that cannot be route args (Bitmap, RecipeModel) are passed via `SharedViewModel`
-- **Activity-Scoped State**: `SharedViewModel` holds receipt bitmap and selected recipe only
+- **Activity-Scoped State**: `SharedViewModel` holds receipt bitmap, selected recipe, and exposes the session-expired event
 
 ### Recent Refactoring Pattern
 Recent commits show intentional removal of shared ViewModels in favor of trigger-based communication:
