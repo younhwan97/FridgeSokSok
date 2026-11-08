@@ -67,6 +67,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> =
         flowWithResource {
+            // 회전된 토큰은 RequestHeaderInterceptor 가 응답 수신 즉시 저장
             remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
         }
 

@@ -1,12 +1,14 @@
 package com.yh.fridgesoksok.domain.usecase
 
-import android.graphics.Bitmap
 import com.yh.fridgesoksok.domain.repository.FoodRepository
 import javax.inject.Inject
 
 class UploadReceiptImageUseCase @Inject constructor(
     private val foodRepository: FoodRepository
 ) {
-    operator fun invoke(img: Bitmap) =
-        foodRepository.uploadReceiptImage(img = img)
-}
+    /**
+     * @param image JPEG 인코딩된 영수증 이미지
+     */
+    operator fun invoke(image: ByteArray) =
+        foodRepository.uploadReceiptImage(image = image)
+}

@@ -1,10 +1,13 @@
 package com.yh.fridgesoksok.common
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 import retrofit2.HttpException
 import retrofit2.Response
 
@@ -42,6 +45,25 @@ class ResourceTest {
         assertTrue(results[0] is Resource.Loading)
         assertTrue(results[1] is Resource.Error)
         assertEquals(errorMessage, (results[1] as Resource.Error).message)
+    }
+
+    @Test
+    fun `flowWithResource는 취소 예외를 Error로 바꾸지 않고 전파해야 한다`() = runBlocking {
+        // Given
+        val results = mutableListOf<Resource<String>>()
+
+        // When
+        val thrown = try {
+            flowWithResource<String> { throw CancellationException("cancelled") }
+                .collect { results += it }
+            null
+        } catch (e: CancellationException) {
+            e
+        }
+
+        // Then
+        assertTrue(thrown is CancellationException)
+        assertFalse(results.any { it is Resource.Error })
     }
 
     @Test
@@ -156,5 +178,14 @@ class ResourceTest {
         // Then
         assertEquals(cachedData, resourceWithData.data)
         assertEquals(null, resourceWithoutData.data)
+    }
+
+    @Test
+    fun `flowWithResource는 네트워크 오류와 사용자 취소를 상태값으로 구분해야 한다`() = runBlocking {
+        val network = flowWithResource<String> { throw IOException("timeout") }.toList().last()
+        val cancelled = flowWithResource<String> { throw UserCancelledException() }.toList().last()
+
+        assertEquals(Resource.STATUS_NETWORK_ERROR, (network as Resource.Error).status)
+        assertEquals(Resource.STATUS_CANCELLED, (cancelled as Resource.Error).status)
     }
 }

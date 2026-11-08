@@ -58,7 +58,13 @@ KAKAO_API_KEY_NO_QUOTES=actual_key
 NAVER_CLIENT_ID="client_id"
 NAVER_CLIENT_SECRET="secret"
 NAVER_CLIENT_APP_NAME="app_name"
+# Optional (debug builds only): use the in-memory MockApiService instead of the real server
+USE_MOCK_API=true
 ```
+
+Base URL is defined as `BuildConfig.BASE_URL` in `app/build.gradle.kts`.
+`MockApiService` lives in `app/src/debug` (provided via `mockFridgeApiService()`; `app/src/release` has a stub) and `USE_MOCK_API` is forced to `false` for release builds. Guest login works offline with the mock; Kakao/Naver still go through the real SDKs.
+`BuildConfig.EXTENDED_CATEGORIES` (default `false`) exposes categories 18–22 (`Type.isExtended`) in filter/edit selectors; turn it on together with the server's `app.categories.extended`. `Type.fromId` always recognizes them.
 
 ## Architecture Overview
 
@@ -76,7 +82,7 @@ presentation/ → domain/ → data/ → (remote/ + local/)
 - **State Management**: StateFlow for observable state, SharedFlow for one-time events/triggers
 - **Key Files**:
   - `Screen.kt` - Sealed class navigation routes
-  - `SharedViewModel.kt` - Activity-scoped ViewModel (minimal use, only for receipt bitmap)
+  - `SharedViewModel.kt` - Activity-scoped ViewModel (receipt bitmap: Camera→Upload, selected recipe: Recipe→RecipeDetail)
   - `HomeViewModel.kt` - Event coordinator for tab operations using SharedFlows
 
 #### **Domain Layer** (`domain/`)
@@ -88,18 +94,22 @@ presentation/ → domain/ → data/ → (remote/ + local/)
 #### **Data Layer** (`data/`)
 - Repository implementations bridge domain and data sources
 - Entity models (e.g., `FoodEntity`) with bidirectional mapping: `toDomain()` and `toEntity()`
-- All repository methods return `Flow<Resource<T>>` for reactive async handling
-- Helper: `flowWithResource { }` wraps operations with Loading/Success/Error states
+- Repository methods return `Flow<Resource<T>>` for reactive async handling (exception: synchronous local reads such as `UserRepository.loadUser()`, `getLocalUserFcmToken()`, `getLocalApiUsage()`)
+- Helper: `flowWithResource { }` wraps operations with Loading/Success/Error states. `Resource.Error.status` is the HTTP code, `Resource.STATUS_NETWORK_ERROR` (IOException), `Resource.STATUS_CANCELLED` (`UserCancelledException`, e.g. social login cancelled), or null; `CancellationException` is rethrown
 
 #### **Remote Layer** (`remote/`)
 - Retrofit API services: `FridgeApiService`, `KakaoApiService`, `NaverApiService`
 - RemoteDataSource implementations transform API responses to entities
-- Interceptors:
-  - `RequestHeaderInterceptor` - Adds authorization headers
-  - `LoggingHeaderInterceptor` - HTTP request/response logging
+- RemoteDataSource implementations wrap calls with `apiCall(TAG, name, input) { ... }` and `CommonResponse.requireData(name)` (`remote/impl/ApiCall.kt`). Never pass tokens as `input`.
+- Networking (`remote/di/NetworkModule.kt`):
+  - `RequestHeaderInterceptor` - Adds `Bearer` header from `LocalUserDataSource` (refresh token for `auth/` URLs, access token otherwise)
+  - `TokenAuthenticator` - On 401, reissues tokens via `AuthApiService` (separate OkHttpClient to avoid DI cycle), saves them, and retries once. If the refresh token is rejected (400/401/403), clears tokens and emits `SessionEvents.expired`; `MainActivity` then navigates to Login
+  - `AuthTokenLock` - Serializes `auth/` API calls and token refresh; rotated tokens from `auth/refresh` are saved inside the lock by `RequestHeaderInterceptor`
+  - `HttpLoggingInterceptor` - BODY level in debug only, `Authorization` header redacted
 
 #### **Local Layer** (`local/`)
-- Room database with DAOs (`FoodDao`, `UserDao`)
+- Room database with `FoodDao` (local food dictionary for search suggestions, seeded from `initial.csv`)
+- User info, tokens and API usage are stored in SharedPreferences (`user_info`) via `LocalUserDataSourceImpl`
 - LocalDataSource implementations for database queries
 - Room entities (e.g., `FoodLocal`)
 
@@ -153,9 +163,9 @@ Found in: `common/Resource.kt`
 - **Screen State**: Each ViewModel manages its own StateFlows (e.g., `_foods`, `_recipes`)
 - **Cross-Screen Communication**: Use SharedFlow triggers instead of shared mutable state
   - Example in `HomeViewModel`: `_selectAllTrigger`, `_generateRecipeTrigger`
-  - Subscribing ViewModels collect triggers and provide feedback via callbacks
-- **Navigation Data**: Pass data via `savedStateHandle` for type-safe argument passing
-- **Activity-Scoped State**: `SharedViewModel` minimally used (currently only receipt bitmap)
+  - Subscribing Screens collect triggers (`LaunchedEffect`) and report results back via callbacks
+- **Navigation Data**: Objects that cannot be route args (Bitmap, RecipeModel) are passed via `SharedViewModel`
+- **Activity-Scoped State**: `SharedViewModel` holds receipt bitmap, selected recipe, and exposes the session-expired event
 
 ### Recent Refactoring Pattern
 Recent commits show intentional removal of shared ViewModels in favor of trigger-based communication:
@@ -173,13 +183,15 @@ fun triggerAction() {
     viewModelScope.launch { _actionTrigger.emit(Unit) }
 }
 
-// In subscriber ViewModel
-init {
-    coordinatorViewModel.actionTrigger
-        .onEach { performAction() }
-        .launchIn(viewModelScope)
+// In subscriber Screen (ViewModels stay independent; the Screen wires them)
+LaunchedEffect(Unit) {
+    homeViewModel.actionTrigger.collect {
+        viewModel.performAction { state -> homeViewModel.updateState(state) }
+    }
 }
 ```
+
+Found in: `presentation/fridge/FridgeScreen.kt` (subscribes to `HomeViewModel` triggers)
 
 ### Duplicate Request Prevention
 Use synchronized set to prevent duplicate in-flight operations:
@@ -285,13 +297,13 @@ When working with features, follow these patterns:
 ### When Modifying Data Models
 - Add mapping extensions: `fun FooResponse.toEntity()`, `fun FooEntity.toDomain()`
 - For Parcelize models (navigation args), use `@Parcelize` annotation
-- Keep domain models pure Kotlin (no Android dependencies)
+- Keep domain models pure Kotlin (no Android dependencies, e.g. receipt images are passed as JPEG `ByteArray`, converted in presentation via `Bitmap.toResizedJpegBytes()`)
 - Entity models can have Android/Gson dependencies
 
 ### When Modifying Navigation
 - Update `Screen.kt` sealed class with new routes
 - Add navigation arguments to `Screen` constructor if needed
-- Use `savedStateHandle` in ViewModel to retrieve navigation arguments
+- Use `savedStateHandle` in ViewModel to retrieve simple navigation arguments; use `SharedViewModel` only for objects that cannot be serialized into routes
 - Update `MainActivity.kt` or `HomeNavGraph.kt` based on hierarchy level
 
 ## Technology Stack

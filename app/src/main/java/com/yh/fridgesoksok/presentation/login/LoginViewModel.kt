@@ -14,6 +14,11 @@ import com.yh.fridgesoksok.domain.usecase.GetUserDefaultFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.SaveUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
+import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.LOGIN_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.LOGIN_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.NETWORK_ERROR
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.SERVER_ERROR
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
@@ -62,7 +67,7 @@ class LoginViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    Logger.d(TAG, "채널 로그인 성공: $userModel")
+                    Logger.d(TAG, "채널 로그인 성공: ${userModel.accountType}")
 
                     // 게스트 계정은 서버 생성 단계를 건너뛰고 바로 냉장고 조회
                     if (userModel.accountType == "temp") {
@@ -72,7 +77,7 @@ class LoginViewModel @Inject constructor(
                     }
                 }
 
-                is Resource.Error -> fail("${channel.name} 로그인 실패: ${result.message}")
+                is Resource.Error -> fail("${channel.name} 로그인 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -91,7 +96,7 @@ class LoginViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    Logger.d(TAG, "서버 유저 생성 성공: $userModel")
+                    Logger.d(TAG, "서버 유저 생성 성공: ${userModel.username}")
 
                     // 서버로부터 받은 토큰 정보로 업데이트
                     val updatedUser = user.withUpdatedUserInfo(
@@ -103,7 +108,7 @@ class LoginViewModel @Inject constructor(
                     getUserDefaultFridge(updatedUser)
                 }
 
-                is Resource.Error -> fail("서버 인증 실패: ${result.message}")
+                is Resource.Error -> fail("서버 인증 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -128,7 +133,7 @@ class LoginViewModel @Inject constructor(
                     saveUser(updatedUser)
                 }
 
-                is Resource.Error -> fail("냉장고 정보 조회 실패: ${result.message}")
+                is Resource.Error -> fail("냉장고 정보 조회 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -151,7 +156,7 @@ class LoginViewModel @Inject constructor(
                     getApiUsage()
                 }
 
-                is Resource.Error -> fail("사용자 정보 저장 실패: ${result.message}")
+                is Resource.Error -> fail("사용자 정보 저장 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -174,7 +179,7 @@ class LoginViewModel @Inject constructor(
                     updateApiUsage(usages)
                 }
 
-                is Resource.Error -> fail("API 정보 조회 실패: ${result.message}")
+                is Resource.Error -> fail("API 정보 조회 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -197,37 +202,37 @@ class LoginViewModel @Inject constructor(
                     updateUserFcmToken()
                 }
 
-                is Resource.Error -> fail("API 정보 저장 실패: ${result.message}")
+                is Resource.Error -> fail("API 정보 저장 실패: ${result.message}", result.status)
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
     }
 
     /**
-     * FCM 토큰 갱신 (필수)
+     * FCM 토큰 서버 동기화 (선택)
+     * 토큰이 아직 없거나 동기화에 실패해도 로그인은 성공 처리 (다음 실행 시 온보딩에서 다시 동기화)
      */
     private fun updateUserFcmToken() {
         val fcmToken = getLocalUserFcmTokenUseCase()
 
         if (fcmToken.isBlank()) {
-            fail("FCM 토큰이 없습니다")
+            Logger.d(TAG, "FCM 토큰 없음 (선택적 단계 스킵)")
+            success()
             return
         }
 
         updateUserFcmTokenUseCase(fcmToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
-                    val updatedToken = result.data
-                    if (updatedToken.isNullOrBlank() || updatedToken != fcmToken) {
-                        fail("FCM 토큰 갱신 실패")
-                        return@onEach
-                    }
-
-                    Logger.d(TAG, "FCM 토큰 갱신 성공")
+                    Logger.d(TAG, "FCM 토큰 갱신 완료")
                     success()
                 }
 
-                is Resource.Error -> fail("FCM 토큰 갱신 실패: ${result.message}")
+                is Resource.Error -> {
+                    Logger.d(TAG, "FCM 토큰 갱신 실패 (선택적 단계): ${result.message}")
+                    success()
+                }
+
                 is Resource.Loading -> Unit
             }
         }.launchIn(viewModelScope)
@@ -243,13 +248,27 @@ class LoginViewModel @Inject constructor(
 
     /**
      * 로그인 프로세스 실패 처리
+     * @param reason 로그용 상세 사유 (사용자에게 노출하지 않음)
+     * @param status Resource.Error 의 상태 코드 (HTTP 코드 또는 Resource.STATUS_*)
      */
-    private fun fail(reason: String) {
+    private fun fail(reason: String, status: Int? = null) {
         Logger.e(TAG, "$reason → 로그인 실패")
         _state.value = LoginState.Error
 
+        val message = loginErrorMessage(status) ?: return
         viewModelScope.launch {
-            _errorMessage.emit(reason)
+            _errorMessage.emit(message)
         }
     }
+}
+
+/**
+ * 로그인 실패 시 사용자에게 보여줄 안내 문구 (사용자가 직접 취소한 경우는 null)
+ */
+internal fun loginErrorMessage(status: Int?): String? = when {
+    status == Resource.STATUS_CANCELLED -> null
+    status == HTTP_TOO_MANY_REQUESTS -> LOGIN_TOO_MANY_REQUESTS
+    status == Resource.STATUS_NETWORK_ERROR -> NETWORK_ERROR
+    status != null && status >= 500 -> SERVER_ERROR
+    else -> LOGIN_FAILED
 }

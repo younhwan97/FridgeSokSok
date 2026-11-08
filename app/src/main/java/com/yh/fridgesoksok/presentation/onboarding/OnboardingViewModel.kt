@@ -14,7 +14,6 @@ import com.yh.fridgesoksok.domain.usecase.ReissueUserTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserFcmTokenUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateUserUseCase
-import com.yh.fridgesoksok.domain.usecase.ValidateUserTokenUseCase
 import com.yh.fridgesoksok.presentation.model.UserModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
@@ -32,7 +31,6 @@ private const val TAG = "Onboarding"
  */
 private sealed class OnboardingStep {
     data object CheckServerStatus : OnboardingStep()
-    data class ValidateToken(val user: UserModel) : OnboardingStep()
     data class ReissueToken(val user: UserModel) : OnboardingStep()
     data class GetDefaultFridge(val user: UserModel) : OnboardingStep()
     data class UpdateUser(val user: UserModel) : OnboardingStep()
@@ -46,7 +44,6 @@ class OnboardingViewModel @Inject constructor(
     private val getServerStatusUseCase: GetServerStatusUseCase,
     private val loadUserUseCase: LoadUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
-    private val validateUserTokenUseCase: ValidateUserTokenUseCase,
     private val reissueUserTokenUseCase: ReissueUserTokenUseCase,
     private val getUserDefaultFridgeUseCase: GetUserDefaultFridgeUseCase,
     private val getLocalUserFcmTokenUseCase: GetLocalUserFcmTokenUseCase,
@@ -64,7 +61,15 @@ class OnboardingViewModel @Inject constructor(
     private val _onboardingProgress = MutableStateFlow(0)
     val onboardingProgress = _onboardingProgress.asStateFlow()
 
-    init {
+    private var started = false
+
+    /**
+     * 온보딩 시작 (화면당 한 번만 실행)
+     * init 에서 자동 시작하지 않아, 종료 중인 Activity 의 화면에서는 시작하지 않을 수 있음
+     */
+    fun start() {
+        if (started) return
+        started = true
         startOnboarding()
     }
 
@@ -94,7 +99,6 @@ class OnboardingViewModel @Inject constructor(
     private fun proceedToNextStep(step: OnboardingStep) {
         when (step) {
             is OnboardingStep.CheckServerStatus -> checkServerStatus()
-            is OnboardingStep.ValidateToken -> validateToken(step.user)
             is OnboardingStep.ReissueToken -> reissueToken(step.user)
             is OnboardingStep.GetDefaultFridge -> getDefaultFridge(step.user)
             is OnboardingStep.UpdateUser -> updateUser(step.user)
@@ -143,7 +147,7 @@ class OnboardingViewModel @Inject constructor(
                         return@onEach
                     }
 
-                    proceedToNextStep(OnboardingStep.ValidateToken(user))
+                    proceedToNextStep(OnboardingStep.ReissueToken(user))
                 }
 
                 is Resource.Error -> {
@@ -157,33 +161,11 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 2단계: 리프레시 토큰 유효성 확인
-     */
-    private fun validateToken(user: UserModel) {
-        _onboardingProgress.value = 25
-        validateUserTokenUseCase(user.refreshToken).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    if (result.data != true) {
-                        fail("리프레시 토큰 무효")
-                        return@onEach
-                    }
-
-                    Logger.d(TAG, "리프레시 토큰 유효")
-                    proceedToNextStep(OnboardingStep.ReissueToken(user))
-                }
-
-                is Resource.Error -> fail("토큰 검증 오류: ${result.message}")
-                is Resource.Loading -> Unit
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    /**
-     * 3단계: 액세스 토큰 및 리프레시 토큰 재발급
+     * 2단계: 액세스 토큰 및 리프레시 토큰 재발급
+     * 리프레시 토큰이 무효하면 재발급이 실패하므로 별도의 유효성 확인 호출은 하지 않음
      */
     private fun reissueToken(user: UserModel) {
-        _onboardingProgress.value = 37
+        _onboardingProgress.value = 30
         reissueUserTokenUseCase(user.refreshToken).onEach { result ->
             when (result) {
                 is Resource.Success -> {
@@ -195,7 +177,13 @@ class OnboardingViewModel @Inject constructor(
 
                     Logger.d(TAG, "토큰 재발급 성공")
                     val updatedUser = user.withReissuedToken(token.accessToken, token.refreshToken)
-                    proceedToNextStep(OnboardingStep.GetDefaultFridge(updatedUser))
+                    // 기본 냉장고 id 가 이미 저장되어 있으면 조회 생략
+                    val nextStep = if (updatedUser.defaultFridgeId.isBlank()) {
+                        OnboardingStep.GetDefaultFridge(updatedUser)
+                    } else {
+                        OnboardingStep.UpdateUser(updatedUser)
+                    }
+                    proceedToNextStep(nextStep)
                 }
 
                 is Resource.Error -> fail("토큰 재발급 오류: ${result.message}")
@@ -205,7 +193,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 4단계: 사용자 기본 냉장고 ID 조회
+     * 3단계(필요 시): 사용자 기본 냉장고 ID 조회
      */
     private fun getDefaultFridge(user: UserModel) {
         _onboardingProgress.value = 50
@@ -230,7 +218,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 5단계: 사용자 정보 로컬 저장
+     * 4단계: 사용자 정보 로컬 저장
      */
     private fun updateUser(user: UserModel) {
         _onboardingProgress.value = 62
@@ -253,7 +241,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 6단계: API 사용량 정보 조회
+     * 5단계: API 사용량 정보 조회
      */
     private fun getApiUsage() {
         _onboardingProgress.value = 75
@@ -277,7 +265,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 7단계: API 사용량 정보 로컬 저장
+     * 6단계: API 사용량 정보 로컬 저장
      */
     private fun updateApiUsage(usages: List<ApiUsage>) {
         _onboardingProgress.value = 87
@@ -300,7 +288,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
-     * 8단계(선택적): FCM 토큰 서버 동기화
+     * 7단계(선택적): FCM 토큰 서버 동기화
      * FCM 토큰이 없거나 업데이트에 실패해도 온보딩은 성공으로 처리
      */
     private fun updateUserFcmToken() {
@@ -332,4 +320,4 @@ class OnboardingViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-}
+}

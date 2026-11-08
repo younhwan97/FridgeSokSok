@@ -14,6 +14,8 @@ import com.yh.fridgesoksok.data.local.LocalFoodDataSource
 import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.local.impl.LocalFoodDataSourceImpl
 import com.yh.fridgesoksok.local.room.AppDatabase
+import com.yh.fridgesoksok.common.Resource
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -80,20 +82,20 @@ class zEndToEndTest {
         )
 
         // When - 데이터 초기화
-        val initResult = repository.initializeLocalFoods(foods).first()
+        val initResult = repository.initializeLocalFoods(foods).result()
 
         // Then - 초기화 성공 확인
         assertTrue(initResult is com.yh.fridgesoksok.common.Resource.Success)
 
         // When - 전체 개수 확인
-        val countResult = repository.getCountLocalFoods().first()
+        val countResult = repository.getCountLocalFoods().result()
 
         // Then - 5개가 저장되었는지 확인
         assertTrue(countResult is com.yh.fridgesoksok.common.Resource.Success)
         assertEquals(5, (countResult as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // When - "사과"로 검색
-        val searchResult = repository.searchLocalFoods("사과").first()
+        val searchResult = repository.searchLocalFoods("사과").result()
 
         // Then - 사과, 사과주스 2개만 검색되어야 함
         assertTrue(searchResult is com.yh.fridgesoksok.common.Resource.Success)
@@ -115,19 +117,19 @@ class zEndToEndTest {
         }
 
         // When - 대량 데이터 초기화
-        val initResult = repository.initializeLocalFoods(foods).first()
+        val initResult = repository.initializeLocalFoods(foods).result()
 
         // Then - 초기화 성공
         assertTrue(initResult is com.yh.fridgesoksok.common.Resource.Success)
 
         // When - 전체 개수 확인
-        val countResult = repository.getCountLocalFoods().first()
+        val countResult = repository.getCountLocalFoods().result()
 
         // Then - 1000개 저장 확인
         assertEquals(1000, (countResult as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // When - "식품1"로 검색 (식품1, 식품10-19, 식품100-199 등이 매칭됨)
-        val searchResult = repository.searchLocalFoods("식품1").first()
+        val searchResult = repository.searchLocalFoods("식품1").result()
 
         // Then - 검색 결과가 있어야 함
         assertTrue(searchResult is com.yh.fridgesoksok.common.Resource.Success)
@@ -154,21 +156,21 @@ class zEndToEndTest {
         )
 
         // When - 데이터 초기화
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // Then - 검색으로 데이터 확인
-        val searchResult = repository.searchLocalFoods("").first()
+        val searchResult = repository.searchLocalFoods("").result()
         assertEquals(3, (searchResult as com.yh.fridgesoksok.common.Resource.Success).data?.size)
 
         // When - 전체 데이터 삭제
-        val deleteResult = repository.deleteLocalFoods().first()
+        val deleteResult = repository.deleteLocalFoods().result()
 
         // Then - 삭제 성공 확인 (3개 삭제됨)
         assertTrue(deleteResult is com.yh.fridgesoksok.common.Resource.Success)
         assertEquals(3, (deleteResult as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // Then - 삭제 후 검색 시 빈 결과
-        val afterDeleteSearch = repository.searchLocalFoods("").first()
+        val afterDeleteSearch = repository.searchLocalFoods("").result()
         assertTrue(afterDeleteSearch is com.yh.fridgesoksok.common.Resource.Success)
         assertEquals(0, (afterDeleteSearch as com.yh.fridgesoksok.common.Resource.Success).data?.size)
     }
@@ -185,23 +187,23 @@ class zEndToEndTest {
         val foods1 = listOf(LocalFood("사과", 1, 24))
 
         // When - 첫 번째 삽입
-        repository.initializeLocalFoods(foods1).first()
+        repository.initializeLocalFoods(foods1).result()
 
         // Then - 1개 저장 확인
-        val count1 = repository.getCountLocalFoods().first()
+        val count1 = repository.getCountLocalFoods().result()
         assertEquals(1, (count1 as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // When - 같은 이름으로 다시 삽입 (다른 카테고리)
         val foods2 = listOf(LocalFood("사과", 2, 36))
-        repository.initializeLocalFoods(foods2).first()
+        repository.initializeLocalFoods(foods2).result()
 
-        // Then - REPLACE 전략으로 여전히 1개만 존재
-        val count2 = repository.getCountLocalFoods().first()
-        assertEquals(1, (count2 as com.yh.fridgesoksok.common.Resource.Success).data)
+        // Then - initializeLocalFoods 는 기존 데이터에 추가함 (전체 교체는 AppInitializer 가 삭제 후 수행)
+        val count2 = repository.getCountLocalFoods().result()
+        assertEquals(2, (count2 as com.yh.fridgesoksok.common.Resource.Success).data)
 
-        // 검색 결과도 1개
-        val searchResult = repository.searchLocalFoods("사과").first()
-        assertEquals(1, (searchResult as com.yh.fridgesoksok.common.Resource.Success).data?.size)
+        // 검색 결과도 2개
+        val searchResult = repository.searchLocalFoods("사과").result()
+        assertEquals(2, (searchResult as com.yh.fridgesoksok.common.Resource.Success).data?.size)
     }
 
     /**
@@ -222,19 +224,18 @@ class zEndToEndTest {
         )
 
         // When - 데이터 초기화
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
-        // Then - "우유" 검색 시 4개 결과
-        val searchMilk = repository.searchLocalFoods("우유").first()
-        assertEquals(4, (searchMilk as com.yh.fridgesoksok.common.Resource.Success).data?.size)
-        assertTrue(searchMilk.data?.all { it.itemName.contains("우유") } == true)
+        // Then - 검색은 앞부분 일치이므로 "우유" 검색 시 "우유"만 반환
+        val searchMilk = repository.searchLocalFoods("우유").result()
+        assertEquals(listOf("우유"), (searchMilk as com.yh.fridgesoksok.common.Resource.Success).data?.map { it.itemName })
 
         // Then - "딸기" 검색 시 2개 결과 (딸기, 딸기우유)
-        val searchStrawberry = repository.searchLocalFoods("딸기").first()
+        val searchStrawberry = repository.searchLocalFoods("딸기").result()
         assertEquals(2, (searchStrawberry as com.yh.fridgesoksok.common.Resource.Success).data?.size)
 
         // Then - 빈 검색어는 전체 결과 반환
-        val searchAll = repository.searchLocalFoods("").first()
+        val searchAll = repository.searchLocalFoods("").result()
         assertEquals(5, (searchAll as com.yh.fridgesoksok.common.Resource.Success).data?.size)
     }
 
@@ -247,22 +248,22 @@ class zEndToEndTest {
     @Test
     fun 시나리오_빈_데이터_처리() = runBlocking {
         // When - 빈 리스트로 초기화
-        val initResult = repository.initializeLocalFoods(emptyList()).first()
+        val initResult = repository.initializeLocalFoods(emptyList()).result()
 
         // Then - 초기화 성공
         assertTrue(initResult is com.yh.fridgesoksok.common.Resource.Success)
 
         // Then - 개수는 0
-        val countResult = repository.getCountLocalFoods().first()
+        val countResult = repository.getCountLocalFoods().result()
         assertEquals(0, (countResult as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // Then - 검색 결과도 빈 리스트
-        val searchResult = repository.searchLocalFoods("").first()
+        val searchResult = repository.searchLocalFoods("").result()
         assertTrue(searchResult is com.yh.fridgesoksok.common.Resource.Success)
         assertEquals(0, (searchResult as com.yh.fridgesoksok.common.Resource.Success).data?.size)
 
         // When - 빈 데이터베이스에서 삭제 시도
-        val deleteResult = repository.deleteLocalFoods().first()
+        val deleteResult = repository.deleteLocalFoods().result()
 
         // Then - 삭제된 개수는 0
         assertTrue(deleteResult is com.yh.fridgesoksok.common.Resource.Success)
@@ -284,17 +285,17 @@ class zEndToEndTest {
             LocalFood("사과", 1, 24),
             LocalFood("바나나", 2, 12)
         )
-        repository.initializeLocalFoods(foods1).first()
+        repository.initializeLocalFoods(foods1).result()
 
-        val count1 = repository.getCountLocalFoods().first()
+        val count1 = repository.getCountLocalFoods().result()
         assertEquals(2, (count1 as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // Step 2: 검색
-        val search1 = repository.searchLocalFoods("사과").first()
+        val search1 = repository.searchLocalFoods("사과").result()
         assertEquals(1, (search1 as com.yh.fridgesoksok.common.Resource.Success).data?.size)
 
         // Step 3: 전체 삭제
-        val delete = repository.deleteLocalFoods().first()
+        val delete = repository.deleteLocalFoods().result()
         assertEquals(2, (delete as com.yh.fridgesoksok.common.Resource.Success).data)
 
         // Step 4: 새로운 데이터 재삽입
@@ -303,13 +304,13 @@ class zEndToEndTest {
             LocalFood("포도", 4, 60),
             LocalFood("수박", 5, 12)
         )
-        repository.initializeLocalFoods(foods2).first()
+        repository.initializeLocalFoods(foods2).result()
 
         // Step 5: 최종 검증
-        val finalCount = repository.getCountLocalFoods().first()
+        val finalCount = repository.getCountLocalFoods().result()
         assertEquals(3, (finalCount as com.yh.fridgesoksok.common.Resource.Success).data)
 
-        val finalSearch = repository.searchLocalFoods("").first()
+        val finalSearch = repository.searchLocalFoods("").result()
         assertEquals(3, (finalSearch as com.yh.fridgesoksok.common.Resource.Success).data?.size)
     }
 
@@ -319,6 +320,9 @@ class zEndToEndTest {
         override suspend fun getFoods(fridgeId: String) = emptyList<com.yh.fridgesoksok.data.model.FoodEntity>()
         override suspend fun updateFood(food: com.yh.fridgesoksok.data.model.FoodEntity) = food
         override suspend fun deleteFood(foodId: String) = true
-        override suspend fun uploadReceiptImage(img: android.graphics.Bitmap) = emptyList<com.yh.fridgesoksok.data.model.ReceiptEntity>()
+        override suspend fun uploadReceiptImage(image: ByteArray) = emptyList<com.yh.fridgesoksok.data.model.ReceiptEntity>()
     }
 }
+
+// flowWithResource 는 Loading 을 먼저 방출하므로 최종 결과(Success/Error)를 기다림
+private suspend fun <T> Flow<Resource<T>>.result(): Resource<T> = first { it !is Resource.Loading }

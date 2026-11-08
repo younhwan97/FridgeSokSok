@@ -77,7 +77,7 @@ fun HomeScreen(
     val launchCamera = rememberCameraLauncher(context) {
         navController.navigate(Screen.CameraScreen.route)
     }
-    val launchGallery = rememberGalleryPickerLauncher(context) { uri ->
+    val launchGallery = rememberGalleryPickerLauncher { uri ->
         selectedImageUri = uri
         showConfirmDialog = true
     }
@@ -199,4 +199,4 @@ fun HomeScreen(
             BlockingLoadingOverlay(showLoading = false)
         }
     }
-}
+}

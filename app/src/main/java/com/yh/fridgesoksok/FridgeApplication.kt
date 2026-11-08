@@ -11,8 +11,6 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class FridgeApplication : Application() {
-    val baseUrl: String
-        get() = "http://soksok.io/api/"
 
     override fun onCreate() {
         super.onCreate()
@@ -27,7 +25,7 @@ class FridgeApplication : Application() {
             clientSecret = BuildConfig.NAVER_CLIENT_SECRET,
             clientName = BuildConfig.NAVER_CLIENT_APP_NAME
         )
-        NaverIdLoginSDK.showDevelopersLog(true)
+        NaverIdLoginSDK.showDevelopersLog(BuildConfig.DEBUG)
 
         // 파이어베이스 초기화
         FirebaseApp.initializeApp(this)
@@ -42,4 +40,4 @@ class FridgeApplication : Application() {
             description = "푸시 알림을 위한 기본 채널입니다."
         })
     }
-}
+}

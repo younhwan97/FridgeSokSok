@@ -9,6 +9,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -28,13 +29,28 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // 프로세스가 종료된 뒤 복원되는 경우 저장된 화면 상태를 버리고 온보딩부터 다시 시작
+        // (토큰 확인 전에 홈 화면이 복원되어 API 를 호출하는 것을 방지)
+        val restoredAfterProcessDeath = savedInstanceState != null && !hasBeenCreatedInProcess
+        hasBeenCreatedInProcess = true
+        super.onCreate(if (restoredAfterProcessDeath) null else savedInstanceState)
         enableEdgeToEdge()
         setContent {
             FridgeSokSokTheme {
                 val navController = rememberNavController()
                 // 전역 뷰모델 (Activity-Scoped ViewModel)
                 val activityViewModel: SharedViewModel = hiltViewModel()
+
+                // 세션 만료 시 백스택을 비우고 로그인 화면으로 이동
+                LaunchedEffect(Unit) {
+                    activityViewModel.sessionExpired.collect {
+                        if (navController.currentDestination?.route == Screen.LoginScreen.route) return@collect
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -76,5 +92,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    companion object {
+        // 현재 프로세스에서 MainActivity 가 생성된 적이 있는지 (구성 변경과 프로세스 복원을 구분)
+        private var hasBeenCreatedInProcess = false
     }
 }

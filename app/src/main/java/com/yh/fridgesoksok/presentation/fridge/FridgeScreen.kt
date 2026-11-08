@@ -89,6 +89,13 @@ fun FridgeScreen(
             }
         }
 
+        // 식품 로드/수정/삭제 실패 알림
+        launch {
+            viewModel.errorMessage.collect { message ->
+                snackbarHostState.showSnackbar(message)
+            }
+        }
+
         // 레시피 생성 결과 처리
         launch {
             viewModel.recipeGenerationEvent.collect { event ->
@@ -125,7 +132,7 @@ fun FridgeScreen(
             )
 
             FoodTypeFilter(
-                types = Type.entries,
+                types = Type.selectableEntries,
                 selectedType = selectedType,
                 onTypeSelected = viewModel::updateSelectedType
             )

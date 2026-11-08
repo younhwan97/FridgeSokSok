@@ -3,6 +3,7 @@ package com.yh.fridgesoksok.presentation.fridge
 import com.yh.fridgesoksok.data.repository.FakeFoodRepository
 import com.yh.fridgesoksok.data.repository.FakeRecipeRepository
 import com.yh.fridgesoksok.data.repository.FakeUserRepository
+import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.domain.model.User
 import com.yh.fridgesoksok.domain.usecase.CreateRecipeFromFridgeUseCase
 import com.yh.fridgesoksok.domain.usecase.CreateRecipeUseCase
@@ -10,10 +11,15 @@ import com.yh.fridgesoksok.domain.usecase.DeleteFoodUseCase
 import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateFoodUseCase
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_DELETE_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_LOAD_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_UPDATE_FAILED
 import com.yh.fridgesoksok.presentation.model.Type
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -132,4 +138,95 @@ class FridgeViewModelTest {
         // Then
         assertEquals(RecipeGenerationState.Idle, lastState)
     }
+
+    @Test
+    fun `목록 새로고침에 실패해도 기존 목록을 유지하고 알림을 보내야 한다`() = runTest {
+        // Given
+        val messages = collectErrorMessages()
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // When
+        fakeFoodRepository.shouldFail = true
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(listOf("food-1"), viewModel.foods.value.map { it.id })
+        assertEquals(FridgeState.Success, viewModel.state.value)
+        assertEquals(listOf(FOOD_LOAD_FAILED), messages)
+    }
+
+    @Test
+    fun `첫 목록 로드에 실패하면 Error 상태가 되어야 한다`() = runTest {
+        // Given
+        fakeFoodRepository.shouldFail = true
+
+        // When
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(FridgeState.Error, viewModel.state.value)
+    }
+
+    @Test
+    fun `식품 삭제에 실패하면 목록을 유지하고 알림을 보내야 한다`() = runTest {
+        // Given
+        val messages = collectErrorMessages()
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeFoodRepository.shouldFail = true
+
+        // When
+        viewModel.deleteFood(viewModel.foods.value.first())
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(1, viewModel.foods.value.size)
+        assertEquals(listOf(FOOD_DELETE_FAILED), messages)
+    }
+
+    @Test
+    fun `식품 수정에 실패하면 알림을 보내야 한다`() = runTest {
+        // Given
+        val messages = collectErrorMessages()
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeFoodRepository.shouldFail = true
+
+        // When
+        val target = viewModel.foods.value.first()
+        viewModel.updateFood(target.copy(count = target.count + 1))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(target.count, viewModel.foods.value.first().count)
+        assertEquals(listOf(FOOD_UPDATE_FAILED), messages)
+    }
+
+    private fun kotlinx.coroutines.test.TestScope.collectErrorMessages(): List<String> {
+        val messages = mutableListOf<String>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.errorMessage.collect { messages += it }
+        }
+        return messages
+    }
+
+    private fun givenFoods(vararg foods: Food) = runBlocking {
+        fakeFoodRepository.addFoods("test-fridge", foods.toList()).first()
+    }
+
+    private fun food(id: String, name: String) = Food(
+        id = id,
+        fridgeId = "test-fridge",
+        itemName = name,
+        expiryDate = "20301231",
+        categoryId = 1,
+        count = 1,
+        createdAt = "20250101"
+    )
 }

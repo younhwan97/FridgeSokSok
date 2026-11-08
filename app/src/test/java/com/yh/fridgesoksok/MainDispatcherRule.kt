@@ -25,6 +25,9 @@ class MainDispatcherRule(
         Dispatchers.setMain(testDispatcher)
     }
 
+    // 대기 중인 코루틴을 모두 실행
+    fun advance() = testDispatcher.scheduler.advanceUntilIdle()
+
     override fun finished(description: Description) {
         Dispatchers.resetMain()
     }

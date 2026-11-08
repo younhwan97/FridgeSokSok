@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.data.impl
 
-import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.common.flowWithResource
 import com.yh.fridgesoksok.data.local.LocalFoodDataSource
@@ -39,9 +38,9 @@ class FoodRepositoryImpl @Inject constructor(
             remoteFoodDataSource.deleteFood(foodId)
         }
 
-    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> =
+    override fun uploadReceiptImage(image: ByteArray): Flow<Resource<List<Receipt>>> =
         flowWithResource {
-            remoteFoodDataSource.uploadReceiptImage(img = img).map { it.toDomain() }
+            remoteFoodDataSource.uploadReceiptImage(image = image).map { it.toDomain() }
         }
 
     override fun initializeLocalFoods(foods: List<LocalFood>): Flow<Resource<Boolean>> =
@@ -63,4 +62,4 @@ class FoodRepositoryImpl @Inject constructor(
         flowWithResource {
             localFoodDataSource.searchFoods(keyword).map { it.toDomain() }
         }
-}
+}

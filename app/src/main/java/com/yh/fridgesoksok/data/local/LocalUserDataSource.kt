@@ -13,6 +13,9 @@ interface LocalUserDataSource {
 
     suspend fun clearUser(): Boolean
 
+    // OkHttp Authenticator(동기 컨텍스트)에서 호출되므로 suspend가 아님
+    fun updateTokens(accessToken: String, refreshToken: String): Boolean
+
     suspend fun updateUserFcmToken(fcmToken: String): Boolean
 
     fun getUserFcmToken(): String
@@ -20,4 +23,4 @@ interface LocalUserDataSource {
     suspend fun updateApiUsage(apiUsages: List<ApiUsageEntity>): Boolean
 
     fun getApiUsage(feature: String): ApiUsageEntity
-}
+}

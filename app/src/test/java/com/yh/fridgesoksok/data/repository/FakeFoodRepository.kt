@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.data.repository
 
-import android.graphics.Bitmap
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.domain.model.LocalFood
@@ -15,6 +14,18 @@ class FakeFoodRepository : FoodRepository {
     private val localFoods = mutableListOf<LocalFood>()
     private val receipts = mutableListOf<Receipt>()
 
+    // true 이면 getFoods/updateFood/deleteFood 가 서버 오류(500)를 반환 (테스트용)
+    var shouldFail = false
+
+    // 마지막으로 업로드된 영수증 이미지 (테스트 검증용)
+    var lastUploadedImage: ByteArray? = null
+        private set
+
+    fun setReceipts(items: List<Receipt>) {
+        receipts.clear()
+        receipts.addAll(items)
+    }
+
     override fun addFoods(fridgeId: String, foods: List<Food>): Flow<Resource<List<Food>>> {
         val list = foodMap.getOrPut(fridgeId) { mutableListOf() }
         list.addAll(foods)
@@ -22,11 +33,13 @@ class FakeFoodRepository : FoodRepository {
     }
 
     override fun getFoods(fridgeId: String): Flow<Resource<List<Food>>> {
+        if (shouldFail) return flow { emit(Resource.Error("Server error", null, 500)) }
         val foods = foodMap[fridgeId].orEmpty()
         return flow { emit(Resource.Success(foods)) }
     }
 
     override fun updateFood(food: Food): Flow<Resource<Food>> {
+        if (shouldFail) return flow { emit(Resource.Error("Server error", null, 500)) }
         for ((_, foods) in foodMap) {
             val index = foods.indexOfFirst { it.id == food.id }
             if (index != -1) {
@@ -38,6 +51,7 @@ class FakeFoodRepository : FoodRepository {
     }
 
     override fun deleteFood(foodId: String): Flow<Resource<Boolean>> {
+        if (shouldFail) return flow { emit(Resource.Error("Server error", null, 500)) }
         var deleted = false
         for ((_, foods) in foodMap) {
             val removed = foods.removeIf { it.id == foodId }
@@ -49,7 +63,8 @@ class FakeFoodRepository : FoodRepository {
         return flow { emit(Resource.Success(deleted)) }
     }
 
-    override fun uploadReceiptImage(img: Bitmap): Flow<Resource<List<Receipt>>> {
+    override fun uploadReceiptImage(image: ByteArray): Flow<Resource<List<Receipt>>> {
+        lastUploadedImage = image
         return flow { emit(Resource.Success(receipts.toList())) }
     }
 

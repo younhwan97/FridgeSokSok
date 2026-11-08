@@ -2,6 +2,7 @@ package com.yh.fridgesoksok.presentation.common
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -87,7 +88,7 @@ title = "테스트",
         }
 
         // Then
-        composeTestRule.onNodeWithText("다시 시도").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("다시 시도").assertIsDisplayed()
     }
 
     @Test
@@ -104,7 +105,7 @@ title = "테스트",
         }
 
         // Then
-        composeTestRule.onNodeWithText("다시 시도").performClick()
+        composeTestRule.onNodeWithContentDescription("다시 시도").performClick()
         assert(retryCalled)
     }
 

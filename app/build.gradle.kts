@@ -27,16 +27,23 @@ properties.load(project.rootProject.file("local.properties").inputStream())
 
 android {
     namespace = "com.yh.fridgesoksok"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.yh.fridgesoksok"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 7
-        versionName = "1.6"
+        targetSdk = 36
+        versionCode = 8
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // API SERVER
+        buildConfigField("String", "BASE_URL", "\"https://soksok.io/api/\"")
+        // local.properties 에 USE_MOCK_API=true 지정 시 MockApiService 사용 (debug 전용, release 는 아래에서 강제 false)
+        buildConfigField("boolean", "USE_MOCK_API", properties.getProperty("USE_MOCK_API") ?: "false")
+        // 카테고리 18~22(채소·과일·달걀·주류·유아식) 선택 노출. 서버 app.categories.extended 활성화와 함께 true 로 변경
+        buildConfigField("boolean", "EXTENDED_CATEGORIES", "false")
 
         // KAKAO API KEY
         buildConfigField("String", "KAKAO_API_KEY", properties.getProperty("KAKAO_API_KEY"))
@@ -50,6 +57,8 @@ android {
 
     buildTypes {
         release {
+            // release 빌드는 local.properties 설정과 관계없이 항상 실제 서버 사용
+            buildConfigField("boolean", "USE_MOCK_API", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

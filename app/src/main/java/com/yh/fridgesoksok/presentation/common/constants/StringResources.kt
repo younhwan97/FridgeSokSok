@@ -15,12 +15,19 @@ object StringResources {
         const val RECEIPT_RECOGNITION_FAILED = "영수증을 인식하지 못했어요 :("
         const val RECEIPT_QUOTA_EXCEEDED = "영수증 인식 횟수를 모두 소진하였습니다."
         const val FOOD_ADD_FAILED = "식품 추가에 실패했어요. 다시 시도해주세요."
+        const val EXPIRY_INPUT_REQUIRED = "소비기한을 찾지 못한 식품이 있어요. 눌러서 직접 입력해주세요."
 
         const val FOOD_NAME_REQUIRED = "식품 이름을 입력해주세요"
         const val FOOD_UPDATE_FAILED = "변경에 실패했어요. 다시 시도해주세요."
+        const val FOOD_DELETE_FAILED = "삭제에 실패했어요. 다시 시도해주세요."
         const val FOOD_LOAD_FAILED = "식품을 불러오는데 실패했어요."
 
         const val RECIPE_LOAD_FAILED = "레시피를 읽어올 수 없습니다 :("
+
+        const val LOGIN_FAILED = "로그인에 실패했어요. 잠시 후 다시 시도해주세요."
+        const val LOGIN_TOO_MANY_REQUESTS = "로그인 요청이 너무 많아요. 잠시 후 다시 시도하거나 카카오·네이버로 로그인해주세요."
+        const val NETWORK_ERROR = "네트워크 연결을 확인한 뒤 다시 시도해주세요."
+        const val SERVER_ERROR = "서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요."
     }
 
     // 확인 다이얼로그 메시지

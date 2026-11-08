@@ -4,11 +4,12 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.Resource
-import com.yh.fridgesoksok.domain.model.Receipt
 import com.yh.fridgesoksok.domain.usecase.AddFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UploadReceiptImageUseCase
+import com.yh.fridgesoksok.presentation.common.extension.toResizedJpegBytes
 import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.EXPIRY_INPUT_REQUIRED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_ADD_FAILED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECEIPT_QUOTA_EXCEEDED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECEIPT_RECOGNITION_FAILED
@@ -16,6 +17,7 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -24,13 +26,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.withContext
 import java.util.Collections
 import java.util.UUID
 import javax.inject.Inject
 
-private const val DATE_FORMAT = "yyyyMMdd"
 
 @HiltViewModel
 class UploadViewModel @Inject constructor(
@@ -63,7 +63,10 @@ class UploadViewModel @Inject constructor(
      * - ID가 있고 기존 리스트에 존재하면 → 업데이트
      * - ID가 없거나 리스트에 없으면 → 새로 추가
      */
-    fun addOrUpdateFood(food: FoodModel, deduplicationKey: String? = null) {
+    fun addOrUpdateFood(editedFood: FoodModel, deduplicationKey: String? = null) {
+        // 편집 화면을 거친 항목은 사용자가 소비기한을 확인한 것으로 간주
+        val food = editedFood.copy(needsExpiryInput = false, needsLabelCheck = false)
+
         // 중복 추가 방지 (deduplicationKey가 있는 경우)
         if (deduplicationKey != null) {
             if (processedFoodIds.contains(deduplicationKey)) {
@@ -98,35 +101,43 @@ class UploadViewModel @Inject constructor(
      * 영수증 이미지 업로드 및 OCR 처리
      */
     fun uploadReceiptImage(bitmap: Bitmap) {
-        uploadReceiptImageUseCase(bitmap).onEach { result ->
-            when (result) {
-                is Resource.Success -> {
-                    val receiptList = result.data
-                    if (!receiptList.isNullOrEmpty()) {
-                        val mappedFoods = mapReceiptToFoodModels(receiptList)
-                        _newFoods.update { it + mappedFoods }
-                    } else {
-                        _errorMessage.emit(RECEIPT_RECOGNITION_FAILED)
+        viewModelScope.launch {
+            _state.value = UploadState.Loading
+            // 리사이즈/인코딩은 메인 스레드를 막지 않도록 Default 디스패처에서 수행
+            val image = withContext(Dispatchers.Default) { bitmap.toResizedJpegBytes() }
+            uploadReceiptImageUseCase(image).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val receiptList = result.data
+                        if (!receiptList.isNullOrEmpty()) {
+                            val mappedFoods = receiptList.toUploadFoods()
+                            _newFoods.update { it + mappedFoods }
+                            if (mappedFoods.any { it.needsExpiryInput }) {
+                                _errorMessage.emit(EXPIRY_INPUT_REQUIRED)
+                            }
+                        } else {
+                            _errorMessage.emit(RECEIPT_RECOGNITION_FAILED)
+                        }
+                        _state.value = UploadState.Success
                     }
-                    _state.value = UploadState.Success
-                }
 
-                is Resource.Loading -> {
-                    _state.value = UploadState.Loading
-                }
-
-                is Resource.Error -> {
-                    val errorMsg = if (result.status == HTTP_TOO_MANY_REQUESTS) {
-                        RECEIPT_QUOTA_EXCEEDED
-                    } else {
-                        RECEIPT_RECOGNITION_FAILED
+                    is Resource.Loading -> {
+                        _state.value = UploadState.Loading
                     }
-                    _errorMessage.emit(errorMsg)
-                    // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
-                    _state.value = UploadState.Success
+
+                    is Resource.Error -> {
+                        val errorMsg = if (result.status == HTTP_TOO_MANY_REQUESTS) {
+                            RECEIPT_QUOTA_EXCEEDED
+                        } else {
+                            RECEIPT_RECOGNITION_FAILED
+                        }
+                        _errorMessage.emit(errorMsg)
+                        // 별도의 에러 스크린이 존재하지 않고, 재처리를 가능하도록 하기 위해 Success 세팅
+                        _state.value = UploadState.Success
+                    }
                 }
             }
-        }.launchIn(viewModelScope)
+        }
     }
 
     /**
@@ -179,31 +190,6 @@ class UploadViewModel @Inject constructor(
     fun deleteFood(id: String) {
         _newFoods.update { list ->
             list.filterNot { food -> food.id == id }
-        }
-    }
-
-    /**
-     * 영수증 OCR 결과를 FoodModel 리스트로 변환
-     */
-    private fun mapReceiptToFoodModels(receiptList: List<Receipt>): List<FoodModel> {
-        val now = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern(DATE_FORMAT)
-
-        return receiptList.map { item ->
-            val expiryDate = now
-                .atStartOfDay()
-                .plusHours(item.shelfLifeHours.toLong())
-                .toLocalDate()
-
-            FoodModel(
-                id = UUID.randomUUID().toString(),
-                fridgeId = "",
-                itemName = item.itemName,
-                count = item.count,
-                createdAt = now.format(formatter),
-                expiryDate = expiryDate.format(formatter),
-                categoryId = item.categoryId,
-            )
         }
     }
 }

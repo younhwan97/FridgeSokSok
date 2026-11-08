@@ -45,16 +45,12 @@ class LocalUserDataSourceImpl @Inject constructor(
     }
 
     override suspend fun saveUser(userEntity: UserEntity): Boolean =
-        editAndCommit {
-            putString(KEY_ID, userEntity.id)
-            putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
-            putString(KEY_REFRESH_TOKEN, userEntity.refreshToken)
-            putString(KEY_USERNAME, userEntity.username)
-            putString(KEY_ACCOUNT_TYPE, userEntity.accountType)
-            putString(KEY_DEFAULT_FRIDGE_ID, userEntity.defaultFridgeId)
-        }
+        putUser(userEntity)
 
     override suspend fun updateUser(userEntity: UserEntity): Boolean =
+        putUser(userEntity)
+
+    private fun putUser(userEntity: UserEntity): Boolean =
         editAndCommit {
             putString(KEY_ID, userEntity.id)
             putString(KEY_ACCESS_TOKEN, userEntity.accessToken)
@@ -72,6 +68,12 @@ class LocalUserDataSourceImpl @Inject constructor(
             remove(KEY_USERNAME)
             remove(KEY_ACCOUNT_TYPE)
             remove(KEY_DEFAULT_FRIDGE_ID)
+        }
+
+    override fun updateTokens(accessToken: String, refreshToken: String): Boolean =
+        editAndCommit {
+            putString(KEY_ACCESS_TOKEN, accessToken)
+            putString(KEY_REFRESH_TOKEN, refreshToken)
         }
 
     override suspend fun updateUserFcmToken(fcmToken: String): Boolean =
@@ -101,4 +103,4 @@ class LocalUserDataSourceImpl @Inject constructor(
             used = prefs.getInt("${feature}_USED", 0),
         )
     }
-}
+}

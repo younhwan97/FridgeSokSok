@@ -6,9 +6,12 @@ import com.navercorp.nid.NaverIdLoginSDK
 import com.navercorp.nid.oauth.OAuthLoginCallback
 import com.yh.fridgesoksok.service.NaverLoginActivity
 import com.yh.fridgesoksok.remote.model.UserResponse
+import com.yh.fridgesoksok.common.UserCancelledException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+
+private const val NAVER_USER_CANCEL_CODE = "user_cancel"
 
 class NaverApiService(
     private val appContext: Context
@@ -40,9 +43,13 @@ class NaverApiService(
             override fun onFailure(httpStatus: Int, message: String) {
                 val code = NaverIdLoginSDK.getLastErrorCode().code
                 val desc = NaverIdLoginSDK.getLastErrorDescription()
-                continuation.resumeWithException(
+                // 사용자가 로그인 화면을 닫은 경우는 취소로 구분
+                val cause = if (code == NAVER_USER_CANCEL_CODE) {
+                    UserCancelledException()
+                } else {
                     RuntimeException("Naver login failed: $httpStatus / $code: $desc")
-                )
+                }
+                continuation.resumeWithException(cause)
             }
 
             override fun onError(errorCode: Int, message: String) {
@@ -60,4 +67,4 @@ class NaverApiService(
             NaverLoginActivity.pendingCallback = null
         }
     }
-}
+}
