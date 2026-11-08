@@ -67,7 +67,12 @@ class UserRepositoryImpl @Inject constructor(
 
     override fun reissueUserToken(refreshToken: String): Flow<Resource<Token>> =
         flowWithResource {
-            remoteUserDataSource.reissueUserToken(refreshToken = refreshToken).toDomain()
+            val token = remoteUserDataSource.reissueUserToken(refreshToken = refreshToken)
+            // 리프레시 토큰이 회전되므로 즉시 저장 (TokenAuthenticator 가 이전 토큰을 사용하지 않도록)
+            if (token.accessToken.isNotBlank() && token.refreshToken.isNotBlank()) {
+                localUserDataSource.updateTokens(token.accessToken, token.refreshToken)
+            }
+            token.toDomain()
         }
 
     override fun getUserDefaultFridge(accessToken: String): Flow<Resource<Fridge>> =
@@ -125,4 +130,4 @@ class UserRepositoryImpl @Inject constructor(
         flowWithResource {
             localUserDataSource.updateApiUsage(apiUsages.map { it.toEntity() })
         }
-}
+}

@@ -24,7 +24,7 @@ class TokenAuthenticator @Inject constructor(
         // 인증 API 자체의 실패이거나 이미 재시도한 요청이면 포기
         if (request.isAuthRequest() || response.priorResponse != null) return null
 
-        synchronized(this) {
+        synchronized(AuthTokenLock) {
             val user = localUserDataSource.loadUser()
             if (user.refreshToken.isBlank()) return null
 

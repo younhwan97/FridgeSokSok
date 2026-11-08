@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.remote.api
 
 import com.yh.fridgesoksok.data.local.LocalUserDataSource
+import com.yh.fridgesoksok.data.model.UserEntity
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
@@ -15,6 +16,12 @@ internal fun Request.withBearerToken(token: String): Request =
 internal fun Request.isAuthRequest(): Boolean =
     url.encodedPath.contains("/auth/")
 
+/**
+ * 리프레시 토큰을 사용하는 작업(auth/ API 호출, TokenAuthenticator 재발급)을 직렬화하는 락
+ * 재발급으로 리프레시 토큰이 회전되는 도중 이전 토큰으로 auth/ API를 호출하는 경합을 막는다.
+ */
+internal object AuthTokenLock
+
 class RequestHeaderInterceptor @Inject constructor(
     private val localUserDataSource: LocalUserDataSource
 ) : Interceptor {
@@ -22,16 +29,20 @@ class RequestHeaderInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
 
-        // 호출부에서 직접 헤더를 지정한 경우 그대로 사용
-        if (originalRequest.header(HEADER_AUTHORIZATION) != null) {
-            return chain.proceed(originalRequest)
+        if (!originalRequest.isAuthRequest()) {
+            return chain.proceed(originalRequest.withStoredToken { it.accessToken })
         }
 
-        val user = localUserDataSource.loadUser()
-        // 인증(auth/) API는 리프레시 토큰, 그 외는 액세스 토큰 사용
-        val token = if (originalRequest.isAuthRequest()) user.refreshToken else user.accessToken
+        // 인증(auth/) API는 리프레시 토큰 사용, 진행 중인 재발급이 끝난 뒤 최신 토큰으로 호출
+        synchronized(AuthTokenLock) {
+            return chain.proceed(originalRequest.withStoredToken { it.refreshToken })
+        }
+    }
 
-        val request = if (token.isNotBlank()) originalRequest.withBearerToken(token) else originalRequest
-        return chain.proceed(request)
+    // 호출부에서 직접 헤더를 지정한 경우 그대로 사용
+    private fun Request.withStoredToken(selector: (UserEntity) -> String): Request {
+        if (header(HEADER_AUTHORIZATION) != null) return this
+        val token = selector(localUserDataSource.loadUser())
+        return if (token.isNotBlank()) withBearerToken(token) else this
     }
 }
