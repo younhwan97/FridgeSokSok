@@ -11,6 +11,9 @@ import com.yh.fridgesoksok.domain.usecase.GetFoodsUseCase
 import com.yh.fridgesoksok.domain.usecase.LoadUserUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateFoodUseCase
 import com.yh.fridgesoksok.presentation.common.constants.HttpConstants.HTTP_TOO_MANY_REQUESTS
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_DELETE_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_LOAD_FAILED
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.FOOD_UPDATE_FAILED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECIPE_GENERATION_FAILED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.RECIPE_GENERATION_QUOTA_EXCEEDED
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ErrorMessages.SELECT_INGREDIENTS
@@ -54,6 +57,10 @@ class FridgeViewModel @Inject constructor(
     // 선택된 음식 목록 (레시피 생성용)
     private val _selectedFoods = MutableStateFlow<Set<FoodModel>>(emptySet())
     val selectedFoods = _selectedFoods.asStateFlow()
+
+    // 사용자에게 보여줄 에러 메시지 (스낵바)
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
 
     // 레시피 생성 완료 이벤트
     private val _recipeGenerationEvent = MutableSharedFlow<RecipeGenerationEvent>()
@@ -210,8 +217,12 @@ class FridgeViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    _foods.value = emptyList()
-                    _state.value = FridgeState.Error
+                    // 이미 표시 중인 목록이 있으면 유지하고 알림만 표시
+                    if (_foods.value.isEmpty()) {
+                        _state.value = FridgeState.Error
+                    } else {
+                        _errorMessage.emit(FOOD_LOAD_FAILED)
+                    }
                 }
             }
         }.launchIn(viewModelScope)
@@ -232,7 +243,7 @@ class FridgeViewModel @Inject constructor(
                         }
                     }
 
-                    is Resource.Error -> Unit
+                    is Resource.Error -> _errorMessage.emit(FOOD_UPDATE_FAILED)
                     is Resource.Loading -> Unit
                 }
             }
@@ -250,10 +261,12 @@ class FridgeViewModel @Inject constructor(
                         val isDeleted = result.data ?: false
                         if (isDeleted) {
                             _foods.value = _foods.value.filterNot { it.id == food.id }
+                        } else {
+                            _errorMessage.emit(FOOD_DELETE_FAILED)
                         }
                     }
 
-                    is Resource.Error -> Unit
+                    is Resource.Error -> _errorMessage.emit(FOOD_DELETE_FAILED)
                     is Resource.Loading -> Unit
                 }
             }
@@ -355,4 +368,4 @@ sealed class RecipeGenerationState {
 sealed class RecipeGenerationEvent {
     data object Success : RecipeGenerationEvent()
     data class Error(val message: String) : RecipeGenerationEvent()
-}
+}

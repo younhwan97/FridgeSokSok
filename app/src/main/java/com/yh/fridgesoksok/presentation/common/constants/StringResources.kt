@@ -18,6 +18,7 @@ object StringResources {
 
         const val FOOD_NAME_REQUIRED = "식품 이름을 입력해주세요"
         const val FOOD_UPDATE_FAILED = "변경에 실패했어요. 다시 시도해주세요."
+        const val FOOD_DELETE_FAILED = "삭제에 실패했어요. 다시 시도해주세요."
         const val FOOD_LOAD_FAILED = "식품을 불러오는데 실패했어요."
 
         const val RECIPE_LOAD_FAILED = "레시피를 읽어올 수 없습니다 :("
