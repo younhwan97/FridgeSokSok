@@ -1,7 +1,6 @@
 package com.yh.fridgesoksok.remote.impl
 
 import com.yh.fridgesoksok.common.Channel
-import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.data.model.ApiUsageEntity
 import com.yh.fridgesoksok.data.model.FridgeEntity
 import com.yh.fridgesoksok.data.model.ServerStatusEntity
@@ -20,193 +19,101 @@ import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.toEntity
 import javax.inject.Inject
 
+private const val TAG = "RemoteUserData"
+
 class RemoteUserDataSourceImpl @Inject constructor(
     private val kakaoApiService: KakaoApiService,
     private val naverApiService: NaverApiService,
     private val fridgeApiService: FridgeApiService
 ) : RemoteUserDataSource {
 
-    override suspend fun getServerStatus(): ServerStatusEntity {
-        return try {
-            Logger.d("RemoteUserData", "getServerStatus")
-            val response = fridgeApiService.getServerStatus()
-            val data = response.data ?: throw IllegalStateException("getServerStatus data(=null)")
-            data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "getServerStatus 실패", e)
-            throw e
+    override suspend fun getServerStatus(): ServerStatusEntity =
+        apiCall(TAG, "getServerStatus") {
+            fridgeApiService.getServerStatus().requireData("getServerStatus").toEntity()
         }
-    }
 
-    override suspend fun createUserOnChannel(channel: Channel): UserEntity {
-        return try {
-            Logger.d("RemoteUserData", "createUserOnChannel INPUT $channel")
+    override suspend fun createUserOnChannel(channel: Channel): UserEntity =
+        apiCall(TAG, "createUserOnChannel", channel) {
             val data = when (channel) {
                 Channel.KAKAO -> kakaoApiService.createUserOnKakao()
                 Channel.NAVER -> naverApiService.createUserOnNaver()
                 Channel.GUEST -> fridgeApiService.createTmpUser(UserTmpCreateRequest(username = "tmp", accountType = "temp")).data
             } ?: throw IllegalStateException("createUserOnChannel data(=null)")
-
             data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "createUserOnChannel 실패", e)
-            throw e
         }
-    }
 
-    override suspend fun createUserOnServer(user: UserEntity): UserEntity {
-        return try {
-            Logger.d("RemoteUserData", "createUserOnServer INPUT $user")
-            val response = when (user.accountType) {
-                Channel.KAKAO.toString() -> fridgeApiService.createUserOnServer(
-                    provider = "kakao",
-                    userCreateRequest = UserCreateRequest(user.accessToken)
-                )
-
-                Channel.NAVER.toString() -> fridgeApiService.createUserOnServer(
-                    provider = "naver",
-                    userCreateRequest = UserCreateRequest(user.accessToken)
-                )
-
-                else -> null
+    override suspend fun createUserOnServer(user: UserEntity): UserEntity =
+        apiCall(TAG, "createUserOnServer", user.accountType) {
+            val provider = when (user.accountType) {
+                Channel.KAKAO.toString() -> "kakao"
+                Channel.NAVER.toString() -> "naver"
+                else -> throw IllegalStateException("createUserOnServer unsupported accountType(=${user.accountType})")
             }
-            val data = response?.data ?: throw IllegalStateException("createUserOnServer data(=null)")
-            data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "createUserOnServer 실패", e)
-            throw e
+            fridgeApiService.createUserOnServer(
+                provider = provider,
+                userCreateRequest = UserCreateRequest(user.accessToken)
+            ).requireData("createUserOnServer").toEntity()
         }
-    }
 
-    override suspend fun deleteUser(): Boolean {
-        return try {
-            Logger.d("RemoteUserData", "deleteUser")
-            val response = fridgeApiService.deleteUser()
-            val data = response.data ?: throw IllegalStateException("deleteUser data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "deleteUser 실패", e)
-            throw e
+    override suspend fun deleteUser(): Boolean =
+        apiCall(TAG, "deleteUser") {
+            fridgeApiService.deleteUser().requireData("deleteUser")
         }
-    }
 
-    override suspend fun validateUserToken(refreshToken: String): Boolean {
-        return try {
-            Logger.d("RemoteUserData", "validateUserToken INPUT $refreshToken")
-            val response = fridgeApiService.validateUserToken()
-            val data = response.data ?: throw IllegalStateException("validateUserToken data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "validateUserToken 실패", e)
-            throw e
+    // refreshToken 헤더는 RequestHeaderInterceptor 에서 주입
+    override suspend fun validateUserToken(refreshToken: String): Boolean =
+        apiCall(TAG, "validateUserToken") {
+            fridgeApiService.validateUserToken().requireData("validateUserToken")
         }
-    }
 
-    override suspend fun reissueUserToken(refreshToken: String): TokenEntity {
-        return try {
-            Logger.d("RemoteUserData", "reissueUserToken INPUT $refreshToken")
-            val response = fridgeApiService.reissueUserToken()
-            val data = response.data ?: throw IllegalStateException("reissueUserToken data(=null)")
-            data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "reissueUserToken 실패", e)
-            throw e
+    // refreshToken 헤더는 RequestHeaderInterceptor 에서 주입
+    override suspend fun reissueUserToken(refreshToken: String): TokenEntity =
+        apiCall(TAG, "reissueUserToken") {
+            fridgeApiService.reissueUserToken().requireData("reissueUserToken").toEntity()
         }
-    }
 
-    override suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity {
-        return try {
-            Logger.d("RemoteUserData", "getUserDefaultFridge INPUT $accessToken")
-            val response = fridgeApiService.getUserDefaultFridge("Bearer $accessToken")
-            val data = response.data ?: throw IllegalStateException("getUserDefaultFridge data(=null)")
-            data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "getUserDefaultFridge 실패", e)
-            throw e
+    override suspend fun getUserDefaultFridge(accessToken: String): FridgeEntity =
+        apiCall(TAG, "getUserDefaultFridge") {
+            fridgeApiService.getUserDefaultFridge("Bearer $accessToken")
+                .requireData("getUserDefaultFridge").toEntity()
         }
-    }
 
-    override suspend fun updateReceiveNotification(enabled: Boolean): Boolean {
-        return try {
-            Logger.d("RemoteUserData", "updateReceiveNotification INPUT $enabled")
-            val response = fridgeApiService.updateUserSettings(UserSettingRequest(isNotification = enabled, null, null))
-            val data = response.data?.isNotification ?: throw IllegalStateException("updateReceiveNotification data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateReceiveNotification 실패", e)
-            throw e
+    override suspend fun updateReceiveNotification(enabled: Boolean): Boolean =
+        apiCall(TAG, "updateReceiveNotification", enabled) {
+            fridgeApiService.updateUserSettings(UserSettingRequest(isNotification = enabled, null, null))
+                .data?.isNotification ?: throw IllegalStateException("updateReceiveNotification data(=null)")
         }
-    }
 
-    override suspend fun updateAutoDeleteExpired(enabled: Boolean): Boolean {
-        return try {
-            Logger.d("RemoteUserData", "updateAutoDeleteExpired INPUT $enabled")
-            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, null, autoDeleteFoods = enabled))
-            val data = response.data?.autoDeleteFoods ?: throw IllegalStateException("updateAutoDeleteExpired data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateAutoDeleteExpired 실패", e)
-            throw e
+    override suspend fun updateAutoDeleteExpired(enabled: Boolean): Boolean =
+        apiCall(TAG, "updateAutoDeleteExpired", enabled) {
+            fridgeApiService.updateUserSettings(UserSettingRequest(null, null, autoDeleteFoods = enabled))
+                .data?.autoDeleteFoods ?: throw IllegalStateException("updateAutoDeleteExpired data(=null)")
         }
-    }
 
-    override suspend fun updateUseAllIngredients(enabled: Boolean): Boolean {
-        return try {
-            Logger.d("RemoteUserData", "updateUseAllIngredients INPUT $enabled")
-            val response = fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled, null))
-            val data = response.data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredients data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateUseAllIngredients 실패", e)
-            throw e
+    override suspend fun updateUseAllIngredients(enabled: Boolean): Boolean =
+        apiCall(TAG, "updateUseAllIngredients", enabled) {
+            fridgeApiService.updateUserSettings(UserSettingRequest(null, useAllIngredients = enabled, null))
+                .data?.useAllIngredients ?: throw IllegalStateException("updateUseAllIngredients data(=null)")
         }
-    }
 
-    override suspend fun getUserSettings(): UserSettingEntity {
-        return try {
-            Logger.d("RemoteUserData", "getUserSettings")
-            val response = fridgeApiService.getUserSettings()
-            val data = response.data?.toEntity() ?: throw IllegalStateException("getUserSettings data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "getUserSettings 실패", e)
-            throw e
+    override suspend fun getUserSettings(): UserSettingEntity =
+        apiCall(TAG, "getUserSettings") {
+            fridgeApiService.getUserSettings().requireData("getUserSettings").toEntity()
         }
-    }
 
-    override suspend fun updateUserFcmToken(fcmToken: String): String {
-        return try {
-            Logger.d("RemoteUserData", "updateUserFcmToken INPUT $fcmToken")
-            val response = fridgeApiService.updateUser(UserProfileRequest(null, null, null, fcmToken, null, null))
-            val data = response.data?.fcmToken ?: throw IllegalStateException("updateUseAllIngredientsEnabled data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "updateUserFcmToken 실패", e)
-            throw e
+    override suspend fun updateUserFcmToken(fcmToken: String): String =
+        apiCall(TAG, "updateUserFcmToken") {
+            fridgeApiService.updateUser(UserProfileRequest(null, null, null, fcmToken, null, null))
+                .data?.fcmToken ?: throw IllegalStateException("updateUserFcmToken data(=null)")
         }
-    }
 
-    override suspend fun sendMessage(message: String): String {
-        return try {
-            Logger.d("RemoteUserData", "sendMessage INPUT $message")
-            val response = fridgeApiService.sendFcmTest(FcmRequest(message = message))
-            val data = response.data ?: throw IllegalStateException("sendMessage data(=null)")
-            data
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "sendMessage 실패", e)
-            throw e
+    override suspend fun sendMessage(message: String): String =
+        apiCall(TAG, "sendMessage", message) {
+            fridgeApiService.sendFcmTest(FcmRequest(message = message)).requireData("sendMessage")
         }
-    }
 
-    override suspend fun getApiUsage(): List<ApiUsageEntity> {
-        return try {
-            Logger.d("RemoteUserData", "getApiUsage")
-            val response = fridgeApiService.getApiUsage()
-            val data = response.data ?: throw IllegalStateException("getApiUsage data(=null)")
-            data.toEntity()
-        } catch (e: Exception) {
-            Logger.e("RemoteUserData", "getApiUsage 실패", e)
-            throw e
+    override suspend fun getApiUsage(): List<ApiUsageEntity> =
+        apiCall(TAG, "getApiUsage") {
+            fridgeApiService.getApiUsage().requireData("getApiUsage").toEntity()
         }
-    }
 }
