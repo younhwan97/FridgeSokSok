@@ -34,7 +34,7 @@ fun ErrorScreen(
             Icon(
                 modifier = Modifier.size(48.dp),
                 imageVector = Icons.Default.Refresh,
-                contentDescription = null,
+                contentDescription = "다시 시도",
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -47,4 +47,4 @@ fun ErrorScreen(
             color = CustomGreyColor5
         )
     }
-}
+}

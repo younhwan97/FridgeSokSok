@@ -118,7 +118,7 @@ class FoodDaoTest {
     }
 
     @Test
-    fun insertFoods_중복된_데이터는_교체되어야_한다() = runBlocking {
+    fun insertFoods_같은_이름도_별도_행으로_저장되어야_한다() = runBlocking {
         // Given
         val food1 = FoodLocal(0, "사과", 1, 24)
         val food2 = FoodLocal(0, "사과", 2, 36) // 같은 이름, 다른 카테고리
@@ -129,8 +129,8 @@ class FoodDaoTest {
         val count = foodDao.getCount()
 
         // Then
-        // REPLACE 전략이므로 1개만 존재해야 함
-        assertEquals(1, count)
+        // id 가 자동 생성이라 이름이 같아도 충돌하지 않음 (CSV 초기화는 전체 삭제 후 삽입)
+        assertEquals(2, count)
     }
 
     @Test
@@ -182,7 +182,7 @@ class FoodDaoTest {
     }
 
     @Test
-    fun searchFoods_부분_일치로_검색해야_한다() = runBlocking {
+    fun searchFoods_앞부분_일치로_검색해야_한다() = runBlocking {
         // Given
         val foods = listOf(
             FoodLocal(0, "딸기우유", 1, 48),
@@ -197,7 +197,7 @@ class FoodDaoTest {
         val result = foodDao.searchFoodByKeyword("우유")
 
         // Then
-        assertEquals(4, result.size)
-        assertTrue(result.all { it.itemName.contains("우유") })
+        // 검색어 추천은 입력값으로 시작하는 항목만 반환 (LIKE 'query%')
+        assertEquals(listOf("우유"), result.map { it.itemName })
     }
 }

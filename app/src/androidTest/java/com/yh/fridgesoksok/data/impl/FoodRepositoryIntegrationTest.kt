@@ -9,6 +9,7 @@ import com.yh.fridgesoksok.data.local.LocalFoodDataSource
 import com.yh.fridgesoksok.domain.model.LocalFood
 import com.yh.fridgesoksok.local.impl.LocalFoodDataSourceImpl
 import com.yh.fridgesoksok.local.room.AppDatabase
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -57,7 +58,7 @@ class FoodRepositoryIntegrationTest {
         )
 
         // When
-        val result = repository.initializeLocalFoods(foods).first()
+        val result = repository.initializeLocalFoods(foods).result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -72,10 +73,10 @@ class FoodRepositoryIntegrationTest {
             LocalFood("바나나", 2, 12),
             LocalFood("오렌지", 3, 36)
         )
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // When
-        val result = repository.getCountLocalFoods().first()
+        val result = repository.getCountLocalFoods().result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -91,10 +92,10 @@ class FoodRepositoryIntegrationTest {
             LocalFood("바나나", 2, 12),
             LocalFood("오렌지", 3, 36)
         )
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // When
-        val result = repository.searchLocalFoods("사과").first()
+        val result = repository.searchLocalFoods("사과").result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -110,11 +111,11 @@ class FoodRepositoryIntegrationTest {
             LocalFood("바나나", 2, 12),
             LocalFood("오렌지", 3, 36)
         )
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // When
-        val deleteResult = repository.deleteLocalFoods().first()
-        val countResult = repository.getCountLocalFoods().first()
+        val deleteResult = repository.deleteLocalFoods().result()
+        val countResult = repository.getCountLocalFoods().result()
 
         // Then
         assertTrue(deleteResult is Resource.Success)
@@ -131,10 +132,10 @@ class FoodRepositoryIntegrationTest {
             LocalFood("바나나", 2, 12),
             LocalFood("오렌지", 3, 36)
         )
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // When
-        val result = repository.searchLocalFoods("").first()
+        val result = repository.searchLocalFoods("").result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -147,8 +148,8 @@ class FoodRepositoryIntegrationTest {
         val foods = emptyList<LocalFood>()
 
         // When
-        val result = repository.initializeLocalFoods(foods).first()
-        val countResult = repository.getCountLocalFoods().first()
+        val result = repository.initializeLocalFoods(foods).result()
+        val countResult = repository.getCountLocalFoods().result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -162,10 +163,10 @@ class FoodRepositoryIntegrationTest {
         val foods = (1..500).map {
             LocalFood("식품$it", it % 10, it % 100)
         }
-        repository.initializeLocalFoods(foods).first()
+        repository.initializeLocalFoods(foods).result()
 
         // When
-        val result = repository.searchLocalFoods("식품1").first()
+        val result = repository.searchLocalFoods("식품1").result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -176,7 +177,7 @@ class FoodRepositoryIntegrationTest {
     @Test
     fun getCountLocalFoods_빈_데이터베이스는_0을_반환해야_한다() = runBlocking {
         // When
-        val result = repository.getCountLocalFoods().first()
+        val result = repository.getCountLocalFoods().result()
 
         // Then
         assertTrue(result is Resource.Success)
@@ -192,3 +193,6 @@ class FoodRepositoryIntegrationTest {
         override suspend fun uploadReceiptImage(image: ByteArray) = emptyList<com.yh.fridgesoksok.data.model.ReceiptEntity>()
     }
 }
+
+// flowWithResource 는 Loading 을 먼저 방출하므로 최종 결과(Success/Error)를 기다림
+private suspend fun <T> Flow<Resource<T>>.result(): Resource<T> = first { it !is Resource.Loading }
