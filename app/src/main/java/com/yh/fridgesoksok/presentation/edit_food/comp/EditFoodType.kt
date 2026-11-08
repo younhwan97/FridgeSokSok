@@ -65,7 +65,7 @@ fun EditFoodType(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            val visibleTypes = Type.entries.drop(1)
+            val visibleTypes = Type.selectableEntries.drop(1)
 
             visibleTypes.forEachIndexed() { index, type ->
                 DropdownMenuItem(
@@ -92,4 +92,4 @@ fun EditFoodType(
             }
         }
     }
-}
+}

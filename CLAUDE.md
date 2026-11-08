@@ -63,6 +63,7 @@ USE_MOCK_API=true
 ```
 
 Base URL is defined as `BuildConfig.BASE_URL` in `app/build.gradle.kts`.
+`BuildConfig.EXTENDED_CATEGORIES` (default `false`) exposes categories 18–22 (`Type.isExtended`) in filter/edit selectors; turn it on together with the server's `app.categories.extended`. `Type.fromId` always recognizes them.
 
 ## Architecture Overview
 

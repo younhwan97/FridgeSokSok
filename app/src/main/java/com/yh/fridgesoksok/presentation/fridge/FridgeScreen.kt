@@ -132,7 +132,7 @@ fun FridgeScreen(
             )
 
             FoodTypeFilter(
-                types = Type.entries,
+                types = Type.selectableEntries,
                 selectedType = selectedType,
                 onTypeSelected = viewModel::updateSelectedType
             )
@@ -185,4 +185,4 @@ private fun navigateToEditFood(
         set(KEY_SOURCE, SOURCE_HOME)
     }
     navController.navigate(Screen.EditFoodScreen.route)
-}
+}

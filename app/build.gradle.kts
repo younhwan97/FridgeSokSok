@@ -42,6 +42,8 @@ android {
         buildConfigField("String", "BASE_URL", "\"https://soksok.io/api/\"")
         // local.properties 에 USE_MOCK_API=true 지정 시 MockApiService 사용
         buildConfigField("boolean", "USE_MOCK_API", properties.getProperty("USE_MOCK_API") ?: "false")
+        // 카테고리 18~22(채소·과일·달걀·주류·유아식) 선택 노출. 서버 app.categories.extended 활성화와 함께 true 로 변경
+        buildConfigField("boolean", "EXTENDED_CATEGORIES", "false")
 
         // KAKAO API KEY
         buildConfigField("String", "KAKAO_API_KEY", properties.getProperty("KAKAO_API_KEY"))
