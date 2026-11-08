@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.upload
 
+import com.yh.fridgesoksok.domain.model.DateBasis
 import com.yh.fridgesoksok.domain.model.Receipt
 import org.junit.Assert.*
 import org.junit.Test
@@ -9,14 +10,15 @@ class ReceiptMapperTest {
 
     private val today = LocalDate.of(2026, 11, 8)
 
-    private fun receipt(name: String, shelfLifeHours: Int?, id: Long? = 1) = Receipt(
+    private fun receipt(name: String, shelfLifeHours: Int?, id: Long? = 1, dateBasis: DateBasis? = null) = Receipt(
         id = id,
         itemName = name,
         expirationDescription = "",
         foodType = "",
         shelfLifeHours = shelfLifeHours,
         categoryId = 1,
-        count = 1
+        count = 1,
+        dateBasis = dateBasis
     )
 
     @Test
@@ -41,5 +43,16 @@ class ReceiptMapperTest {
         val foods = listOf(receipt("", shelfLifeHours = null), receipt("우유", shelfLifeHours = 24)).toUploadFoods(today)
 
         assertEquals(listOf("우유"), foods.map { it.itemName })
+    }
+
+    @Test
+    fun `제조일 기준 항목은 포장 확인 필요로 표시해야 한다`() {
+        val foods = listOf(
+            receipt("서울우유", shelfLifeHours = 3360, dateBasis = DateBasis.LABEL),
+            receipt("삼겹살", shelfLifeHours = 72, dateBasis = DateBasis.SAFETY),
+            receipt("삼다수", shelfLifeHours = null, dateBasis = DateBasis.LABEL)
+        ).toUploadFoods(today)
+
+        assertEquals(listOf(true, false, false), foods.map { it.needsLabelCheck })
     }
 }

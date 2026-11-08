@@ -16,7 +16,8 @@ data class ReceiptResponse(
     val foodType: String?,
     val shelfLifeHours: Int?,
     val categoryId: Int?,
-    val count: Int?
+    val count: Int?,
+    val dateBasis: String?
 )
 
 fun ReceiptResponse.toEntity(): ReceiptEntity {
@@ -27,6 +28,7 @@ fun ReceiptResponse.toEntity(): ReceiptEntity {
         foodType = foodType.orEmpty(),
         shelfLifeHours = shelfLifeHours,
         categoryId = categoryId ?: 1,
-        count = count ?: 1
+        count = count ?: 1,
+        dateBasis = dateBasis
     )
 }

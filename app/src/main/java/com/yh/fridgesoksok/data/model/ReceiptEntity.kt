@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.data.model
 
+import com.yh.fridgesoksok.domain.model.DateBasis
 import com.yh.fridgesoksok.domain.model.Receipt
 
 data class ReceiptEntity(
@@ -9,7 +10,8 @@ data class ReceiptEntity(
     val foodType: String,
     val shelfLifeHours: Int?,
     val categoryId: Int,
-    val count: Int
+    val count: Int,
+    val dateBasis: String? = null
 )
 
 fun ReceiptEntity.toDomain(): Receipt {
@@ -20,6 +22,7 @@ fun ReceiptEntity.toDomain(): Receipt {
         foodType = foodType,
         shelfLifeHours = shelfLifeHours,
         categoryId = categoryId,
-        count = count
+        count = count,
+        dateBasis = DateBasis.fromValue(dateBasis)
     )
-}
+}

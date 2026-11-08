@@ -2,6 +2,8 @@ package com.yh.fridgesoksok.remote.model
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.yh.fridgesoksok.data.model.toDomain
+import com.yh.fridgesoksok.domain.model.DateBasis
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -67,5 +69,20 @@ class ReceiptResponseTest {
         val item = parse(json).single()
 
         assertEquals(19790421001234L, item.id)
+    }
+
+    @Test
+    fun `dateBasis를 도메인 enum으로 변환해야 한다`() {
+        val items = parse().map { it.toEntity().toDomain() }
+
+        assertEquals(DateBasis.SAFETY, items[0].dateBasis)
+        assertEquals(DateBasis.LABEL, items[1].dateBasis)
+        assertNull(items[2].dateBasis)
+    }
+
+    @Test
+    fun `알 수 없는 dateBasis 값은 null로 처리해야 한다`() {
+        assertNull(DateBasis.fromValue("UNKNOWN"))
+        assertNull(DateBasis.fromValue(null))
     }
 }

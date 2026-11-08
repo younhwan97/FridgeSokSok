@@ -65,7 +65,7 @@ class UploadViewModel @Inject constructor(
      */
     fun addOrUpdateFood(editedFood: FoodModel, deduplicationKey: String? = null) {
         // 편집 화면을 거친 항목은 사용자가 소비기한을 확인한 것으로 간주
-        val food = editedFood.copy(needsExpiryInput = false)
+        val food = editedFood.copy(needsExpiryInput = false, needsLabelCheck = false)
 
         // 중복 추가 방지 (deduplicationKey가 있는 경우)
         if (deduplicationKey != null) {

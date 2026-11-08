@@ -97,4 +97,23 @@ class UploadViewModelTest {
         assertEquals("20271108", food.expiryDate)
         assertFalse(food.needsExpiryInput)
     }
+
+    @Test
+    fun `편집 화면을 거친 항목은 포장 확인 표시도 해제되어야 한다`() {
+        val labelFood = FoodModel(
+            id = "receipt-2",
+            itemName = "서울우유",
+            count = 1,
+            expiryDate = "20270328",
+            categoryId = 6,
+            fridgeId = "",
+            createdAt = "20261108",
+            needsLabelCheck = true
+        )
+        viewModel.addOrUpdateFood(labelFood)
+
+        viewModel.addOrUpdateFood(labelFood.copy(expiryDate = "20261120"))
+
+        assertFalse(viewModel.newFoods.value.single().needsLabelCheck)
+    }
 }

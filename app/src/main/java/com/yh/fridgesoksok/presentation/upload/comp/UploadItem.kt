@@ -114,10 +114,10 @@ fun UploadItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (food.needsExpiryInput) {
-                            "소비기한 입력 필요"
-                        } else {
-                            "소비기한 ${food.expiryDate.toFormattedDate(DateFormatter.yyyyMMddDot)}"
+                        text = when {
+                            food.needsExpiryInput -> "소비기한 입력 필요"
+                            food.needsLabelCheck -> "소비기한 최대 ${food.expiryDate.toFormattedDate(DateFormatter.yyyyMMddDot)} · 포장 확인"
+                            else -> "소비기한 ${food.expiryDate.toFormattedDate(DateFormatter.yyyyMMddDot)}"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Normal,
@@ -183,4 +183,4 @@ fun UploadItem(
             )
         }
     }
-}
+}
