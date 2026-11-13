@@ -114,7 +114,8 @@ private fun FoodListContent(
                 key = { it.id }
             ) { food ->
                 FoodListItem(
-                    modifier = Modifier,
+                    // 추가/삭제/필터/정렬 변경 시 카드가 부드럽게 나타나고 자리를 옮김
+                    modifier = Modifier.animateItem(),
                     mode = mode,
                     food = food,
                     isSelected = selectedFoods.contains(food),
