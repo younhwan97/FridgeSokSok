@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.ErrorScreen
 import com.yh.fridgesoksok.presentation.model.RecipeModel
 import com.yh.fridgesoksok.presentation.recipe.RecipeState
@@ -59,7 +58,7 @@ fun RecipeListSection(
             }
         }
 
-        RecipeState.Loading -> BlockingLoadingOverlay()
+        RecipeState.Loading -> RecipeListSkeleton()
         RecipeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
     }
 }

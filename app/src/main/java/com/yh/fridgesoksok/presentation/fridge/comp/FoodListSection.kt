@@ -20,7 +20,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.yh.fridgesoksok.R
-import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.ErrorScreen
 import com.yh.fridgesoksok.presentation.fridge.FridgeState
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
@@ -74,7 +73,12 @@ fun FoodListSection(
                     )
                 }
 
-                FridgeState.Loading -> BlockingLoadingOverlay()
+                // 첫 로딩은 카드 모양 스켈레톤으로 표시 (목록이 있으면 Loading 으로 바뀌지 않음)
+                FridgeState.Loading -> FoodListSkeleton(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 28.dp, start = 16.dp, end = 16.dp)
+                )
                 FridgeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
             }
         }
