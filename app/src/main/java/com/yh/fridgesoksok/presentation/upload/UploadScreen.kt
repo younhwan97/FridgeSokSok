@@ -27,6 +27,7 @@ import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOU
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.upload.comp.UploadAnalyzingReceipt
+import com.yh.fridgesoksok.presentation.upload.comp.UploadReceiptPreviewDialog
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
@@ -46,6 +47,8 @@ fun UploadScreen(
     // ViewModel 상태 구독
     val uploadState by viewModel.state.collectAsState()
     val newFoods by viewModel.newFoods.collectAsState() // 업로드할 음식 목록
+    val receiptPreview by viewModel.receiptPreview.collectAsState() // 원본 영수증 미리보기
+    var showReceipt by remember { mutableStateOf(false) }
 
     // SharedViewModel 상태 구독
     val receipt by sharedViewModel.receipt.collectAsState() // 영수증 이미지 (Camera/Gallery에서 셋팅)
@@ -118,6 +121,8 @@ fun UploadScreen(
         UploadItemListSection(
             innerPadding = innerPadding,
             foods = newFoods,
+            receiptPreview = receiptPreview,
+            onReceiptClick = { showReceipt = true },
             onEdit = { food ->
                 navigateToEditFood(
                     navController = navController,
@@ -134,6 +139,15 @@ fun UploadScreen(
                 }
             }
         )
+
+        // 원본 영수증 크게 보기
+        val previewBitmap = receiptPreview
+        if (showReceipt && previewBitmap != null) {
+            UploadReceiptPreviewDialog(
+                receipt = previewBitmap,
+                onDismiss = { showReceipt = false }
+            )
+        }
 
         // 로딩 or 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
         when (uploadState) {
