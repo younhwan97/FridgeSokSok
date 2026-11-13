@@ -7,7 +7,8 @@ import java.time.format.DateTimeFormatter
 
 data class FridgeResponse(
     val id: String?,
-    val fridgeName: String?,
+    // 서버 필드명은 name, createdAt 은 ISO-8601 일시 (예: 2026-11-13T19:39:22.948296Z)
+    val name: String?,
     val createdAt: String?,
     val foodProducts: List<Food>?
 )
@@ -18,11 +19,11 @@ fun FridgeResponse.toEntity(): FridgeEntity {
 
     return FridgeEntity(
         id = id.orEmpty(),
-        fridgeName = fridgeName.orEmpty(),
+        fridgeName = name.orEmpty(),
         foodProducts = foodProducts ?: emptyList(),
         createdAt = this.createdAt?.let {
             runCatching {
-                LocalDate.parse(it, serverFormatter).format(domainFormatter)
+                LocalDate.parse(it.take(10), serverFormatter).format(domainFormatter)
             }.getOrNull()
         } ?: LocalDate.now().format(domainFormatter)
     )
