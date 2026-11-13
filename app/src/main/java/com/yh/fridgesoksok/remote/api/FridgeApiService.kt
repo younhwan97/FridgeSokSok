@@ -11,7 +11,6 @@ import com.yh.fridgesoksok.remote.model.ReceiptResponse
 import com.yh.fridgesoksok.remote.model.RecipeRequest
 import com.yh.fridgesoksok.remote.model.RecipeResponse
 import com.yh.fridgesoksok.remote.model.ServerStatusResponse
-import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserProfileRequest
 import com.yh.fridgesoksok.remote.model.UserProfileResponse
@@ -99,11 +98,9 @@ interface FridgeApiService {
     suspend fun getServerStatus(
     ): CommonResponse<ServerStatusResponse>
 
-    @Headers("Content-Type: application/json")
+    // 요청 바디 없음 (서버가 임의 username 으로 temp 계정 생성)
     @POST("users/create")
-    suspend fun createTmpUser(
-        @Body userTmpCreateRequest: UserTmpCreateRequest
-    ): CommonResponse<UserResponse>
+    suspend fun createTmpUser(): CommonResponse<UserResponse>
 
     @GET("users/user/default-fridge")
     suspend fun getUserDefaultFridge(

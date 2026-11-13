@@ -18,7 +18,6 @@ import com.yh.fridgesoksok.remote.model.UserProfileResponse
 import com.yh.fridgesoksok.remote.model.UserResponse
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
 import com.yh.fridgesoksok.remote.model.UserSettingResponse
-import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import kotlinx.coroutines.delay
 import okhttp3.MultipartBody
 import retrofit2.HttpException
@@ -61,12 +60,11 @@ class MockApiService(
 
     private fun mockFood(name: String, expiry: LocalDate, categoryId: Int, count: Int = 1) = FoodResponse(
         id = UUID.randomUUID().toString(),
-        fridgeId = MOCK_FRIDGE_ID,
         itemName = name,
         expiryDate = expiry.format(serverDate),
         categoryId = categoryId,
         count = count,
-        createdAt = today().format(serverDate)
+        registerDate = today().format(serverDate)
     )
 
     private fun <T> ok(data: T, message: String = "Success") =
@@ -83,12 +81,11 @@ class MockApiService(
         val added = foodList.map {
             FoodResponse(
                 id = UUID.randomUUID().toString(),
-                fridgeId = fridgeId,
                 itemName = it.itemName,
                 expiryDate = it.expiryDate,
                 categoryId = it.categoryId,
                 count = it.count,
-                createdAt = today().format(serverDate)
+                registerDate = today().format(serverDate)
             )
         }
         synchronized(foods) { foods += added }
@@ -138,7 +135,7 @@ class MockApiService(
     /* ************************ Fridge API ************************* */
     private fun mockFridge() = FridgeResponse(
         id = MOCK_FRIDGE_ID,
-        fridgeName = "우리집 냉장고",
+        name = "우리집 냉장고",
         createdAt = today().format(serverDate),
         foodProducts = emptyList()
     )
@@ -146,14 +143,14 @@ class MockApiService(
     override suspend fun getFridges(): CommonResponse<List<FridgeResponse>> = ok(listOf(mockFridge()))
 
     override suspend fun createFridge(fridgeName: String): CommonResponse<FridgeResponse> =
-        ok(mockFridge().copy(fridgeName = fridgeName))
+        ok(mockFridge().copy(name = fridgeName))
 
     override suspend fun deleteAllFridges(): CommonResponse<Any> = ok(true)
 
     override suspend fun deleteFridge(fridgeId: String): CommonResponse<Any> = ok(true)
 
     override suspend fun updateFridgeName(fridgeId: String, newName: String): CommonResponse<FridgeResponse> =
-        ok(mockFridge().copy(fridgeName = newName))
+        ok(mockFridge().copy(name = newName))
 
     /* ************************************************************* */
     /* ************************ User API *************************** */
@@ -171,9 +168,9 @@ class MockApiService(
         defaultFridgeId = MOCK_FRIDGE_ID
     )
 
-    override suspend fun createTmpUser(userTmpCreateRequest: UserTmpCreateRequest): CommonResponse<UserResponse> {
+    override suspend fun createTmpUser(): CommonResponse<UserResponse> {
         delay(NETWORK_DELAY_MS)
-        return ok(mockUser(userTmpCreateRequest.accountType), "User created successfully")
+        return ok(mockUser("temp"), "User created successfully")
     }
 
     override suspend fun getUserDefaultFridge(token: String): CommonResponse<FridgeResponse> = ok(mockFridge())
@@ -272,5 +269,5 @@ class MockApiService(
 
     /* ************************************************************* */
     /* ************************ FCM API(TEST) ********************** */
-    override suspend fun sendFcmTest(fcmRequest: FcmRequest): CommonResponse<String> = ok("Mock: ${fcmRequest.message}")
+    override suspend fun sendFcmTest(fcmRequest: FcmRequest): CommonResponse<String> = ok("Mock: ${fcmRequest.body}")
 }

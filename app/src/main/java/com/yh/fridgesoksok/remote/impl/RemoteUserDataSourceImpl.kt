@@ -15,11 +15,11 @@ import com.yh.fridgesoksok.remote.model.FcmRequest
 import com.yh.fridgesoksok.remote.model.UserCreateRequest
 import com.yh.fridgesoksok.remote.model.UserProfileRequest
 import com.yh.fridgesoksok.remote.model.UserSettingRequest
-import com.yh.fridgesoksok.remote.model.UserTmpCreateRequest
 import com.yh.fridgesoksok.remote.model.toEntity
 import javax.inject.Inject
 
 private const val TAG = "RemoteUserData"
+private const val FCM_TEST_TITLE = "FridgeSokSok"
 
 class RemoteUserDataSourceImpl @Inject constructor(
     private val kakaoApiService: KakaoApiService,
@@ -37,7 +37,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
             val data = when (channel) {
                 Channel.KAKAO -> kakaoApiService.createUserOnKakao()
                 Channel.NAVER -> naverApiService.createUserOnNaver()
-                Channel.GUEST -> fridgeApiService.createTmpUser(UserTmpCreateRequest(username = "tmp", accountType = "temp")).data
+                Channel.GUEST -> fridgeApiService.createTmpUser().data
             } ?: throw IllegalStateException("createUserOnChannel data(=null)")
             data.toEntity()
         }
@@ -109,7 +109,7 @@ class RemoteUserDataSourceImpl @Inject constructor(
 
     override suspend fun sendMessage(message: String): String =
         apiCall(TAG, "sendMessage", message) {
-            fridgeApiService.sendFcmTest(FcmRequest(message = message)).requireData("sendMessage")
+            fridgeApiService.sendFcmTest(FcmRequest(title = FCM_TEST_TITLE, body = message)).requireData("sendMessage")
         }
 
     override suspend fun getApiUsage(): List<ApiUsageEntity> =

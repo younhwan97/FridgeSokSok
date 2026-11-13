@@ -6,12 +6,13 @@ import java.time.format.DateTimeFormatter
 
 data class FoodResponse(
     val id: String?,
-    val fridgeId: String?,
+    val fridgeId: String? = null,
     val itemName: String?,
     val expiryDate: String?,
     val categoryId: Int?,
     val count: Int?,
-    val createdAt: String?,
+    // 서버는 등록일을 registerDate 로 내려줌 (fridgeId 는 응답에 없음)
+    val registerDate: String?,
 )
 
 fun FoodResponse.toEntity(): FoodEntity {
@@ -29,7 +30,7 @@ fun FoodResponse.toEntity(): FoodEntity {
                 LocalDate.parse(it, serverFormatter).format(domainFormatter)
             }.getOrNull()
         } ?: LocalDate.now().format(domainFormatter),
-        createdAt = this.createdAt?.let {
+        createdAt = this.registerDate?.let {
             runCatching {
                 LocalDate.parse(it, serverFormatter).format(domainFormatter)
             }.getOrNull()
