@@ -13,6 +13,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,6 +38,7 @@ fun HomeTopAppBar(
     mode: HomeUiMode,
     currentRoute: String,
     recipeGenerationState: RecipeGenerationState,
+    recipeRemaining: Int? = null,
     onClickAiRecipeBtn: () -> Unit,
     onClickNavigationBtn: () -> Unit,
     onClickSelectAll: () -> Unit,
@@ -48,11 +50,21 @@ fun HomeTopAppBar(
         currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.RECIPE_SELECT -> {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "AI 레시피 추천",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = CustomGreyColor7
-                    )
+                    Column {
+                        Text(
+                            text = "AI 레시피 추천",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = CustomGreyColor7
+                        )
+                        // 오늘 남은 레시피 생성 횟수
+                        recipeRemaining?.let { remaining ->
+                            Text(
+                                text = if (remaining > 0) "오늘 ${remaining}회 남았어요" else "오늘 횟수를 다 썼어요",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (remaining > 0) MaterialTheme.colorScheme.primary else CustomGreyColor5
+                            )
+                        }
+                    }
                 },
                 actions = {
                     Row(

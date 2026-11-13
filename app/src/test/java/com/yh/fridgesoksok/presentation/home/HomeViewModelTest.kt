@@ -145,4 +145,39 @@ class HomeViewModelTest {
         // Then: 초기 값 유지
         assertTrue(viewModel.isRecipeGenerationAvailable.value)
     }
+
+    @Test
+    fun `서버 사용량으로 남은 레시피·영수증 횟수를 갱신해야 한다`() = runTest {
+        // Given
+        fakeUserRepository.updateApiUsage(
+            listOf(
+                ApiUsage(feature = "RECIPE_GENERATION", max = 3, used = 2),
+                ApiUsage(feature = "RECEIPT_OCR", max = 2, used = 2)
+            )
+        ).first()
+
+        // When
+        viewModel.refreshApiUsage()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(1, viewModel.recipeRemaining.value)
+        assertEquals(0, viewModel.receiptRemaining.value)
+        assertTrue(viewModel.isRecipeGenerationAvailable.value)
+    }
+
+    @Test
+    fun `한도 정보가 없으면 남은 횟수를 모르는 것으로 둔다`() = runTest {
+        // Given: 영수증 한도 정보 없음 (max 0)
+        fakeUserRepository.updateApiUsage(
+            listOf(ApiUsage(feature = "RECEIPT_OCR", max = 0, used = 0))
+        ).first()
+
+        // When
+        viewModel.refreshApiUsage()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then: 0 으로 보고 메뉴를 막지 않도록 null
+        assertEquals(null, viewModel.receiptRemaining.value)
+    }
 }

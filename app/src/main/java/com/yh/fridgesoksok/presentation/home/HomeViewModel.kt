@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yh.fridgesoksok.common.ApiUsage
 import com.yh.fridgesoksok.common.Resource
+import com.yh.fridgesoksok.domain.model.ApiUsage as UsageModel
 import com.yh.fridgesoksok.domain.usecase.GetApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.GetLocalApiUsageUseCase
 import com.yh.fridgesoksok.domain.usecase.UpdateApiUsageUseCase
@@ -32,6 +33,12 @@ class HomeViewModel @Inject constructor(
     // 레시피 생성 API 사용 가능 여부
     private val _isRecipeGenerationAvailable = MutableStateFlow(false)
     val isRecipeGenerationAvailable = _isRecipeGenerationAvailable.asStateFlow()
+
+    // 오늘 남은 사용 횟수 (null: 아직 모름 → 표시/제한하지 않음)
+    private val _recipeRemaining = MutableStateFlow<Int?>(null)
+    val recipeRemaining = _recipeRemaining.asStateFlow()
+    private val _receiptRemaining = MutableStateFlow<Int?>(null)
+    val receiptRemaining = _receiptRemaining.asStateFlow()
 
     // 전체 선택 트리거 (FridgeViewModel에게 전달)
     private val _selectAllTrigger = MutableSharedFlow<Unit>()
@@ -123,31 +130,47 @@ class HomeViewModel @Inject constructor(
 
         // 레시피 생성 API 호출이 끝나면 (성공/실패 무관) 남은 사용 횟수 갱신
         if (wasLoading && state != RecipeGenerationState.Loading) {
-            refreshRecipeGenerationAvailability()
+            refreshApiUsage()
         }
     }
 
     /**
-     * 서버에서 API 사용량을 다시 조회해 로컬 저장 및 사용 가능 여부 갱신
+     * 서버에서 API 사용량을 다시 조회해 로컬 저장 및 남은 횟수/사용 가능 여부 갱신
+     * (홈 화면 진입 시, 레시피 생성 후 호출. 영수증 인식 후 돌아올 때도 홈 진입으로 갱신됨)
      * 조회 실패 시 기존 값을 유지
      */
-    private fun refreshRecipeGenerationAvailability() {
+    fun refreshApiUsage() {
         getApiUsageUseCase().onEach { result ->
             if (result !is Resource.Success) return@onEach
             val usages = result.data.orEmpty()
-
-            usages.find { it.feature == ApiUsage.RECIPE_GENERATION.key }?.let { usage ->
-                _isRecipeGenerationAvailable.value = usage.used < usage.max
-            }
+            applyUsages(usages)
             updateApiUsageUseCase(usages).launchIn(viewModelScope)
         }.launchIn(viewModelScope)
     }
 
     /**
-     * 레시피 생성 API 사용 가능 여부 확인
+     * 로컬에 저장된 사용량으로 초기 표시 (서버 조회 전)
      */
     private fun checkRecipeGenerationAvailability() {
-        val usage = getLocalApiUsageUseCase(ApiUsage.RECIPE_GENERATION.key)
-        _isRecipeGenerationAvailable.value = usage.used < usage.max
+        applyUsages(
+            listOf(
+                getLocalApiUsageUseCase(ApiUsage.RECIPE_GENERATION.key),
+                getLocalApiUsageUseCase(ApiUsage.RECEIPT_OCR.key)
+            )
+        )
     }
-}
+
+    private fun applyUsages(usages: List<UsageModel>) {
+        usages.find { it.feature == ApiUsage.RECIPE_GENERATION.key }?.let { usage ->
+            _isRecipeGenerationAvailable.value = usage.used < usage.max
+            _recipeRemaining.value = usage.remainingOrNull()
+        }
+        usages.find { it.feature == ApiUsage.RECEIPT_OCR.key }?.let { usage ->
+            _receiptRemaining.value = usage.remainingOrNull()
+        }
+    }
+
+    // 한도 정보가 없으면(max 0) 모르는 것으로 취급
+    private fun UsageModel.remainingOrNull(): Int? =
+        if (max <= 0) null else (max - used).coerceAtLeast(0)
+}

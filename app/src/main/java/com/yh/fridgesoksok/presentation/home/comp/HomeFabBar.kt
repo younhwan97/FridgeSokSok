@@ -19,6 +19,7 @@ fun HomeFabBar(
     onCaptureClick: () -> Unit,
     onUploadClick: () -> Unit,
     onManualClick: () -> Unit,
+    receiptRemaining: Int? = null,
 ) {
     if (currentRoute == Screen.FridgeTab.route && mode == HomeUiMode.DEFAULT) {
         Column(
@@ -29,7 +30,8 @@ fun HomeFabBar(
                 expanded = isFabMenuExpanded,
                 onCaptureClick = onCaptureClick,
                 onUploadClick = onUploadClick,
-                onManualClick = onManualClick
+                onManualClick = onManualClick,
+                receiptRemaining = receiptRemaining
             )
 
             FloatingActionButton(

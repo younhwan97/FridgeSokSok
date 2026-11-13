@@ -64,6 +64,8 @@ fun HomeScreen(
     val homeUiMode by homeViewModel.uiMode.collectAsState() // HomeUI 모드 (Default, Recipe 재료선택)
     val recipeGenerationState by homeViewModel.recipeGenerationState.collectAsState() // 레시피 생성 상태
     val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState() // 레시피 생성 API 사용 가능 여부
+    val recipeRemaining by homeViewModel.recipeRemaining.collectAsState() // 오늘 남은 레시피 생성 횟수
+    val receiptRemaining by homeViewModel.receiptRemaining.collectAsState() // 오늘 남은 영수증 인식 횟수
 
     // UI 상태
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -88,6 +90,11 @@ fun HomeScreen(
                 navController.navigate(Screen.UploadScreen.route)
             }
         }
+    }
+
+    // 홈 진입 시(영수증 인식 후 돌아올 때 포함) 남은 사용 횟수 갱신
+    LaunchedEffect(Unit) {
+        homeViewModel.refreshApiUsage()
     }
 
     // 알림 권한 요청
@@ -117,6 +124,7 @@ fun HomeScreen(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
                 recipeGenerationState = recipeGenerationState,
+                recipeRemaining = recipeRemaining,
                 onClickAiRecipeBtn = { homeViewModel.updateToRecipeUiMode() },
                 onClickNavigationBtn = {
                     homeViewModel.updateToDefaultUiMode()
@@ -154,7 +162,8 @@ fun HomeScreen(
                 onManualClick = {
                     triggerCooldown()
                     navController.navigate(Screen.UploadScreen.route)
-                }
+                },
+                receiptRemaining = receiptRemaining
             )
         },
         containerColor = MaterialTheme.colorScheme.background
