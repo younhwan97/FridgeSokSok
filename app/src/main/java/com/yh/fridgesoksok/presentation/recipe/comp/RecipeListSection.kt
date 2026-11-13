@@ -23,6 +23,7 @@ private const val STATE_CROSSFADE_MS = 450
 fun RecipeListSection(
     recipeState: RecipeState,
     recipes: List<RecipeModel>,
+    isSearching: Boolean,
     onClickItem: (RecipeModel) -> Unit,
     onDeleteClick: (RecipeModel) -> Unit,
     isBeingDeleted: (RecipeModel) -> Boolean,
@@ -48,7 +49,9 @@ fun RecipeListSection(
         label = "recipeListState"
     ) { state ->
         when (state) {
-            RecipeState.Success -> {
+            RecipeState.Success -> if (recipes.isEmpty()) {
+                RecipeEmptyState(isSearching = isSearching)
+            } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState
