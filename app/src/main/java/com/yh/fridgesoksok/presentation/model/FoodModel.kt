@@ -5,7 +5,7 @@ import com.yh.fridgesoksok.domain.model.Food
 import com.yh.fridgesoksok.presentation.common.extension.DateFormatter
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDate
-import java.time.Period
+import java.time.temporal.ChronoUnit
 
 @Parcelize
 data class FoodModel(
@@ -29,9 +29,8 @@ fun Food.toPresentation(): FoodModel {
     } catch (e: Exception) {
         LocalDate.now()
     }
-    val today = LocalDate.now()
-    val period = Period.between(today, expiry)
-    val totalDays = period.toTotalMonths() * 30 + period.days
+    // 실제 날짜 차이 (개월×30 으로 계산하면 31일/28일 달에서 하루씩 틀림)
+    val totalDays = ChronoUnit.DAYS.between(LocalDate.now(), expiry)
 
     return FoodModel(id, fridgeId, itemName, expiryDate, categoryId, count, createdAt, totalDays)
 }
