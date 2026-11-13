@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FridgeSokSok is an Android application for managing fridge inventory and generating recipes. Built with Kotlin and Jetpack Compose, it follows Clean Architecture principles with MVVM presentation layer.
 
-- `compileSdk`/`targetSdk` 36 (Android 16), `minSdk` 26. Current release: versionCode 8 / versionName 1.7 (bump versionCode for every Play upload).
+- `compileSdk`/`targetSdk` 36 (Android 16), `minSdk` 26. Current release: versionCode 9 / versionName 1.7 (bump versionCode for every Play upload).
 - Work history and open tasks: `docs/WORKLOG-2026-11-08.md`.
 
 ## Build Commands
