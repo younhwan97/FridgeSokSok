@@ -4,11 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.navigation.NavBackStackEntry
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,8 +61,10 @@ class MainActivity : ComponentActivity() {
                 NavHost(
                     navController = navController,
                     startDestination = Screen.OnboardingScreen.route,
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None }
+                    enterTransition = { enterTransitionFor(targetState) },
+                    exitTransition = { exitTransitionFor(targetState) },
+                    popEnterTransition = { popEnterTransitionFor(initialState) },
+                    popExitTransition = { popExitTransitionFor(initialState) }
                 ) {
                     composable(Screen.OnboardingScreen.route) {
                         OnboardingScreen(navController)
@@ -95,6 +103,35 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        // 상세/편집처럼 "들어갔다 나오는" 화면: 오른쪽에서 밀려 들어오고 뒤로 가면 오른쪽으로 나감
+        // 그 외(온보딩/로그인/홈 전환)는 짧은 페이드
+        private val pushRoutes = setOf(
+            Screen.RecipeDetailScreen.route,
+            Screen.UploadScreen.route,
+            Screen.EditFoodScreen.route
+        )
+        private const val TRANSITION_MS = 280
+        private const val FADE_MS = 200
+
+        private fun isPush(entry: NavBackStackEntry) = entry.destination.route in pushRoutes
+        private fun <T> slideSpec() = tween<T>(TRANSITION_MS, easing = FastOutSlowInEasing)
+
+        private fun AnimatedContentTransitionScope<NavBackStackEntry>.enterTransitionFor(target: NavBackStackEntry): EnterTransition =
+            if (isPush(target)) slideInHorizontally(slideSpec()) { it / 3 } + fadeIn(tween(TRANSITION_MS))
+            else fadeIn(tween(FADE_MS))
+
+        private fun AnimatedContentTransitionScope<NavBackStackEntry>.exitTransitionFor(target: NavBackStackEntry): ExitTransition =
+            if (isPush(target)) slideOutHorizontally(slideSpec()) { -it / 8 } + fadeOut(tween(TRANSITION_MS))
+            else fadeOut(tween(FADE_MS))
+
+        private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnterTransitionFor(initial: NavBackStackEntry): EnterTransition =
+            if (isPush(initial)) slideInHorizontally(slideSpec()) { -it / 8 } + fadeIn(tween(TRANSITION_MS))
+            else fadeIn(tween(FADE_MS))
+
+        private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExitTransitionFor(initial: NavBackStackEntry): ExitTransition =
+            if (isPush(initial)) slideOutHorizontally(slideSpec()) { it / 3 } + fadeOut(tween(TRANSITION_MS))
+            else fadeOut(tween(FADE_MS))
+
         // 현재 프로세스에서 MainActivity 가 생성된 적이 있는지 (구성 변경과 프로세스 복원을 구분)
         private var hasBeenCreatedInProcess = false
     }
