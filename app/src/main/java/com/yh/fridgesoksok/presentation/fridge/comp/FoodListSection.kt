@@ -1,5 +1,7 @@
 package com.yh.fridgesoksok.presentation.fridge.comp
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +26,8 @@ import com.yh.fridgesoksok.presentation.common.comp.ErrorScreen
 import com.yh.fridgesoksok.presentation.fridge.FridgeState
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.model.FoodModel
+
+private const val STATE_CROSSFADE_MS = 450
 
 @Composable
 fun FoodListSection(
@@ -60,26 +64,33 @@ fun FoodListSection(
                 contentDescription = null,
             )
 
-            when (fridgeState) {
-                FridgeState.Success -> {
-                    FoodListContent(
-                        mode = mode,
-                        foods = foods,
-                        selectedFoods = selectedFoods,
-                        onFoodSelectToggle = onFoodSelectToggle,
-                        onClickFood = onClickFood,
-                        onClickMinus = onClickMinus,
-                        onClickPlus = onClickPlus
-                    )
-                }
+            // 스켈레톤 → 목록 전환이 툭 바뀌지 않도록 겹쳐서 서서히 교체
+            Crossfade(
+                targetState = fridgeState,
+                animationSpec = tween(STATE_CROSSFADE_MS),
+                label = "fridgeListState"
+            ) { state ->
+                when (state) {
+                    FridgeState.Success -> {
+                        FoodListContent(
+                            mode = mode,
+                            foods = foods,
+                            selectedFoods = selectedFoods,
+                            onFoodSelectToggle = onFoodSelectToggle,
+                            onClickFood = onClickFood,
+                            onClickMinus = onClickMinus,
+                            onClickPlus = onClickPlus
+                        )
+                    }
 
-                // 첫 로딩은 카드 모양 스켈레톤으로 표시 (목록이 있으면 Loading 으로 바뀌지 않음)
-                FridgeState.Loading -> FoodListSkeleton(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 28.dp, start = 16.dp, end = 16.dp)
-                )
-                FridgeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
+                    // 첫 로딩은 카드 모양 스켈레톤으로 표시 (목록이 있으면 Loading 으로 바뀌지 않음)
+                    FridgeState.Loading -> FoodListSkeleton(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 28.dp, start = 16.dp, end = 16.dp)
+                    )
+                    FridgeState.Error -> ErrorScreen(onRefreshClick = onRefreshClick)
+                }
             }
         }
     }
