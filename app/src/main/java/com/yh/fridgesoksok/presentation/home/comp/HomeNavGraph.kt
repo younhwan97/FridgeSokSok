@@ -1,6 +1,7 @@
 package com.yh.fridgesoksok.presentation.home.comp
 
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,13 +66,18 @@ fun HomeNavGraph(
     }
 }
 
+private const val TAB_FADE_IN_MS = 180
+private const val TAB_FADE_OUT_MS = 100
+
 private fun NavGraphBuilder.homeTabComposable(
     route: String,
     content: @Composable () -> Unit
 ) {
     composable(
         route = route,
-        exitTransition = { fadeOut(animationSpec = tween(100)) }
+        // enter 를 지정하지 않으면 Navigation 기본값(700ms 페이드)이 적용되어 탭 전환이 느리게 느껴짐
+        enterTransition = { fadeIn(animationSpec = tween(TAB_FADE_IN_MS)) },
+        exitTransition = { fadeOut(animationSpec = tween(TAB_FADE_OUT_MS)) }
     ) {
         content()
     }
