@@ -5,12 +5,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,17 +22,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
+import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_HOME
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.ButtonText.DELETE
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.DialogMessages.DELETE_FOOD_CONFIRM
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
 import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
 import com.yh.fridgesoksok.presentation.home.HomeUiMode
 import com.yh.fridgesoksok.presentation.home.HomeViewModel
+import com.yh.fridgesoksok.presentation.model.FoodModel
 import com.yh.fridgesoksok.presentation.model.Type
+import com.yh.fridgesoksok.presentation.theme.CustomErrorColor
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,6 +49,8 @@ fun FridgeScreen(
     homeViewModel: HomeViewModel
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    // 수량이 1개일 때 - 를 누르면 삭제 전에 확인 (화면 회전 시에도 유지)
+    var foodPendingDelete by rememberSaveable { mutableStateOf<FoodModel?>(null) }
 
     // ViewModel 상태 구독
     val state by viewModel.state.collectAsState()
@@ -151,7 +162,7 @@ fun FridgeScreen(
                 },
                 onClickMinus = { food ->
                     if (food.count == MIN_COUNT) {
-                        viewModel.deleteFood(food)
+                        foodPendingDelete = food
                     } else {
                         viewModel.updateFood(food.copy(count = food.count - 1))
                     }
@@ -160,6 +171,24 @@ fun FridgeScreen(
                     viewModel.updateFood(food.copy(count = food.count + 1))
                 },
                 onRefreshClick = viewModel::loadFoods
+            )
+        }
+
+        // 식품 삭제 확인 다이얼로그
+        foodPendingDelete?.let { food ->
+            ConfirmDialog(
+                title = food.itemName,
+                message = DELETE_FOOD_CONFIRM,
+                confirmText = DELETE,
+                confirmTextColor = CustomErrorColor,
+                confirmContainerColor = MaterialTheme.colorScheme.errorContainer,
+                onConfirm = {
+                    viewModel.deleteFood(food)
+                    foodPendingDelete = null
+                },
+                onDismiss = {
+                    foodPendingDelete = null
+                }
             )
         }
 
@@ -178,7 +207,7 @@ fun FridgeScreen(
  */
 private fun navigateToEditFood(
     navController: NavController,
-    food: com.yh.fridgesoksok.presentation.model.FoodModel
+    food: FoodModel
 ) {
     navController.currentBackStackEntry?.savedStateHandle?.apply {
         set(KEY_FOOD, food)
