@@ -21,6 +21,7 @@ import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_ADDED_FOOD_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_UPLOAD
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
@@ -63,7 +64,10 @@ fun UploadScreen(
     LaunchedEffect(Unit) {
         // 식품 등록 성공 시 Home 화면으로 이동
         launch {
-            viewModel.foodsAdded.collectLatest {
+            viewModel.foodsAdded.collectLatest { count ->
+                // 냉장고 화면에서 완료 안내를 띄우도록 개수 전달
+                runCatching { navController.getBackStackEntry(Screen.HomeScreen.route) }
+                    .getOrNull()?.savedStateHandle?.set(KEY_ADDED_FOOD_COUNT, count)
                 navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
             }
         }

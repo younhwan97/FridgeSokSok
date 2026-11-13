@@ -55,7 +55,8 @@ class UploadViewModel @Inject constructor(
     val errorMessage = _errorMessage.asSharedFlow()
 
     // 식품 추가 완료 이벤트
-    private val _foodsAdded = MutableSharedFlow<Unit>()
+    // 추가된 식품 개수
+    private val _foodsAdded = MutableSharedFlow<Int>()
     val foodsAdded = _foodsAdded.asSharedFlow()
 
     /**
@@ -152,7 +153,7 @@ class UploadViewModel @Inject constructor(
                     val foodModel = result.data?.map { it.toPresentation() }
                     if (foodModel != null) {
                         viewModelScope.launch {
-                            _foodsAdded.emit(Unit)
+                            _foodsAdded.emit(foodModel.size)
                         }
                     } else {
                         _errorMessage.emit(FOOD_ADD_FAILED)

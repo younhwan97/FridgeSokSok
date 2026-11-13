@@ -8,6 +8,8 @@ object NavigationConstants {
     const val KEY_FOOD = "food"
     const val KEY_SOURCE = "source"
     const val KEY_EDITED_FOOD = "edited_food"
+    // Upload → Home: 추가한 식품 개수 (냉장고 화면에서 완료 스낵바 표시)
+    const val KEY_ADDED_FOOD_COUNT = "added_food_count"
 
     // 네비게이션 출처
     const val SOURCE_HOME = "HOME"
