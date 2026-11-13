@@ -46,6 +46,7 @@ fun RecipeScreen(
     val typingQuery by viewModel.typingQuery.collectAsState()
     // 필터링된 레시피 목록 (검색어 기준)
     val filteredRecipes by viewModel.filteredRecipes.collectAsState(initial = emptyList())
+    val filterQuery by viewModel.filterQuery.collectAsState()
     // 삭제처리
     var selectedRecipeForDelete by remember { mutableStateOf<RecipeModel?>(null) }
     val deletedRecipeIds = remember { mutableStateOf(setOf<String>()) }
@@ -79,6 +80,7 @@ fun RecipeScreen(
             RecipeListSection(
                 recipeState = state,
                 recipes = filteredRecipes,
+                isSearching = filterQuery.isNotBlank(),
                 onClickItem = { recipe ->
                     sharedViewModel.setSelectedRecipe(recipe)
                     navController.navigate("recipeDetail")

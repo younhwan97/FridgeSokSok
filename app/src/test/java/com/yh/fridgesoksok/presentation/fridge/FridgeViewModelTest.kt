@@ -27,6 +27,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -206,6 +207,59 @@ class FridgeViewModelTest {
         // Then
         assertEquals(target.count, viewModel.foods.value.first().count)
         assertEquals(listOf(FOOD_UPDATE_FAILED), messages)
+    }
+
+    @Test
+    fun `수량 변경은 서버 응답 전에 화면에 바로 반영되어야 한다`() = runTest {
+        // Given
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+        val target = viewModel.foods.value.first()
+
+        // When
+        viewModel.updateFood(target.copy(count = target.count + 1))
+
+        // Then (아직 서버 전송 전)
+        assertEquals(target.count + 1, viewModel.foods.value.first().count)
+        assertTrue(fakeFoodRepository.updatedFoods.isEmpty())
+    }
+
+    @Test
+    fun `수량 연타는 마지막 값 한 번만 서버에 보내야 한다`() = runTest {
+        // Given
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+        val start = viewModel.foods.value.first().count
+
+        // When: + 를 세 번 빠르게 누름 (화면 값 기준으로 다음 값을 계산)
+        repeat(3) {
+            val current = viewModel.foods.value.first()
+            viewModel.updateFood(current.copy(count = current.count + 1))
+        }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then
+        assertEquals(start + 3, viewModel.foods.value.first().count)
+        assertEquals(listOf(start + 3), fakeFoodRepository.updatedFoods.map { it.count })
+    }
+
+    @Test
+    fun `전송 대기 중인 수량은 목록 새로고침에 덮어써지지 않아야 한다`() = runTest {
+        // Given
+        givenFoods(food("food-1", "우유"))
+        viewModel.loadFoods()
+        testDispatcher.scheduler.advanceUntilIdle()
+        val target = viewModel.foods.value.first()
+        viewModel.updateFood(target.copy(count = target.count + 2))
+
+        // When: 디바운스 전에 새로고침
+        viewModel.loadFoods()
+        testDispatcher.scheduler.runCurrent()
+
+        // Then
+        assertEquals(target.count + 2, viewModel.foods.value.first().count)
     }
 
     private fun kotlinx.coroutines.test.TestScope.collectErrorMessages(): List<String> {

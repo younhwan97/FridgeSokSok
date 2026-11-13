@@ -1,5 +1,6 @@
 package com.yh.fridgesoksok.presentation.upload.comp
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,8 @@ import com.yh.fridgesoksok.presentation.model.FoodModel
 fun UploadItemListSection(
     innerPadding: PaddingValues,
     foods: List<FoodModel>,
+    receiptPreview: Bitmap? = null,
+    onReceiptClick: () -> Unit = {},
     onEdit: (FoodModel) -> Unit,
     onDelete: (String) -> Unit,
     onIncrease: (String) -> Unit,
@@ -32,6 +35,13 @@ fun UploadItemListSection(
         contentPadding = PaddingValues(bottom = 20.dp),
         state = listState
     ) {
+        // 원본 영수증 (인식 결과와 비교)
+        if (receiptPreview != null && foods.isNotEmpty()) {
+            item(key = "receipt_preview") {
+                UploadReceiptPreviewCard(receipt = receiptPreview, onClick = onReceiptClick)
+            }
+        }
+
         items(foods, key = { it.id }) { food ->
             UploadItem(
                 food = food,

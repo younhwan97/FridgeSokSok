@@ -1,6 +1,5 @@
 package com.yh.fridgesoksok.presentation.home
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -13,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,8 +24,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.SharedViewModel
 import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
-import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
-import com.yh.fridgesoksok.presentation.common.constants.StringResources.DialogMessages.USE_THIS_PHOTO
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.common.util.rememberCameraLauncher
 import com.yh.fridgesoksok.presentation.common.util.rememberGalleryPickerLauncher
@@ -39,6 +37,9 @@ import com.yh.fridgesoksok.presentation.home.comp.HomeGeneratingRecipe
 import com.yh.fridgesoksok.presentation.home.comp.HomeNavGraph
 import com.yh.fridgesoksok.presentation.home.comp.HomeTopAppBar
 import com.yh.fridgesoksok.presentation.theme.CustomGreyColor1
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun HomeScreen(
@@ -63,11 +64,12 @@ fun HomeScreen(
     val homeUiMode by homeViewModel.uiMode.collectAsState() // HomeUI 모드 (Default, Recipe 재료선택)
     val recipeGenerationState by homeViewModel.recipeGenerationState.collectAsState() // 레시피 생성 상태
     val isRecipeGenerationAvailable by homeViewModel.isRecipeGenerationAvailable.collectAsState() // 레시피 생성 API 사용 가능 여부
+    val recipeRemaining by homeViewModel.recipeRemaining.collectAsState() // 오늘 남은 레시피 생성 횟수
+    val receiptRemaining by homeViewModel.receiptRemaining.collectAsState() // 오늘 남은 영수증 인식 횟수
 
     // UI 상태
     var isFabExpanded by remember { mutableStateOf(false) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // 중복처리 제어
     val (canTrigger, triggerCooldown) = rememberActionCooldown()
@@ -77,9 +79,22 @@ fun HomeScreen(
     val launchCamera = rememberCameraLauncher(context) {
         navController.navigate(Screen.CameraScreen.route)
     }
+    // 사진 선택기에서 이미 골랐으므로 확인 없이 바로 업로드 (디코딩은 메인 스레드를 막지 않도록 IO 에서)
     val launchGallery = rememberGalleryPickerLauncher { uri ->
-        selectedImageUri = uri
-        showConfirmDialog = true
+        isFabExpanded = false
+        scope.launch {
+            val bitmap = withContext(Dispatchers.IO) { uriToBitmap(context, uri) }
+            if (bitmap != null) {
+                // 공유 뷰모델 영수증 이미지 셋팅 후 Upload 화면으로 이동
+                sharedViewModel.setReceipt(bitmap)
+                navController.navigate(Screen.UploadScreen.route)
+            }
+        }
+    }
+
+    // 홈 진입 시(영수증 인식 후 돌아올 때 포함) 남은 사용 횟수 갱신
+    LaunchedEffect(Unit) {
+        homeViewModel.refreshApiUsage()
     }
 
     // 알림 권한 요청
@@ -109,6 +124,7 @@ fun HomeScreen(
                 mode = homeUiMode,
                 currentRoute = currentRoute,
                 recipeGenerationState = recipeGenerationState,
+                recipeRemaining = recipeRemaining,
                 onClickAiRecipeBtn = { homeViewModel.updateToRecipeUiMode() },
                 onClickNavigationBtn = {
                     homeViewModel.updateToDefaultUiMode()
@@ -146,7 +162,8 @@ fun HomeScreen(
                 onManualClick = {
                     triggerCooldown()
                     navController.navigate(Screen.UploadScreen.route)
-                }
+                },
+                receiptRemaining = receiptRemaining
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -169,26 +186,6 @@ fun HomeScreen(
             )
         }
 
-        // 갤러리에서 이미지 선택 후 확인 다이얼로그
-        if (showConfirmDialog) {
-            ConfirmDialog(
-                message = USE_THIS_PHOTO,
-                onConfirm = {
-                    selectedImageUri?.let { uri ->
-                        val bitmap = uriToBitmap(context, uri)
-                        if (bitmap != null) {
-                            // 공유 뷰모델 영수증 이미지 셋팅
-                            sharedViewModel.setReceipt(bitmap)
-                            // Upload 화면으로 이동
-                            navController.navigate(Screen.UploadScreen.route)
-                        }
-                    }
-                    showConfirmDialog = false
-                },
-                onDismiss = { showConfirmDialog = false }
-            )
-        }
-
         // 레시피 생성 오버레이
         if (recipeGenerationState == RecipeGenerationState.Loading) {
             HomeGeneratingRecipe()
@@ -199,4 +196,4 @@ fun HomeScreen(
             BlockingLoadingOverlay(showLoading = false)
         }
     }
-}
+}

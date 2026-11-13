@@ -33,6 +33,8 @@ class RecipeViewModel @Inject constructor(
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
 
     private val _filterQuery = MutableStateFlow("")
+    // 확정된 검색어 (빈 목록 안내 문구 구분용)
+    val filterQuery = _filterQuery.asStateFlow()
 
     private val _typingQuery = MutableStateFlow("")
     val typingQuery = _typingQuery.asStateFlow()

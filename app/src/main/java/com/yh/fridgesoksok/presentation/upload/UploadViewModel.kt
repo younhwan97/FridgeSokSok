@@ -43,6 +43,10 @@ class UploadViewModel @Inject constructor(
     private val _state = MutableStateFlow<UploadState>(UploadState.Success)
     val state = _state.asStateFlow()
 
+    // 인식에 사용한 영수증 이미지 (결과와 비교하는 미리보기용, 축소본)
+    private val _receiptPreview = MutableStateFlow<Bitmap?>(null)
+    val receiptPreview = _receiptPreview.asStateFlow()
+
     // 업로드할 음식 목록
     private val _newFoods = MutableStateFlow<List<FoodModel>>(emptyList())
     val newFoods = _newFoods.asStateFlow()
@@ -54,8 +58,8 @@ class UploadViewModel @Inject constructor(
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
 
-    // 식품 추가 완료 이벤트
-    private val _foodsAdded = MutableSharedFlow<Unit>()
+    // 식품 추가 완료 이벤트 (추가된 식품 개수)
+    private val _foodsAdded = MutableSharedFlow<Int>()
     val foodsAdded = _foodsAdded.asSharedFlow()
 
     /**
@@ -104,7 +108,9 @@ class UploadViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = UploadState.Loading
             // 리사이즈/인코딩은 메인 스레드를 막지 않도록 Default 디스패처에서 수행
-            val image = withContext(Dispatchers.Default) { bitmap.toResizedJpegBytes() }
+            val (image, preview) = withContext(Dispatchers.Default) {
+                bitmap.toResizedJpegBytes() to bitmap.scaledForPreview()
+            }
             uploadReceiptImageUseCase(image).collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -112,6 +118,7 @@ class UploadViewModel @Inject constructor(
                         if (!receiptList.isNullOrEmpty()) {
                             val mappedFoods = receiptList.toUploadFoods()
                             _newFoods.update { it + mappedFoods }
+                            _receiptPreview.value = preview
                             if (mappedFoods.any { it.needsExpiryInput }) {
                                 _errorMessage.emit(EXPIRY_INPUT_REQUIRED)
                             }
@@ -152,7 +159,7 @@ class UploadViewModel @Inject constructor(
                     val foodModel = result.data?.map { it.toPresentation() }
                     if (foodModel != null) {
                         viewModelScope.launch {
-                            _foodsAdded.emit(Unit)
+                            _foodsAdded.emit(foodModel.size)
                         }
                     } else {
                         _errorMessage.emit(FOOD_ADD_FAILED)
@@ -192,4 +199,14 @@ class UploadViewModel @Inject constructor(
             list.filterNot { food -> food.id == id }
         }
     }
+}
+
+// 미리보기는 화면에서 확대해 볼 정도면 충분하므로 긴 변 1600px 로 축소 (메모리 절약)
+private const val RECEIPT_PREVIEW_MAX_SIDE = 1600
+
+private fun Bitmap.scaledForPreview(): Bitmap {
+    val longSide = maxOf(width, height)
+    if (longSide <= RECEIPT_PREVIEW_MAX_SIDE) return this
+    val ratio = RECEIPT_PREVIEW_MAX_SIDE.toFloat() / longSide
+    return Bitmap.createScaledBitmap(this, (width * ratio).toInt(), (height * ratio).toInt(), true)
 }

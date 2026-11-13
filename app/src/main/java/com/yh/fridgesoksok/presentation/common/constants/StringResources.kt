@@ -30,9 +30,13 @@ object StringResources {
         const val SERVER_ERROR = "서버에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요."
     }
 
+    // 안내 메시지 (스낵바)
+    object InfoMessages {
+        fun foodsAdded(count: Int) = "식품 ${count}개를 냉장고에 넣었어요"
+    }
+
     // 확인 다이얼로그 메시지
     object DialogMessages {
-        const val USE_THIS_PHOTO = "이 사진을 사용 할까요?"
         const val DELETE_RECIPE_CONFIRM = "정말 이 레시피를 삭제하시겠습니까?"
         const val DELETE_FOOD_CONFIRM = "정말 이 식품을 삭제하시겠습니까?"
     }

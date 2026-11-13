@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.sp
+import com.yh.fridgesoksok.presentation.theme.CustomGreyColor5
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +40,16 @@ fun FloatingActionMenus(
     onCaptureClick: () -> Unit,
     onUploadClick: () -> Unit,
     onManualClick: () -> Unit,
+    receiptRemaining: Int? = null,
 ) {
+    // 영수증 인식 횟수를 다 쓰면 찍기/올리기를 막고 안내
+    val receiptEnabled = receiptRemaining != 0
+    val receiptCaption = when (receiptRemaining) {
+        null -> null
+        0 -> "오늘 횟수를 다 썼어요"
+        else -> "오늘 ${receiptRemaining}회 남음"
+    }
+
     AnimatedVisibility(
         visible = expanded,
         enter = scaleIn(transformOrigin = TransformOrigin(0.5f, 1f)) + fadeIn(),
@@ -57,13 +69,17 @@ fun FloatingActionMenus(
             FabMenu(
                 onClick = { onCaptureClick() },
                 iconResource = painterResource(R.drawable.camera),
-                text = "영수증 찍기"
+                text = "영수증 찍기",
+                caption = receiptCaption,
+                enabled = receiptEnabled
             )
 
             FabMenu(
                 onClick = { onUploadClick() },
                 iconResource = painterResource(R.drawable.picture),
-                text = "영수증 올리기"
+                text = "영수증 올리기",
+                caption = receiptCaption,
+                enabled = receiptEnabled
             )
 
             FabMenu(
@@ -79,14 +95,17 @@ fun FloatingActionMenus(
 fun FabMenu(
     onClick: () -> Unit,
     iconResource: Painter,
-    text: String
+    text: String,
+    caption: String? = null,
+    enabled: Boolean = true
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .height(46.dp)
-            .clickable { onClick() }
+            .clickable(enabled = enabled) { onClick() }
+            .alpha(if (enabled) 1f else 0.4f)
     ) {
         Image(
             painter = iconResource,
@@ -99,9 +118,18 @@ fun FabMenu(
 
         Spacer(modifier = Modifier.width(4.dp))
 
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            caption?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 13.sp),
+                    color = CustomGreyColor5
+                )
+            }
+        }
     }
 }

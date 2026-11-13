@@ -1,11 +1,9 @@
 package com.yh.fridgesoksok.presentation.recipe_detail.comp
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,9 +11,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
+import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.coil.CoilImage
 import com.yh.fridgesoksok.R
-import com.yh.fridgesoksok.presentation.theme.CustomGreyColor3
+import com.yh.fridgesoksok.presentation.common.comp.shimmer
+
+private const val IMAGE_CROSSFADE_MS = 300
 
 @Composable
 fun RecipeImage(
@@ -30,16 +32,16 @@ fun RecipeImage(
             contentScale = ContentScale.Crop,
             alignment = Alignment.Center
         ),
+        // 로딩 중엔 shimmer, 완료되면 부드럽게 나타남
+        component = rememberImageComponent {
+            +CrossfadePlugin(duration = IMAGE_CROSSFADE_MS)
+        },
         loading = {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .border(1.dp, CustomGreyColor3)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+                    .shimmer()
+            )
         },
         failure = {
             Image(

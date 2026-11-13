@@ -17,6 +17,9 @@ class FakeFoodRepository : FoodRepository {
     // true 이면 getFoods/updateFood/deleteFood 가 서버 오류(500)를 반환 (테스트용)
     var shouldFail = false
 
+    // updateFood 에 전달된 값 (서버 전송 횟수/내용 검증용)
+    val updatedFoods = mutableListOf<Food>()
+
     // 마지막으로 업로드된 영수증 이미지 (테스트 검증용)
     var lastUploadedImage: ByteArray? = null
         private set
@@ -39,6 +42,7 @@ class FakeFoodRepository : FoodRepository {
     }
 
     override fun updateFood(food: Food): Flow<Resource<Food>> {
+        updatedFoods += food
         if (shouldFail) return flow { emit(Resource.Error("Server error", null, 500)) }
         for ((_, foods) in foodMap) {
             val index = foods.indexOfFirst { it.id == food.id }

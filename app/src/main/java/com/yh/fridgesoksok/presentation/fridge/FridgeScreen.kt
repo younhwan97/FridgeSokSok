@@ -24,12 +24,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.yh.fridgesoksok.presentation.Screen
 import com.yh.fridgesoksok.presentation.common.comp.ConfirmDialog
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_ADDED_FOOD_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_HOME
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.ButtonText.DELETE
 import com.yh.fridgesoksok.presentation.common.constants.StringResources.DialogMessages.DELETE_FOOD_CONFIRM
+import com.yh.fridgesoksok.presentation.common.constants.StringResources.InfoMessages.foodsAdded
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodListSection
 import com.yh.fridgesoksok.presentation.fridge.comp.FoodTypeFilter
 import com.yh.fridgesoksok.presentation.fridge.comp.FridgeSearchSection
@@ -62,6 +64,17 @@ fun FridgeScreen(
     // 화면 최초 진입 시 데이터 로드
     LaunchedEffect(Unit) {
         viewModel.loadFoods()
+    }
+
+    // 업로드 화면에서 식품을 추가하고 돌아오면 완료 안내 (한 번만 표시)
+    LaunchedEffect(Unit) {
+        val handle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
+        handle.getStateFlow<Int?>(KEY_ADDED_FOOD_COUNT, null).collect { count ->
+            if (count != null) {
+                handle.remove<Int>(KEY_ADDED_FOOD_COUNT)
+                snackbarHostState.showSnackbar(foodsAdded(count))
+            }
+        }
     }
 
     // HomeViewModel 트리거 및 이벤트 구독 (병렬 처리)

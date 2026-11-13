@@ -21,10 +21,13 @@ import com.yh.fridgesoksok.presentation.common.comp.BlockingLoadingOverlay
 import com.yh.fridgesoksok.presentation.common.comp.Snackbar
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_FOOD
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_SOURCE
+import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.KEY_ADDED_FOOD_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN_COUNT
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_UPLOAD
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.upload.comp.UploadAnalyzingReceipt
+import com.yh.fridgesoksok.presentation.upload.comp.UploadReceiptPreviewDialog
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
@@ -44,6 +47,8 @@ fun UploadScreen(
     // ViewModel 상태 구독
     val uploadState by viewModel.state.collectAsState()
     val newFoods by viewModel.newFoods.collectAsState() // 업로드할 음식 목록
+    val receiptPreview by viewModel.receiptPreview.collectAsState() // 원본 영수증 미리보기
+    var showReceipt by remember { mutableStateOf(false) }
 
     // SharedViewModel 상태 구독
     val receipt by sharedViewModel.receipt.collectAsState() // 영수증 이미지 (Camera/Gallery에서 셋팅)
@@ -62,7 +67,10 @@ fun UploadScreen(
     LaunchedEffect(Unit) {
         // 식품 등록 성공 시 Home 화면으로 이동
         launch {
-            viewModel.foodsAdded.collectLatest {
+            viewModel.foodsAdded.collectLatest { count ->
+                // 냉장고 화면에서 완료 안내를 띄우도록 개수 전달
+                runCatching { navController.getBackStackEntry(Screen.HomeScreen.route) }
+                    .getOrNull()?.savedStateHandle?.set(KEY_ADDED_FOOD_COUNT, count)
                 navController.popBackStack(Screen.HomeScreen.route, inclusive = false)
             }
         }
@@ -113,6 +121,8 @@ fun UploadScreen(
         UploadItemListSection(
             innerPadding = innerPadding,
             foods = newFoods,
+            receiptPreview = receiptPreview,
+            onReceiptClick = { showReceipt = true },
             onEdit = { food ->
                 navigateToEditFood(
                     navController = navController,
@@ -130,9 +140,18 @@ fun UploadScreen(
             }
         )
 
+        // 원본 영수증 크게 보기
+        val previewBitmap = receiptPreview
+        if (showReceipt && previewBitmap != null) {
+            UploadReceiptPreviewDialog(
+                receipt = previewBitmap,
+                onDismiss = { showReceipt = false }
+            )
+        }
+
         // 로딩 or 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
         when (uploadState) {
-            UploadState.Loading -> BlockingLoadingOverlay(showLoading = true)
+            UploadState.Loading -> UploadAnalyzingReceipt()
             UploadState.Uploading -> BlockingLoadingOverlay(showLoading = false)
             else -> Unit
         }
@@ -151,4 +170,4 @@ private fun navigateToEditFood(
         set(KEY_SOURCE, SOURCE_UPLOAD)
     }
     navController.navigate(Screen.EditFoodScreen.route)
-}
+}
