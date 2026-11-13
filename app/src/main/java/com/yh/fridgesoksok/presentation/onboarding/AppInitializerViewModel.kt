@@ -1,8 +1,10 @@
 package com.yh.fridgesoksok.presentation.onboarding
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yh.fridgesoksok.BuildConfig
 import com.yh.fridgesoksok.common.Logger
 import com.yh.fridgesoksok.common.Resource
 import com.yh.fridgesoksok.domain.model.LocalFood
@@ -28,6 +30,13 @@ import kotlin.math.abs
 private const val TAG = "AppInitializer"
 private const val INITIAL_CSV_FILE = "initial.csv"
 private const val MAX_DATA_DIFFERENCE_THRESHOLD = 30
+// 배치 하나가 Room 트랜잭션 하나 (100개씩이면 1,280번 커밋되어 첫 실행이 느림)
+private const val INSERT_BATCH_SIZE = 2000
+
+// 로컬 사전이 이 앱 버전(versionCode)으로 이미 준비됐는지 기록
+// (initial.csv 를 바꾸면 versionCode 도 올려야 다시 확인함; Play 업로드마다 올리므로 실사용엔 문제 없음)
+private const val PREFS_NAME = "app_init"
+private const val KEY_SEEDED_VERSION = "seeded_food_csv_version"
 
 // 프로세스 전체에서 공유하는 초기화 락
 private val initializationMutex = Mutex()
@@ -80,6 +89,17 @@ class AppInitializerViewModel @Inject constructor(
 
     private suspend fun checkAndInitializeLocked() {
         try {
+            // 이미 이 버전으로 확인을 마쳤으면 4MB CSV 읽기와 12만 행 COUNT 를 건너뜀 (매 실행 ~0.5초 절약)
+            val seededVersion = withContext(Dispatchers.IO) {
+                prefs().getInt(KEY_SEEDED_VERSION, -1)
+            }
+            if (seededVersion == BuildConfig.VERSION_CODE) {
+                Logger.d(TAG, "로컬 데이터 초기화 스킵 (버전 기록 일치)")
+                _initializationProgress.value = 100
+                completeInitialization()
+                return
+            }
+
             _initializationProgress.value = 10
 
             // DB 개수 확인
@@ -114,6 +134,7 @@ class AppInitializerViewModel @Inject constructor(
                 initializeFoodsFromCsv()
             } else {
                 Logger.d(TAG, "로컬 데이터 초기화 스킵")
+                markSeeded()
                 _initializationProgress.value = 100
                 completeInitialization()
             }
@@ -149,9 +170,10 @@ class AppInitializerViewModel @Inject constructor(
             deleteLocalFoodsUseCase().first { it !is Resource.Loading }
 
             // 배치 단위로 삽입하면서 진행률 업데이트
-            val batchSize = 100
+            val batchSize = INSERT_BATCH_SIZE
             val totalCount = parsedFoods.size
             var processedCount = 0
+            var hasFailedBatch = false
 
             parsedFoods.chunked(batchSize).forEach { batch ->
                 initializeLocalFoodsFromCsvUseCase(batch).collect { result ->
@@ -165,6 +187,7 @@ class AppInitializerViewModel @Inject constructor(
                         }
                         is Resource.Error -> {
                             Logger.e(TAG, "배치 삽입 실패: ${result.message}")
+                            hasFailedBatch = true
                         }
                         is Resource.Loading -> Unit
                     }
@@ -174,6 +197,7 @@ class AppInitializerViewModel @Inject constructor(
             _processingStatus.value = ""
 
             Logger.i(TAG, "로컬 데이터 초기화 완료")
+            if (!hasFailedBatch) markSeeded()
             _initializationProgress.value = 100
             completeInitialization()
 
@@ -241,10 +265,17 @@ class AppInitializerViewModel @Inject constructor(
         }
     }
 
+    private fun prefs() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    // 정상적으로 확인/삽입을 마친 경우에만 기록 (중간에 실패하면 다음 실행에서 다시 확인)
+    private suspend fun markSeeded() = withContext(Dispatchers.IO) {
+        prefs().edit(commit = true) { putInt(KEY_SEEDED_VERSION, BuildConfig.VERSION_CODE) }
+    }
+
     /**
      * 초기화 완료 처리
      */
     private fun completeInitialization() {
         _isInitializationCompleted.value = true
     }
-}
+}
