@@ -25,6 +25,7 @@ import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.MIN
 import com.yh.fridgesoksok.presentation.common.constants.NavigationConstants.SOURCE_UPLOAD
 import com.yh.fridgesoksok.presentation.common.util.rememberActionCooldown
 import com.yh.fridgesoksok.presentation.model.FoodModel
+import com.yh.fridgesoksok.presentation.upload.comp.UploadAnalyzingReceipt
 import com.yh.fridgesoksok.presentation.upload.comp.UploadBottomButton
 import com.yh.fridgesoksok.presentation.upload.comp.UploadItemListSection
 import com.yh.fridgesoksok.presentation.upload.comp.UploadTopAppBar
@@ -132,7 +133,7 @@ fun UploadScreen(
 
         // 로딩 or 업로딩 상태일 때 Blocking 화면을 이용해 터치 제어
         when (uploadState) {
-            UploadState.Loading -> BlockingLoadingOverlay(showLoading = true)
+            UploadState.Loading -> UploadAnalyzingReceipt()
             UploadState.Uploading -> BlockingLoadingOverlay(showLoading = false)
             else -> Unit
         }
@@ -151,4 +152,4 @@ private fun navigateToEditFood(
         set(KEY_SOURCE, SOURCE_UPLOAD)
     }
     navController.navigate(Screen.EditFoodScreen.route)
-}
+}
