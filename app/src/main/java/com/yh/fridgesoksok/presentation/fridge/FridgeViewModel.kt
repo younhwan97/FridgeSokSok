@@ -22,19 +22,27 @@ import com.yh.fridgesoksok.presentation.model.Type
 import com.yh.fridgesoksok.presentation.model.toDomain
 import com.yh.fridgesoksok.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Collections
 import javax.inject.Inject
+
+// +/- 연타를 모아 마지막 값만 서버에 보내기 위한 대기 시간
+internal const val COUNT_SYNC_DEBOUNCE_MS = 400L
 
 @HiltViewModel
 class FridgeViewModel @Inject constructor(
@@ -90,6 +98,14 @@ class FridgeViewModel @Inject constructor(
 
     // 중복 처리 방지
     private val _pendingActions = Collections.synchronizedSet(mutableSetOf<String>())
+
+    // 수량 변경 동기화 상태 (메인 스레드에서만 접근)
+    // - countSyncJobs: 음식별로 서버 전송을 기다리는 작업 (새 탭이 오면 대기 중인 작업은 취소)
+    // - countSyncTokens: 가장 최근 변경을 식별 (이전 요청 응답이 최신 화면 값을 덮지 않도록)
+    // - confirmedFoods: 서버에 반영된 마지막 값 (실패 시 이 값으로 되돌림)
+    private val countSyncJobs = mutableMapOf<String, Job>()
+    private val countSyncTokens = mutableMapOf<String, Any>()
+    private val confirmedFoods = mutableMapOf<String, FoodModel>()
 
     /**
      * 레시피 생성
@@ -202,8 +218,11 @@ class FridgeViewModel @Inject constructor(
         getFoodsUseCase(fridgeId).onEach { result ->
             when (result) {
                 is Resource.Success -> {
+                    // 서버 전송 대기 중인 수량 변경은 화면 값을 유지
+                    val pending = _foods.value.filter { it.id in countSyncTokens }.associateBy { it.id }
                     _foods.value = result.data
                         ?.map { it.toPresentation() }
+                        ?.map { pending[it.id] ?: it }
                         ?.sortedBy { it.expiryDate }
                         .orEmpty()
                     _state.value = FridgeState.Success
@@ -232,28 +251,73 @@ class FridgeViewModel @Inject constructor(
      * 음식 정보 업데이트
      */
     fun updateFood(food: FoodModel) {
-        executeSingleAction(food.id) {
-            updateFoodUseCase(food.toDomain()).onEach { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        result.data?.toPresentation()?.let { updated ->
-                            _foods.value = _foods.value
-                                .map { if (it.id == updated.id) updated else it }
-                                .sortedBy { it.expiryDate }
-                        }
-                    }
+        val current = _foods.value.find { it.id == food.id } ?: return
+        // 화면에 먼저 반영 (서버 응답을 기다리지 않음)
+        confirmedFoods.putIfAbsent(food.id, current)
+        replaceFood(food)
 
-                    is Resource.Error -> _errorMessage.emit(FOOD_UPDATE_FAILED)
-                    is Resource.Loading -> Unit
-                }
+        val token = Any()
+        countSyncTokens[food.id] = token
+        countSyncJobs.remove(food.id)?.cancel()
+        countSyncJobs[food.id] = viewModelScope.launch {
+            // 연타는 마지막 값 하나로 모아서 전송
+            delay(COUNT_SYNC_DEBOUNCE_MS)
+            // 전송이 시작되면 새 탭이 와도 요청/결과 처리를 끝까지 마침
+            withContext(NonCancellable) {
+                syncFood(food.id, token)
             }
         }
+    }
+
+    private suspend fun syncFood(foodId: String, token: Any) {
+        val latest = _foods.value.find { it.id == foodId } ?: return
+        val result = updateFoodUseCase(latest.toDomain()).first { it !is Resource.Loading }
+        val isLatestChange = countSyncTokens[foodId] === token
+
+        when (result) {
+            is Resource.Success -> {
+                val synced = result.data?.toPresentation() ?: latest
+                if (isLatestChange) {
+                    clearCountSync(foodId)
+                    replaceFood(synced)
+                } else if (foodId in countSyncTokens) {
+                    // 더 최신 변경이 대기 중: 화면 값은 유지하고 되돌릴 기준만 갱신
+                    confirmedFoods[foodId] = synced
+                }
+            }
+
+            is Resource.Error -> {
+                // 더 최신 변경이 대기 중이면 그 요청이 최신 값을 다시 보냄
+                if (isLatestChange) {
+                    confirmedFoods[foodId]?.let { replaceFood(it) }
+                    clearCountSync(foodId)
+                    _errorMessage.emit(FOOD_UPDATE_FAILED)
+                }
+            }
+
+            is Resource.Loading -> Unit
+        }
+    }
+
+    private fun replaceFood(food: FoodModel) {
+        _foods.value = _foods.value
+            .map { if (it.id == food.id) food else it }
+            .sortedBy { it.expiryDate }
+    }
+
+    private fun clearCountSync(foodId: String) {
+        countSyncTokens.remove(foodId)
+        countSyncJobs.remove(foodId)
+        confirmedFoods.remove(foodId)
     }
 
     /**
      * 음식 삭제
      */
     fun deleteFood(food: FoodModel) {
+        // 아직 보내지 않은 수량 변경은 삭제할 음식이므로 취소
+        countSyncJobs[food.id]?.cancel()
+        clearCountSync(food.id)
         executeSingleAction(food.id) {
             deleteFoodUseCase(food.id).onEach { result ->
                 when (result) {
@@ -368,4 +432,4 @@ sealed class RecipeGenerationState {
 sealed class RecipeGenerationEvent {
     data object Success : RecipeGenerationEvent()
     data class Error(val message: String) : RecipeGenerationEvent()
-}
+}
