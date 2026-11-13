@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -114,7 +120,20 @@ private fun FoodListContent(
                 .padding(top = 28.dp, start = 16.dp, end = 16.dp)
         )
     } else {
+        val gridState = rememberLazyGridState()
+        // 맨 앞 항목이 바뀌면(영수증/직접 추가로 소비기한이 더 빠른 음식이 생기면) 맨 위로 이동
+        // (key 기준으로 보던 위치를 유지하면 새 항목이 화면 위로 밀려 안 보임)
+        var lastFirstId by remember { mutableStateOf(foods.first().id) }
+        LaunchedEffect(foods.first().id) {
+            val firstId = foods.first().id
+            if (firstId != lastFirstId) {
+                lastFirstId = firstId
+                gridState.animateScrollToItem(0)
+            }
+        }
+
         LazyVerticalGrid(
+            state = gridState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 28.dp, start = 16.dp, end = 16.dp)
